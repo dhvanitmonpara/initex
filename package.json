@@ -1,0 +1,16 @@
+{
+  "name": "rapid-express-cli",
+  "version": "1.0.3",
+  "bin": {
+    "rapid-express": "index.js"
+  },
+  "main": "setup.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "description": "A simple and interactive CLI tool to quickly set up an Express.js project with best practices",
+  "dependencies": {
+    "inquirer": "^12.4.1"
+  }
+}
