@@ -548,7 +548,7 @@ function generateSequelizeContent(answers) {
 import { Sequelize } from "sequelize";
 
 const dialect = process.env.DB_TYPE === 'MySQL' ? 'mysql' : 'postgres';
-const connectionString = process.env[ dialect === 'MySQL' ? 'MYSQL_URI' : 'POSTGRES_URI' ];
+const connectionString = process.env[ dialect === 'mysql' ? 'MYSQL_URI' : 'POSTGRES_URI' ];
 
 if (!connectionString) {
   throw new Error('Database connection URI is not set');
