@@ -8,10 +8,18 @@ import path from "path";
 // ----------------------
 // Utility Functions
 // ----------------------
-function createFile(filePath, content) {
-  fs.writeFileSync(filePath, content, "utf8");
-  console.log(`Created ${filePath}`);
-}
+const createFile = (filePath, content) => {
+  const dir = path.dirname(filePath);
+
+  // Ensure directory exists before writing the file
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true }); // Create directory recursively if it doesn't exist
+  }
+
+  fs.writeFileSync(filePath, content, 'utf8');
+  console.log(`✅ Created ${filePath}`);
+};
+
 
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
