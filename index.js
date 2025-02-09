@@ -473,7 +473,7 @@ export default connectDB;
 import { Pool } from 'pg';
 import { DB_NAME } from '../constants';
 
-const connectPostgres = async () => {
+const connectDB = async () => {
   try {
     // Construct the connection string. In production, you might append the DB_NAME.
     const connectionString = process.env.ENVIRONMENT === 'production'
@@ -497,14 +497,14 @@ const connectPostgres = async () => {
   }
 };
 
-export default connectPostgres;
+export default connectDB;
     `.trim();
     case "MySQL":
       return `
 import mysql from 'mysql2/promise';
 import { DB_NAME } from '../constants';
 
-const connectMySQL = async () => {
+const connectDB = async () => {
   try {
     // Create a configuration object using environment variables.
     const connectionConfig = {
@@ -531,7 +531,7 @@ const connectMySQL = async () => {
   }
 };
 
-export default connectMySQL;
+export default connectDB;
       `.trim();
   }
 }
@@ -709,7 +709,7 @@ async function createProjectFiles(answers) {
     } else if (answers.dbType === "PostgreSQL") {
       envContent = `PORT=8000\nPOSTGRES_URI=${answers.dbConnectionString || "your_db_connection_string"}\nDB_TYPE=postgres\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
     } else {
-      envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbConnectionString || "your_db_connection_string"}\nDB_TYPE=MySQL\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
+      envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbName || "your_db_name"}\nDB_TYPE=MySQL\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
     }
     createFile(".env", envContent);
   }
@@ -826,13 +826,20 @@ async function setupProject() {
       name: "dbConnectionString",
       message: "Enter the database connection string:",
       default: "mongodb://localhost:27017",
-      when: (answers) => answers.useDatabase
+      when: (answers) => answers.useDatabase && answers.dbType === "MongoDB",
+    },
+    {
+      type: "input",
+      name: "dbConnectionString",
+      message: "Enter the database connection string:",
+      default: "postgres://postgres:password@localhost:5432",
+      when: (answers) => answers.useDatabase && answers.dbType === "PostgreSQL",
     },
     {
       type: "input",
       name: "dbName",
       message: "Enter the database name:",
-      default: "db-name",
+      default: "my_database",
       when: (answers) => answers.useDatabase,
     },
     {
