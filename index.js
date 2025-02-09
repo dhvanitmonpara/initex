@@ -77,7 +77,7 @@ function generateAppContent(answers) {
       content = `
 import express from 'express';
 import { Server } from 'socket.io';
-import routes from './routes/index';
+import routes from './routes/healthRoute';
 import cors from "cors";
 import http from 'http';
 
@@ -116,7 +116,7 @@ export default app;
     } else {
       content = `
 import express from 'express';
-import routes from './routes/index';
+import routes from './routes/healthRoute';
 import cors from "cors";
 
 const app = express();
@@ -146,7 +146,7 @@ export default app;
       content = `
 import express from 'express';
 import { Server } from 'socket.io';
-import routes from './routes/index.js';
+import routes from './routes/healthRoute.js';
 import cors from "cors";
 import http from 'http';
 
@@ -185,7 +185,7 @@ export default app;
     } else {
       content = `
 import express from 'express';
-import routes from './routes/index.js';
+import routes from './routes/healthRoute.js';
 import cors from "cors";
 
 const app = express();
