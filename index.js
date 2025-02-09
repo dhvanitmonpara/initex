@@ -20,11 +20,10 @@ const createFile = (filePath, content) => {
   console.log(`✅ Created ${filePath}`);
 };
 
-
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
-    console.log(`Created directory ${dirPath}`);
+    console.log(`✅ Created ${dirPath}`);
   }
 }
 
@@ -546,10 +545,10 @@ export default connectDB;
 
 function generateSequelizeContent(answers) {
   return `
-const { Sequelize } = require('sequelize');
+import { Sequelize } from "sequelize";
 
-const dialect = process.env.DB_TYPE === 'mysql' ? 'mysql' : 'postgres';
-const connectionString = process.env[ dialect === 'mysql' ? 'MYSQL_URI' : 'POSTGRES_URI' ];
+const dialect = process.env.DB_TYPE === 'MySQL' ? 'mysql' : 'postgres';
+const connectionString = process.env[ dialect === 'MySQL' ? 'MYSQL_URI' : 'POSTGRES_URI' ];
 
 if (!connectionString) {
   throw new Error('Database connection URI is not set');
@@ -842,6 +841,13 @@ async function setupProject() {
       message: "Enter the database connection string:",
       default: "postgres://postgres:password@localhost:5432",
       when: (answers) => answers.useDatabase && answers.dbType === "PostgreSQL",
+    },
+    {
+      type: "input",
+      name: "dbConnectionString",
+      message: "Enter the database connection string:",
+      default: "mysql://root:password@localhost:3306",
+      when: (answers) => answers.useDatabase && answers.dbType === "MySQL",
     },
     {
       type: "input",
