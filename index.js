@@ -697,27 +697,26 @@ async function createProjectFiles(answers) {
   }
   // Ensure constants file exists
   createConstantsFile(answers, baseFolder);
-}
 
-// .gitignore
-createFile(".gitignore", "node_modules/\ndist/\n.env");
+  // .gitignore
+  createFile(".gitignore", "node_modules/\ndist/\n.env");
 
-// .env file
-if (answers.createEnv) {
-  let envContent = "";
-  if (answers.dbType === "MongoDB") {
-    envContent = `PORT=8000\nMONGODB_URI=${answers.dbConnectionString || "your_db_connection_string"}\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
-  } else if (answers.dbType === "PostgreSQL") {
-    envContent = `PORT=8000\nPOSTGRES_URI=${answers.dbConnectionString || "your_db_connection_string"}\nDB_TYPE=postgres\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
-  } else {
-    envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbConnectionString || "your_db_connection_string"}\nDB_TYPE=MySQL\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
+  // .env file
+  if (answers.createEnv) {
+    let envContent = "";
+    if (answers.dbType === "MongoDB") {
+      envContent = `PORT=8000\nMONGODB_URI=${answers.dbConnectionString || "your_db_connection_string"}\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
+    } else if (answers.dbType === "PostgreSQL") {
+      envContent = `PORT=8000\nPOSTGRES_URI=${answers.dbConnectionString || "your_db_connection_string"}\nDB_TYPE=postgres\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
+    } else {
+      envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbConnectionString || "your_db_connection_string"}\nDB_TYPE=MySQL\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
+    }
+    createFile(".env", envContent);
   }
-  createFile(".env", envContent);
-}
 
-// README.md
-if (answers.createReadme) {
-  const readmeContent = `# Express Project
+  // README.md
+  if (answers.createReadme) {
+    const readmeContent = `# Express Project
 
 This project was generated using the Express Setup Script.
 
@@ -727,43 +726,43 @@ This project was generated using the Express Setup Script.
 ${answers.setupNodemon ? "- \`npm run dev\`: Runs the app in development mode with nodemon.\n" : ""}
 ${answers.useTypeScript ? "- \`npm run build\`: Builds the TypeScript code.\n" : ""}
 `;
-  createFile("README.md", readmeContent);
-}
+    createFile("README.md", readmeContent);
+  }
 
-// ecosystem.config.js for PM2
-if (answers.setupPM2) {
-  const ecosystemContent = answers.useTypeScript
-    ? `
-module.exports = {
-  apps: [
-    {
-      name: 'app',
-      script: 'dist/index.js',
+  // ecosystem.config.js for PM2
+  if (answers.setupPM2) {
+    const ecosystemContent = answers.useTypeScript
+      ? `
+  module.exports = {
+    apps: [
+      {
+        name: 'app',
+        script: 'dist/index.js',
       instances: 'max',
       exec_mode: 'cluster',
     },
   ],
 };
       `.trim()
-    : `
-module.exports = {
-  apps: [
-    {
-      name: 'app',
+      : `
+    module.exports = {
+      apps: [
+        {
+          name: 'app',
       script: 'index.js',
       instances: 'max',
       exec_mode: 'cluster',
-    },
+      },
   ],
 };
       `.trim();
-  createFile("ecosystem.config.js", ecosystemContent);
-}
+    createFile("ecosystem.config.js", ecosystemContent);
+  }
 
-// Dockerfile
-if (answers.setupDocker) {
-  const dockerfileContent = answers.useTypeScript
-    ? `
+  // Dockerfile
+  if (answers.setupDocker) {
+    const dockerfileContent = answers.useTypeScript
+      ? `
 # Build stage
 FROM node:16 as builder
 WORKDIR /app
@@ -781,19 +780,20 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 8000
 CMD ["node", "dist/index.js"]
       `.trim()
-    : `
-FROM node:16
-WORKDIR /app
-COPY package*.json ./
+      : `
+      FROM node:16
+      WORKDIR /app
+      COPY package*.json ./
 RUN npm install --production
 COPY . .
 EXPOSE 8000
 CMD ["node", "index.js"]
       `.trim();
-  createFile("Dockerfile", dockerfileContent);
-}
+    createFile("Dockerfile", dockerfileContent);
+  }
 
-await updatePackageJsonScripts(answers, baseFolder);
+  await updatePackageJsonScripts(answers, baseFolder);
+}
 
 // ----------------------
 // Main Setup Function
