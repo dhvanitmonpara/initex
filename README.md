@@ -28,4 +28,4 @@ rapid-express
 
 🎯 **Save time and focus on building features, not setting up projects!**  
 
-👉 [GitHub Repo]("https://github.com/Dhvanitmonpara/rapid-express-cli")  
+👉 GitHub Repo: https://github.com/Dhvanitmonpara/rapid-express-cli
