@@ -4,6 +4,8 @@
   "bin": {
     "rapid-express": "index.js"
   },
+  "repository": "https://github.com/Dhvanitmonpara/rapid-express-cli",
+  "homepage": "https://github.com/Dhvanitmonpara/rapid-express-cli",
   "main": "setup.js",
   "keywords": [],
   "author": "",

@@ -106,6 +106,11 @@ io.on('connection', (socket) => {
   // define your function
 });
 
+// routes
+import healthRouter from "./routes/healthRoute"
+
+app.use("/api/v1/users", healthRouter)
+
 export default app;
       `.trim();
     } else {
@@ -127,6 +132,11 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.options('*', cors());
 app.use('/', routes);
+
+// routes
+import healthRouter from "./routes/healthRoute"
+
+app.use("/api/v1/users", healthRouter)
 
 export default app;
       `.trim();
@@ -165,6 +175,11 @@ io.on('connection', (socket) => {
   // define your function
 });
 
+// routes
+import healthRouter from "./routes/healthRoute.js"
+
+app.use("/api/v1/users", healthRouter)
+
 export default app;
       `.trim();
     } else {
@@ -186,6 +201,11 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.options('*', cors());
 app.use('/', routes);
+
+// routes
+import healthRouter from "./routes/healthRoute.js"
+
+app.use("/api/v1/users", healthRouter)
 
 export default app;
       `.trim();
@@ -261,7 +281,7 @@ function generateRoutesContent(answers) {
   return answers.useTypeScript
     ? `
 import { Router } from 'express';
-import { healthCheck } from '../controllers/homeController';
+import { healthCheck } from '../controllers/healthController';
 
 const router = Router();
 router.get('/', healthCheck);
@@ -270,7 +290,7 @@ export default router;
     `.trim()
     : `
 import { Router } from 'express';
-import { healthCheck } from '../controllers/homeController.js';
+import { healthCheck } from '../controllers/healthController.js';
 
 const router = Router();
 router.get('/', healthCheck);
@@ -520,17 +540,17 @@ async function createProjectFiles(answers) {
   // routes file
   const routesContent = generateRoutesContent(answers);
   if (answers.useTypeScript) {
-    createFile(path.join(baseFolder, "routes", "index.ts"), routesContent);
+    createFile(path.join(baseFolder, "routes", "healthRoute.ts"), routesContent);
   } else {
-    createFile(path.join("routes", "index.js"), routesContent);
+    createFile(path.join("routes", "healthRoute.js"), routesContent);
   }
 
   // controller file
   const controllerContent = generateControllerContent(answers);
   if (answers.useTypeScript) {
-    createFile(path.join(baseFolder, "controllers", "homeController.ts"), controllerContent);
+    createFile(path.join(baseFolder, "controllers", "healthController.ts"), controllerContent);
   } else {
-    createFile(path.join("controllers", "homeController.js"), controllerContent);
+    createFile(path.join("controllers", "healthController.js"), controllerContent);
   }
 
   // utils/ApiHelpers file
