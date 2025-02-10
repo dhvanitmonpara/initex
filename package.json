@@ -1,6 +1,6 @@
 {
   "name": "rapid-express-cli",
-  "version": "1.2.3",
+  "version": "1.2.5",
   "bin": {
     "rapid-express": "index.js"
   },

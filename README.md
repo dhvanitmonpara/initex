@@ -1,4 +1,4 @@
-# express-init-cli  
+# rapid-express-cli  
 
 🚀 **A simple and interactive CLI tool to quickly set up an Express.js project with best practices.**  
 
