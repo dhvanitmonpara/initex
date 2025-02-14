@@ -559,7 +559,7 @@ const sequelize = new Sequelize(connectionString, {
   // add extra options as needed
 });
 
-module.exports = sequelize;
+export default sequelize;
   `.trim()
 }
 
