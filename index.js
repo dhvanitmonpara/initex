@@ -442,7 +442,7 @@ import { DB_NAME } from "../constants";
 const connectDB = async () => {
   try {
     const connectionString = process.env.ENVIRONMENT === "production" 
-      ? \`\${process.env.MONGODB_URI}/\${DB_NAME}\` 
+      ? \`\${process.env.MONGODB_URI}\${DB_NAME}\` 
       : process.env.MONGODB_URI;
     if (!connectionString) throw new Error("MONGODB_URI is not set");
     await mongoose.connect(connectionString);
@@ -462,7 +462,7 @@ import { DB_NAME } from "../constants.js";
 const connectDB = async () => {
   try {
     const connectionString = process.env.ENVIRONMENT === "production"
-      ? \`\${process.env.MONGODB_URI}/\${DB_NAME}\`
+      ? \`\${process.env.MONGODB_URI}\${DB_NAME}\`
       : process.env.MONGODB_URI;
     if (!connectionString) throw new Error("MONGODB_URI is not set");
     await mongoose.connect(connectionString);
@@ -484,7 +484,7 @@ const connectDB = async () => {
   try {
     // Construct the connection string. In production, you might append the DB_NAME.
     const connectionString = process.env.ENVIRONMENT === 'production'
-      ? \`\${process.env.POSTGRES_URI}/\${DB_NAME}\`
+      ? \`\${process.env.POSTGRES_URI}\${DB_NAME}\`
       : process.env.POSTGRES_URI;
 
     if (!connectionString) {
@@ -573,7 +573,8 @@ const sampleSchema = new mongoose.Schema({
   name: { type: String, required: true },
 });
 
-export default mongoose.model('Sample', sampleSchema);
+const Sample = mongoose.model('Sample', sampleSchema);
+export default Sample
     `.trim()
       : `
 const mongoose = require('mongoose');
@@ -582,7 +583,8 @@ const sampleSchema = new mongoose.Schema({
   name: { type: String, required: true },
 });
 
-module.exports = mongoose.model('Sample', sampleSchema);
+const Sample = mongoose.model('Sample', sampleSchema);
+export default Sample
     `.trim();
   } else {
     return `
@@ -832,7 +834,7 @@ async function setupProject() {
       type: "input",
       name: "dbConnectionString",
       message: "Enter the database connection string:",
-      default: "mongodb://localhost:27017",
+      default: "mongodb://localhost:27017/",
       when: (answers) => answers.useDatabase && answers.dbType === "MongoDB",
     },
     {
