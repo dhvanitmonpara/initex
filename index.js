@@ -20,6 +20,27 @@ const createFile = (filePath, content) => {
   console.log(`✅ Created ${filePath}`);
 };
 
+function readFileContent(filePath) {
+  return new Promise((resolve, reject) => {
+    const absolutePath = path.resolve(filePath);
+
+    fs.readFile(absolutePath, 'utf8', (err, data) => {
+      if (err) {
+        return reject(new Error(`Failed to read file at "${absolutePath}": ${err.message}`));
+      }
+      resolve(data);
+    });
+  });
+}
+
+function extractFileContent(filePath) {
+  if (ensureDir(path.dirname(filePath))) {
+    return readFileContent(filePath);
+  } else {
+    return "";
+  }
+}
+
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
@@ -78,528 +99,76 @@ function createConstantsFile(answers, baseFolder) {
 // ----------------------
 function generateAppContent(answers) {
   const isTS = answers.useTypeScript;
-  let content = "";
   if (isTS) {
     if (answers.useSocket) {
-      content = `
-import express from 'express';
-import { Server } from 'socket.io';
-import routes from './routes/healthRoute';
-import cors from "cors";
-import http from 'http';
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.ACCESS_CONTROL_ORIGIN,
-    methods: ["GET", "POST"],
-  },
-});
-const corsOptions = {
-  origin: process.env.ACCESS_CONTROL_ORIGIN,
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-app.use(express.json({ limit: "16kb" }));
-app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-app.use(express.static("public"));
-app.options('*', cors());
-app.use('/', routes);
-
-io.on('connection', (socket) => {
-  // define your function
-});
-
-// routes
-import healthRouter from "./routes/healthRoute"
-
-app.use("/api/v1/users", healthRouter)
-
-export default app;
-      `.trim();
+      return extractFileContent("./templates/app/ts-socket.ts").trim();
     } else {
-      content = `
-import express from 'express';
-import routes from './routes/healthRoute';
-import cors from "cors";
-
-const app = express();
-const corsOptions = {
-  origin: process.env.ACCESS_CONTROL_ORIGIN,
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-app.use(express.json({ limit: "16kb" }));
-app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-app.use(express.static("public"));
-app.options('*', cors());
-app.use('/', routes);
-
-// routes
-import healthRouter from "./routes/healthRoute"
-
-app.use("/api/v1/users", healthRouter)
-
-export default app;
-      `.trim();
+      return extractFileContent("./templates/app/ts-boiler.ts").trim();
     }
   } else {
     if (answers.useSocket) {
-      content = `
-import express from 'express';
-import { Server } from 'socket.io';
-import routes from './routes/healthRoute.js';
-import cors from "cors";
-import http from 'http';
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.ACCESS_CONTROL_ORIGIN,
-    methods: ["GET", "POST"],
-  },
-});
-const corsOptions = {
-  origin: process.env.ACCESS_CONTROL_ORIGIN,
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-app.use(express.json({ limit: "16kb" }));
-app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-app.use(express.static("public"));
-app.options('*', cors());
-app.use('/', routes);
-
-io.on('connection', (socket) => {
-  // define your function
-});
-
-// routes
-import healthRouter from "./routes/healthRoute.js"
-
-app.use("/api/v1/users", healthRouter)
-
-export default app;
-      `.trim();
+      return extractFileContent("./templates/app/js-socket.js").trim();
     } else {
-      content = `
-import express from 'express';
-import routes from './routes/healthRoute.js';
-import cors from "cors";
-
-const app = express();
-const corsOptions = {
-  origin: process.env.ACCESS_CONTROL_ORIGIN,
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-app.use(express.json({ limit: "16kb" }));
-app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-app.use(express.static("public"));
-app.options('*', cors());
-app.use('/', routes);
-
-// routes
-import healthRouter from "./routes/healthRoute.js"
-
-app.use("/api/v1/users", healthRouter)
-
-export default app;
-      `.trim();
+      return extractFileContent("./templates/app/js-boiler.js").trim();
     }
   }
-  return content;
 }
 
 function generateMainContent(answers) {
   const isTS = answers.useTypeScript;
   if (answers.useDatabase) {
     return isTS
-      ? `
-import connectDB from "./db/index";
-import dotenv from "dotenv";
-import app from "./app";
-
-const port = process.env.PORT || 8000;
-dotenv.config({ path: './.env' });
-
-connectDB().then(() => {
-  app.listen(port, () => {
-    console.log(\`Server is listening to port \${port}\`);
-  });
-  app.on("error", (error) => {
-    console.log("ERROR: ", error);
-    throw error;
-  });
-}).catch((error) => {
-  console.log("MongoDB connection failed: ", error);
-});
-      `.trim()
-      : `
-import dotenv from "dotenv";
-import connectDB from "./db/index.js";
-import app from "./app.js";
-
-const port = process.env.PORT || 8000;
-dotenv.config({ path: './.env' });
-
-connectDB().then(() => {
-  app.listen(port, () => console.log(\`Server running on port \${port}\`));
-}).catch((error) => {
-  console.log("MongoDB connection failed: ", error);
-});
-      `.trim();
+      ? extractFileContent("./templates/main/ts-db.ts").trim()
+      : extractFileContent("./templates/main/js-db.js").trim();
   } else {
     return isTS
-      ? `
-import dotenv from "dotenv";
-import app from "./app";
-
-const port = process.env.PORT || 8000;
-dotenv.config({ path: './.env' });
-
-app.listen(port, () => {
-  console.log(\`Server is listening to port \${port}\`);
-});
-      `.trim()
-      : `
-import dotenv from "dotenv";
-import app from "./app.js";
-
-const port = process.env.PORT || 8000;
-dotenv.config({ path: './.env' });
-
-app.listen(port, () => console.log(\`Server running on port \${port}\`));
-      `.trim();
+      ? extractFileContent("./templates/main/ts-boiler.ts").trim()
+      : extractFileContent("./templates/main/js-boiler.js").trim()
   }
 }
 
 function generateRoutesContent(answers) {
   return answers.useTypeScript
-    ? `
-import { Router } from 'express';
-import { healthCheck } from '../controllers/healthController';
-
-const router = Router();
-router.get('/', healthCheck);
-
-export default router;
-    `.trim()
-    : `
-import { Router } from 'express';
-import { healthCheck } from '../controllers/healthController.js';
-
-const router = Router();
-router.get('/', healthCheck);
-
-export default router;
-    `.trim();
+    ? extractFileContent("./templates/routes/ts.ts").trim()
+    : extractFileContent("./templates/routes/js.js").trim()
 }
 
 function generateControllerContent(answers) {
   return answers.useTypeScript
-    ? `
-import { Request, Response, NextFunction } from "express";
-import { ApiResponse, AsyncHandler } from "../utils/ApiHelpers";
-
-const healthCheck = AsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    return res.status(200).json(new ApiResponse(200, {}, "Server is healthy"));
-  }
-);
-
-export { healthCheck };
-    `.trim()
-    : `
-import { ApiResponse, AsyncHandler } from "../utils/ApiHelpers.js";
-
-const healthCheck = AsyncHandler(async (req, res) => {
-  return res.status(200).json(new ApiResponse(200, {}, "Server is healthy"));
-});
-
-export { healthCheck };
-    `.trim();
+    ? extractFileContent("./templates/controllers/ts.ts").trim()
+    : extractFileContent("./templates/controllers/js.js").trim()
 }
 
 function generateApiHelpersContent(answers) {
   return answers.useTypeScript
-    ? `
-import { Request, Response, NextFunction } from "express";
-
-export class ApiError extends Error {
-  statusCode: number;
-  data: any;
-  success: boolean;
-  errors: any[];
-
-  constructor(
-    statusCode: number,
-    message: string = "Something went wrong",
-    errors: any[] = [],
-    stack: string = ""
-  ) {
-    super(message);
-    this.statusCode = statusCode;
-    this.data = null;
-    this.success = false;
-    this.errors = errors;
-    if (stack) {
-      this.stack = stack;
-    } else {
-      Error.captureStackTrace(this, this.constructor);
-    }
-  }
-}
-
-export class ApiResponse {
-  statusCode: number;
-  data: any;
-  message: string;
-  success: boolean;
-
-  constructor(statusCode: number, data: any, message: string = "Success") {
-    this.statusCode = statusCode;
-    this.data = data;
-    this.message = message;
-    this.success = statusCode < 400;
-  }
-}
-
-export const AsyncHandler = (
-  requestHandler: (req: Request, res: Response, next: NextFunction) => Promise<any>
-) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    try {
-      return await requestHandler(req, res, next);
-    } catch (error: any) {
-      res.status(error.code || 500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
-};
-    `.trim()
-    : `
-class ApiError extends Error {
-  constructor(statusCode, message = "Something went wrong", errors = [], stack = "") {
-    super(message);
-    this.statusCode = statusCode;
-    this.data = null;
-    this.message = message;
-    this.success = false;
-    this.errors = errors;
-    if (stack) {
-      this.stack = stack;
-    } else {
-      Error.captureStackTrace(this, this.constructor);
-    }
-  }
-}
-
-class ApiResponse {
-  constructor(statusCode, data, message = "Success") {
-    this.statusCode = statusCode;
-    this.data = data;
-    this.message = message;
-    this.success = statusCode < 400;
-  }
-}
-
-const AsyncHandler = (requestHandler) => async (req, res, next) => {
-  try {
-    return await requestHandler(req, res, next);
-  } catch (error) {
-    res.status(error.code || 500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-export { ApiError, ApiResponse, AsyncHandler };
-    `.trim();
+    ? extractFileContent("./templates/apiHelpers/ts.ts").trim()
+    : extractFileContent("./templates/apiHelpers/js.js").trim()
 }
 
 function generateDbConnectionContent(answers) {
   switch (answers.dbType) {
     case "MongoDB":
       return answers.useTypeScript
-        ? `
-import mongoose from "mongoose";
-import { DB_NAME } from "../constants";
-
-const connectDB = async () => {
-  try {
-    const connectionString = process.env.ENVIRONMENT === "production" 
-      ? \`\${process.env.MONGODB_URI}\${DB_NAME}\` 
-      : process.env.MONGODB_URI;
-    if (!connectionString) throw new Error("MONGODB_URI is not set");
-    await mongoose.connect(connectionString);
-    console.log("MongoDB connected");
-  } catch (error) {
-    console.log("MongoDB connection error:", error);
-    process.exit(1);
-  }
-};
-
-export default connectDB;
-    `.trim()
-        : `
-import mongoose from "mongoose";
-import { DB_NAME } from "../constants.js";
-
-const connectDB = async () => {
-  try {
-    const connectionString = process.env.ENVIRONMENT === "production"
-      ? \`\${process.env.MONGODB_URI}\${DB_NAME}\`
-      : process.env.MONGODB_URI;
-    if (!connectionString) throw new Error("MONGODB_URI is not set");
-    await mongoose.connect(connectionString);
-    console.log("MongoDB connected");
-  } catch (error) {
-    console.log("MongoDB connection error:", error);
-    process.exit(1);
-  }
-};
-
-export default connectDB;
-    `.trim();
+        ? extractFileContent("./templates/db/mongodb-ts.ts").trim()
+        : extractFileContent("./templates/db/mongodb-js.js").trim()
     case "PostgreSQL":
-      return `
-import { Pool } from 'pg';
-import { DB_NAME } from '../constants';
-
-const connectDB = async () => {
-  try {
-    // Construct the connection string. In production, you might append the DB_NAME.
-    const connectionString = process.env.ENVIRONMENT === 'production'
-      ? \`\${process.env.POSTGRES_URI}\${DB_NAME}\`
-      : process.env.POSTGRES_URI;
-
-    if (!connectionString) {
-      throw new Error("POSTGRES_URI is not set");
-    }
-
-    const pool = new Pool({ connectionString });
-
-    // Test the connection by running a simple query.
-    await pool.query('SELECT NOW()');
-    console.log("PostgreSQL connected");
-
-    return pool;
-  } catch (error) {
-    console.error("PostgreSQL connection error:", error);
-    process.exit(1);
-  }
-};
-
-export default connectDB;
-    `.trim();
+      return extractFileContent("./templates/db/postgres.js").trim()
     case "MySQL":
-      return `
-import mysql from 'mysql2/promise';
-import { DB_NAME } from '../constants';
-
-const connectDB = async () => {
-  try {
-    // Create a configuration object using environment variables.
-    const connectionConfig = {
-      host: process.env.MYSQL_HOST,
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.ENVIRONMENT === 'production'
-        ? DB_NAME
-        : process.env.MYSQL_DATABASE,
-    };
-
-    // Validate that essential connection info is provided.
-    if (!connectionConfig.host || !connectionConfig.user || !connectionConfig.database) {
-      throw new Error("MySQL connection configuration is not fully set");
-    }
-
-    const connection = await mysql.createConnection(connectionConfig);
-    console.log("MySQL connected");
-
-    return connection;
-  } catch (error) {
-    console.error("MySQL connection error:", error);
-    process.exit(1);
-  }
-};
-
-export default connectDB;
-      `.trim();
+      return extractFileContent("./templates/db/sql.js").trim()
   }
 }
 
-function generateSequelizeContent(answers) {
-  return `
-import { Sequelize } from "sequelize";
-
-const dialect = process.env.DB_TYPE === 'MySQL' ? 'mysql' : 'postgres';
-const connectionString = process.env[ dialect === 'mysql' ? 'MYSQL_URI' : 'POSTGRES_URI' ];
-
-if (!connectionString) {
-  throw new Error('Database connection URI is not set');
-}
-
-const sequelize = new Sequelize(connectionString, {
-  dialect, // 'mysql' or 'postgres'
-  // add extra options as needed
-});
-
-export default sequelize;
-  `.trim()
+function generateSequelizeContent() {
+  return extractFileContent("./templates/db/sequelize.js").trim()
 }
 
 function generateModelContent(answers) {
   if (answers.dbType === "MongoDB") {
     return answers.useTypeScript
-      ? `
-import mongoose from 'mongoose';
-
-const sampleSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-});
-
-const Sample = mongoose.model('Sample', sampleSchema);
-export default Sample
-    `.trim()
-      : `
-const mongoose = require('mongoose');
-
-const sampleSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-});
-
-const Sample = mongoose.model('Sample', sampleSchema);
-export default Sample
-    `.trim();
+      ? extractFileContent("./templates/models/mongodb-ts.ts").trim()
+      : extractFileContent("./templates/models/mongodb-js.js").trim()
   } else {
-    return `
-import { DataTypes } from 'sequelize';
-import sequelize from '../db/sequelize';
-
-const Sample = sequelize.define('Sample', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-});
-
-export default Sample;
-      `.trim()
+    return extractFileContent("./templates/models/sql-js.js").trim()
   }
 }
 
@@ -738,69 +307,6 @@ ${answers.useTypeScript ? "- \`npm run build\`: Builds the TypeScript code.\n" :
     createFile("README.md", readmeContent);
   }
 
-  // ecosystem.config.js for PM2
-  if (answers.setupPM2) {
-    const ecosystemContent = answers.useTypeScript
-      ? `
-  module.exports = {
-    apps: [
-      {
-        name: 'app',
-        script: 'dist/index.js',
-      instances: 'max',
-      exec_mode: 'cluster',
-    },
-  ],
-};
-      `.trim()
-      : `
-    module.exports = {
-      apps: [
-        {
-          name: 'app',
-      script: 'index.js',
-      instances: 'max',
-      exec_mode: 'cluster',
-      },
-  ],
-};
-      `.trim();
-    createFile("ecosystem.config.js", ecosystemContent);
-  }
-
-  // Dockerfile
-  if (answers.setupDocker) {
-    const dockerfileContent = answers.useTypeScript
-      ? `
-# Build stage
-FROM node:16 as builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npx tsc
-
-# Production stage
-FROM node:16
-WORKDIR /app
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-EXPOSE 8000
-CMD ["node", "dist/index.js"]
-      `.trim()
-      : `
-      FROM node:16
-      WORKDIR /app
-      COPY package*.json ./
-RUN npm install --production
-COPY . .
-EXPOSE 8000
-CMD ["node", "index.js"]
-      `.trim();
-    createFile("Dockerfile", dockerfileContent);
-  }
-
   await updatePackageJsonScripts(answers, baseFolder);
 }
 
@@ -899,18 +405,6 @@ async function setupProject() {
     },
     {
       type: "confirm",
-      name: "setupPM2",
-      message: "Do you want to set up PM2 for process management?",
-      default: false,
-    },
-    {
-      type: "confirm",
-      name: "setupDocker",
-      message: "Do you want to set up a Dockerfile for deployment?",
-      default: false,
-    },
-    {
-      type: "confirm",
       name: "createEnv",
       message: "Do you want to generate a sample .env file?",
       default: true,
@@ -942,7 +436,6 @@ async function setupProject() {
     if (answers.useTypeScript)
       devDependencies.push("typescript", "ts-node", "@types/node", "@types/express");
     if (answers.setupNodemon) devDependencies.push("nodemon");
-    if (answers.setupPM2) dependencies.push("pm2");
 
     execSync(`npm install ${dependencies.join(" ")}`, { stdio: "inherit" });
     if (devDependencies.length > 0) {

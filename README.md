@@ -7,7 +7,6 @@
 - **Database Support** – Select from MongoDB, MySQL, or other databases.  
 - **Socket.io Integration** – Easily add real-time communication.  
 - **TypeScript or JavaScript** – Your choice!  
-- **PM2 & Docker** – Optional setup for better deployment and process management.  
 - **Clean Folder Structure** – Auto-generates `routes/`, `controllers/`, `models/`, etc.  
 
 ### 📦 Installation  
