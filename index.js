@@ -5,177 +5,11 @@ import minimist from "minimist";
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import { createConstantsFile } from './generators/constantFile.js'
+import { generateApiHelpersContent, generateAppContent, generateControllerContent, generateDbConnectionContent, generateMainContent, generateModelContent, generateRoutesContent, generateSequelizeContent } from './generators/contentGenerators.js'
+import { updatePackageJsonScripts } from "./generators/packageJson.js"
+import { createFile, ensureDir } from "./utils/file.js"
 
-// ----------------------
-// Utility Functions
-// ----------------------
-const createFile = (filePath, content) => {
-  const dir = path.dirname(filePath);
-
-  // Ensure directory exists before writing the file
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true }); // Create directory recursively if it doesn't exist
-  }
-
-  fs.writeFileSync(filePath, content, 'utf8');
-  console.log(`✅ Created ${filePath}`);
-};
-
-function readFileContent(filePath) {
-  return new Promise((resolve, reject) => {
-    const absolutePath = path.resolve(filePath);
-
-    fs.readFile(absolutePath, 'utf8', (err, data) => {
-      if (err) {
-        return reject(new Error(`Failed to read file at "${absolutePath}": ${err.message}`));
-      }
-      resolve(data);
-    });
-  });
-}
-
-function extractFileContent(filePath) {
-  if (ensureDir(path.dirname(filePath))) {
-    return readFileContent(filePath);
-  } else {
-    return "";
-  }
-}
-
-function ensureDir(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-    console.log(`✅ Created ${dirPath}`);
-  }
-}
-
-function getExtension(answers) {
-  return answers.useTypeScript ? "ts" : "js";
-}
-
-// ----------------------
-// Package JSON Updater
-// ----------------------
-async function updatePackageJsonScripts(answers, baseFolder = ".") {
-  const pkgPath = `./${baseFolder}/package.json`;
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-  if (answers.useTypeScript) {
-    pkg.scripts = {
-      ...pkg.scripts,
-      build: "tsc",
-      start: "node dist/index.js",
-    };
-    if (answers.setupNodemon) {
-      pkg.scripts.dev = "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts";
-    }
-  } else {
-    pkg.scripts = {
-      ...pkg.scripts,
-      start: "node index.js",
-    };
-    if (answers.setupNodemon) {
-      pkg.scripts.dev = "nodemon index.js";
-    }
-    pkg.type = "module"; // ensure ESM
-  }
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-  console.log("Updated package.json scripts.");
-}
-
-// ----------------------
-// Constants File Creator
-// ----------------------
-function createConstantsFile(answers, baseFolder) {
-  const ext = getExtension(answers);
-  const fileName = path.join(baseFolder, `constants.${ext}`);
-  if (!fs.existsSync(fileName)) {
-    const dbName = answers.dbName ? answers.dbName : '"db-name"';
-    const content = `const DB_NAME = '${dbName}';\nconst appName = "AppName";\n\nexport { DB_NAME, appName };\n`;
-    createFile(fileName, content);
-  }
-}
-
-// ----------------------
-// Content Generators
-// ----------------------
-function generateAppContent(answers) {
-  const isTS = answers.useTypeScript;
-  if (isTS) {
-    if (answers.useSocket) {
-      return extractFileContent("./templates/app/ts-socket.ts").trim();
-    } else {
-      return extractFileContent("./templates/app/ts-boiler.ts").trim();
-    }
-  } else {
-    if (answers.useSocket) {
-      return extractFileContent("./templates/app/js-socket.js").trim();
-    } else {
-      return extractFileContent("./templates/app/js-boiler.js").trim();
-    }
-  }
-}
-
-function generateMainContent(answers) {
-  const isTS = answers.useTypeScript;
-  if (answers.useDatabase) {
-    return isTS
-      ? extractFileContent("./templates/main/ts-db.ts").trim()
-      : extractFileContent("./templates/main/js-db.js").trim();
-  } else {
-    return isTS
-      ? extractFileContent("./templates/main/ts-boiler.ts").trim()
-      : extractFileContent("./templates/main/js-boiler.js").trim()
-  }
-}
-
-function generateRoutesContent(answers) {
-  return answers.useTypeScript
-    ? extractFileContent("./templates/routes/ts.ts").trim()
-    : extractFileContent("./templates/routes/js.js").trim()
-}
-
-function generateControllerContent(answers) {
-  return answers.useTypeScript
-    ? extractFileContent("./templates/controllers/ts.ts").trim()
-    : extractFileContent("./templates/controllers/js.js").trim()
-}
-
-function generateApiHelpersContent(answers) {
-  return answers.useTypeScript
-    ? extractFileContent("./templates/apiHelpers/ts.ts").trim()
-    : extractFileContent("./templates/apiHelpers/js.js").trim()
-}
-
-function generateDbConnectionContent(answers) {
-  switch (answers.dbType) {
-    case "MongoDB":
-      return answers.useTypeScript
-        ? extractFileContent("./templates/db/mongodb-ts.ts").trim()
-        : extractFileContent("./templates/db/mongodb-js.js").trim()
-    case "PostgreSQL":
-      return extractFileContent("./templates/db/postgres.js").trim()
-    case "MySQL":
-      return extractFileContent("./templates/db/sql.js").trim()
-  }
-}
-
-function generateSequelizeContent() {
-  return extractFileContent("./templates/db/sequelize.js").trim()
-}
-
-function generateModelContent(answers) {
-  if (answers.dbType === "MongoDB") {
-    return answers.useTypeScript
-      ? extractFileContent("./templates/models/mongodb-ts.ts").trim()
-      : extractFileContent("./templates/models/mongodb-js.js").trim()
-  } else {
-    return extractFileContent("./templates/models/sql-js.js").trim()
-  }
-}
-
-// ----------------------
-// Create Project Structure
-// ----------------------
 async function createProjectFiles(answers) {
   const baseFolder = answers.useTypeScript ? `./${answers.projectName}/src` : `./${answers.projectName}`;
   if (answers.useTypeScript) ensureDir(baseFolder);
@@ -214,10 +48,10 @@ async function createProjectFiles(answers) {
         },
         include: [baseFolder],
       };
-      createFile(`./${answers.projectName}/tsconfig.json`, JSON.stringify(tsconfig, null, 2));
+      createFile(path.join(baseFolder, "tsconfig.json"), JSON.stringify(tsconfig, null, 2));
     }
   } else {
-    createFile("index.js", mainContent);
+    createFile(path.join(baseFolder, "index.js"), mainContent);
   }
 
   // routes file
@@ -278,7 +112,7 @@ async function createProjectFiles(answers) {
   createConstantsFile(answers, baseFolder);
 
   // .gitignore
-  createFile(`./${answers.projectName}/.gitignore`, "node_modules/\ndist/\n.env");
+  createFile(path.join(baseFolder, ".gitignore"), "node_modules/\ndist/\n.env");
 
   // .env file
   if (answers.createEnv) {
@@ -290,7 +124,7 @@ async function createProjectFiles(answers) {
     } else {
       envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbName || "your_db_name"}\nDB_TYPE=MySQL\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
     }
-    createFile(`./${answers.projectName}/.env`, envContent);
+    createFile(path.join(baseFolder, ".env"), envContent);
   }
 
   // README.md
@@ -305,7 +139,7 @@ This project was generated using the Express Setup Script.
 ${answers.setupNodemon ? "- \`npm run dev\`: Runs the app in development mode with nodemon.\n" : ""}
 ${answers.useTypeScript ? "- \`npm run build\`: Builds the TypeScript code.\n" : ""}
 `;
-    createFile(`./${answers.projectName}/README.md`, readmeContent);
+    createFile(path.join(baseFolder, "README.md"), readmeContent);
   }
 
   await updatePackageJsonScripts(answers, answers.projectName);
@@ -427,8 +261,11 @@ async function setupProject() {
 
   const answers = await inquirer.prompt(questions);
 
+  const normalizeProjectName = name => name === "." ? "" : name;
+  const normalizedProjectName = normalizeProjectName(projectName || answers.projectName);
+
   try {
-    const baseFolder = path.join(process.cwd(), projectName);
+    const baseFolder = path.join(process.cwd(), normalizedProjectName);
     ensureDir(baseFolder);
 
     const execOptions = { stdio: "inherit", cwd: baseFolder };
@@ -458,10 +295,9 @@ async function setupProject() {
 
     console.log("\n✅ Installation complete!");
     console.log("\n🗂 Creating project structure and files...");
-    const normalizeProjectName = name => name === "." ? "" : name;
     const finalAnswers = {
       ...answers,
-      projectName: normalizeProjectName(projectName || answers.projectName),
+      projectName: normalizedProjectName,
     };
     await createProjectFiles(finalAnswers);
   } catch (error) {
