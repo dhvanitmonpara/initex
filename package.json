@@ -1,18 +1,21 @@
 {
-  "name": "rapid-express-cli",
-  "version": "1.2.8",
+  "name": "initex",
+  "version": "1.0.5",
   "bin": {
-    "rapid-express": "index.js"
+    "initex": "index.js"
   },
-  "repository": "https://github.com/Dhvanitmonpara/rapid-express-cli",
-  "homepage": "https://github.com/Dhvanitmonpara/rapid-express-cli",
-  "main": "setup.js",
-  "keywords": [],
+  "repository": "https://github.com/Dhvanitmonpara/initex",
+  "homepage": "https://github.com/Dhvanitmonpara/initex",
+  "main": "index.js",
+  "keywords": [
+    "initex"
+  ],
   "author": "",
   "license": "ISC",
   "type": "module",
   "description": "A simple and interactive CLI tool to quickly set up an Express.js project with best practices",
   "dependencies": {
-    "inquirer": "^12.4.1"
+    "inquirer": "^12.4.1",
+    "minimist": "^1.2.8"
   }
 }

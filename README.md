@@ -1,4 +1,4 @@
-# rapid-express-cli  
+# Initex (Prev: Rapid-express-cli)
 
 🚀 **A simple and interactive CLI tool to quickly set up an Express.js project with best practices.**  
 
@@ -12,19 +12,19 @@
 ### 📦 Installation  
 Run the CLI using **npx**:  
 ```sh
-npx rapid-express-cli
+npx initex
 ```  
 Or install globally:  
 ```sh
-npm install -g rapid-express-cli
+npm install -g initex
 ```  
 
 ### 🛠 Usage  
 Simply run the command and follow the prompts:  
 ```sh
-rapid-express
+initex
 ```  
 
 🎯 **Save time and focus on building features, not setting up projects!**  
 
-👉 GitHub Repo: https://github.com/Dhvanitmonpara/rapid-express-cli
+👉 GitHub Repo: https://github.com/Dhvanitmonpara/initex

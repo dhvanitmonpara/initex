@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import inquirer from "inquirer";
+import minimist from "minimist";
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
@@ -55,8 +56,8 @@ function getExtension(answers) {
 // ----------------------
 // Package JSON Updater
 // ----------------------
-async function updatePackageJsonScripts(answers, baseFolder) {
-  const pkgPath = "./package.json";
+async function updatePackageJsonScripts(answers, baseFolder = ".") {
+  const pkgPath = `./${baseFolder}/package.json`;
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
   if (answers.useTypeScript) {
     pkg.scripts = {
@@ -176,7 +177,7 @@ function generateModelContent(answers) {
 // Create Project Structure
 // ----------------------
 async function createProjectFiles(answers) {
-  const baseFolder = answers.useTypeScript ? "src" : ".";
+  const baseFolder = answers.useTypeScript ? `./${answers.projectName}/src` : `./${answers.projectName}`;
   if (answers.useTypeScript) ensureDir(baseFolder);
 
   // Create essential folders
@@ -202,7 +203,7 @@ async function createProjectFiles(answers) {
   const mainContent = generateMainContent(answers);
   if (answers.useTypeScript) {
     createFile(path.join(baseFolder, "index.ts"), mainContent);
-    if (!fs.existsSync("tsconfig.json")) {
+    if (!fs.existsSync(`./${answers.projectName}/tsconfig.json`)) {
       const tsconfig = {
         compilerOptions: {
           target: "ES6",
@@ -213,7 +214,7 @@ async function createProjectFiles(answers) {
         },
         include: [baseFolder],
       };
-      createFile("tsconfig.json", JSON.stringify(tsconfig, null, 2));
+      createFile(`./${answers.projectName}/tsconfig.json`, JSON.stringify(tsconfig, null, 2));
     }
   } else {
     createFile("index.js", mainContent);
@@ -277,7 +278,7 @@ async function createProjectFiles(answers) {
   createConstantsFile(answers, baseFolder);
 
   // .gitignore
-  createFile(".gitignore", "node_modules/\ndist/\n.env");
+  createFile(`./${answers.projectName}/.gitignore`, "node_modules/\ndist/\n.env");
 
   // .env file
   if (answers.createEnv) {
@@ -289,7 +290,7 @@ async function createProjectFiles(answers) {
     } else {
       envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbName || "your_db_name"}\nDB_TYPE=MySQL\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
     }
-    createFile(".env", envContent);
+    createFile(`./${answers.projectName}/.env`, envContent);
   }
 
   // README.md
@@ -304,10 +305,10 @@ This project was generated using the Express Setup Script.
 ${answers.setupNodemon ? "- \`npm run dev\`: Runs the app in development mode with nodemon.\n" : ""}
 ${answers.useTypeScript ? "- \`npm run build\`: Builds the TypeScript code.\n" : ""}
 `;
-    createFile("README.md", readmeContent);
+    createFile(`./${answers.projectName}/README.md`, readmeContent);
   }
 
-  await updatePackageJsonScripts(answers, baseFolder);
+  await updatePackageJsonScripts(answers, answers.projectName);
 }
 
 // ----------------------
@@ -316,7 +317,21 @@ ${answers.useTypeScript ? "- \`npm run build\`: Builds the TypeScript code.\n" :
 async function setupProject() {
   console.log("\n🚀 Setting up your Express project...\n");
 
-  const answers = await inquirer.prompt([
+  const args = minimist(process.argv.slice(2));
+  const projectName = args._[0];
+
+  const questions = []
+
+  if (!projectName) {
+    questions.push({
+      type: "input",
+      name: "projectName",
+      message: "Enter your project name:",
+      default: "my-app"
+    });
+  }
+
+  questions.push(
     {
       type: "input",
       name: "expressVersion",
@@ -340,22 +355,15 @@ async function setupProject() {
       type: "input",
       name: "dbConnectionString",
       message: "Enter the database connection string:",
-      default: "mongodb://localhost:27017/",
-      when: (answers) => answers.useDatabase && answers.dbType === "MongoDB",
-    },
-    {
-      type: "input",
-      name: "dbConnectionString",
-      message: "Enter the database connection string:",
-      default: "postgres://postgres:password@localhost:5432",
-      when: (answers) => answers.useDatabase && answers.dbType === "PostgreSQL",
-    },
-    {
-      type: "input",
-      name: "dbConnectionString",
-      message: "Enter the database connection string:",
-      default: "mysql://root:password@localhost:3306",
-      when: (answers) => answers.useDatabase && answers.dbType === "MySQL",
+      when: (answers) => answers.useDatabase,
+      default: (answers) => {
+        const defaults = {
+          MongoDB: "mongodb://localhost:27017/",
+          PostgreSQL: "postgres://postgres:password@localhost:5432",
+          MySQL: "mysql://root:password@localhost:3306",
+        };
+        return defaults[answers.dbType] || "";
+      },
     },
     {
       type: "input",
@@ -415,12 +423,18 @@ async function setupProject() {
       message: "Do you want to generate a README.md file?",
       default: true,
     },
-  ]);
+  )
 
-  console.log("\n📦 Installing dependencies...");
+  const answers = await inquirer.prompt(questions);
 
   try {
-    execSync("npm init -y", { stdio: "inherit" });
+    const baseFolder = path.join(process.cwd(), projectName);
+    ensureDir(baseFolder);
+
+    const execOptions = { stdio: "inherit", cwd: baseFolder };
+
+    console.log("\n📦 Installing dependencies...");
+    execSync("npm init -y", execOptions);
 
     let dependencies = [`express@${answers.expressVersion}`, "dotenv", "cors"];
     let devDependencies = [];
@@ -437,14 +451,19 @@ async function setupProject() {
       devDependencies.push("typescript", "ts-node", "@types/node", "@types/express");
     if (answers.setupNodemon) devDependencies.push("nodemon");
 
-    execSync(`npm install ${dependencies.join(" ")}`, { stdio: "inherit" });
+    execSync(`npm install ${dependencies.join(" ")}`, execOptions);
     if (devDependencies.length > 0) {
-      execSync(`npm install --save-dev ${devDependencies.join(" ")}`, { stdio: "inherit" });
+      execSync(`npm install --save-dev ${devDependencies.join(" ")}`, execOptions);
     }
 
     console.log("\n✅ Installation complete!");
     console.log("\n🗂 Creating project structure and files...");
-    await createProjectFiles(answers);
+    const normalizeProjectName = name => name === "." ? "" : name;
+    const finalAnswers = {
+      ...answers,
+      projectName: normalizeProjectName(projectName || answers.projectName),
+    };
+    await createProjectFiles(finalAnswers);
   } catch (error) {
     console.error("\n❌ Installation failed:", error.message);
     const errorAction = await inquirer.prompt([
