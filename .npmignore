@@ -1,0 +1,15 @@
+# === dev files ===
+node_modules/
+.vscode/
+.env
+.gitignore
+.npmignore
+*.log
+
+# === testing ===
+__tests__/
+tests/
+*.test.js
+
+# === ignore lockfile unless you want it ===
+package-lock.json

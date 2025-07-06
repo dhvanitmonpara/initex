@@ -1,46 +1,64 @@
 import fs from "fs";
 import path from "path";
 
-const createFile = (filePath, content) => {
+/**
+ * Create a file at given path with given content.
+ * Creates parent folders recursively if needed.
+ */
+function createFile(filePath, content) {
   const dir = path.dirname(filePath);
 
-  // Ensure directory exists before writing the file
   if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true }); // Create directory recursively if it doesn't exist
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`📁 Created directory: ${dir}`);
   }
 
-  fs.writeFileSync(filePath, content, 'utf8');
-  console.log(`✅ Created ${filePath}`);
-};
-
-function readFileContent(filePath) {
-  return new Promise((resolve, reject) => {
-    const absolutePath = path.resolve(filePath);
-
-    fs.readFile(absolutePath, 'utf8', (err, data) => {
-      if (err) {
-        return reject(new Error(`Failed to read file at "${absolutePath}": ${err.message}`));
-      }
-      resolve(data);
-    });
-  });
+  fs.writeFileSync(filePath, content, "utf8");
+  console.log(`✅ Created file: ${filePath}`);
 }
 
+/**
+ * Read a file synchronously and return its content as string.
+ * Throws if file does not exist.
+ */
+function readFileContent(filePath) {
+  const absolutePath = path.resolve(filePath);
+
+  try {
+    return fs.readFileSync(absolutePath, "utf8").trim();
+  } catch (err) {
+    throw new Error(`❌ Failed to read file at "${absolutePath}": ${err.message}`);
+  }
+}
+
+/**
+ * Resolves file content only if it exists. Returns empty string otherwise.
+ * Does not create any directory (unlike your old code).
+ */
 function extractFileContent(filePath) {
-  if (ensureDir(path.dirname(filePath))) {
-    return readFileContent(filePath);
-  } else {
+  const absolutePath = path.resolve(filePath);
+
+  if (!fs.existsSync(absolutePath)) {
+    console.warn(`⚠️ File not found: ${absolutePath}`);
     return "";
   }
+
+  return readFileContent(absolutePath);
 }
 
+/**
+ * Ensures a directory exists — creates it recursively if needed.
+ */
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
-    console.log(`✅ Created ${dirPath}`);
+    console.log(`📁 Created directory: ${dirPath}`);
   }
 }
 
+/**
+ * Utility to get file extension based on project type.
+ */
 function getExtension(answers) {
   return answers.useTypeScript ? "ts" : "js";
 }
@@ -49,6 +67,6 @@ export {
   createFile,
   readFileContent,
   extractFileContent,
-  getExtension,
-  ensureDir
-}
+  ensureDir,
+  getExtension
+};
