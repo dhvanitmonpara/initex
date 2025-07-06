@@ -9,10 +9,6 @@ export async function createProjectFiles(answers) {
   const baseFolder = answers.useTypeScript ? `./${answers.projectName}/src` : `./${answers.projectName}`;
   ensureDir(baseFolder);
 
-  // Create essential folders
-  ["routes", "controllers", "models"].forEach((folder) => {
-    ensureDir(path.join(baseFolder, folder));
-  });
   if (answers.useDatabase && answers.dbType === "MongoDB") {
     ensureDir(path.join(baseFolder, "db"));
   }
@@ -24,7 +20,7 @@ export async function createProjectFiles(answers) {
   if (answers.useTypeScript) {
     createFile(path.join(baseFolder, "app.ts"), appContent);
   } else {
-    createFile(path.join(baseFolder, "app.js", appContent));
+    createFile(path.join(baseFolder, "app.js"), appContent);
   }
 
   // main file
