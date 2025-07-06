@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { cleatDirectory } from "./helpers/clearDir.js";
 import { createProjectFiles } from "./helpers/createProjectFiles.js";
 import { handleError } from "./helpers/handleError.js";
 import { installDependencies } from "./helpers/installDependencies.js";
@@ -11,6 +12,8 @@ async function setupProject() {
   const answers = await promptUser();
 
   try {
+
+    if (!answers.projectName) await cleatDirectory(".")
 
     await installDependencies(answers)
 
