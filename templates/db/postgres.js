@@ -5,7 +5,7 @@ const connectDB = async () => {
   try {
     // Construct the connection string. In production, you might append the DB_NAME.
     const connectionString = process.env.ENVIRONMENT === 'production'
-      ? \`\${process.env.POSTGRES_URI}\${DB_NAME}\`
+      ? `${process.env.POSTGRES_URI}${DB_NAME}`
       : process.env.POSTGRES_URI;
 
     if (!connectionString) {

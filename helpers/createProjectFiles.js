@@ -7,6 +7,7 @@ import { createFile, ensureDir } from "../utils/file.js"
 
 export async function createProjectFiles(answers) {
   const baseFolder = answers.useTypeScript ? `./${answers.projectName}/src` : `./${answers.projectName}`;
+  const rooFolder = `./${answers.projectName}`
   ensureDir(baseFolder);
 
   if (answers.useDatabase && answers.dbType === "MongoDB") {
@@ -114,7 +115,7 @@ export async function createProjectFiles(answers) {
     } else {
       envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbName || "your_db_name"}\nDB_TYPE=MySQL\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
     }
-    createFile(path.join(baseFolder, ".env"), envContent);
+    createFile(path.join(rooFolder, ".env"), envContent);
   }
 
   // README.md
@@ -129,7 +130,7 @@ This project was generated using the Express Setup Script.
 ${answers.setupNodemon ? "- \`npm run dev\`: Runs the app in development mode with nodemon.\n" : ""}
 ${answers.useTypeScript ? "- \`npm run build\`: Builds the TypeScript code.\n" : ""}
 `;
-    createFile(path.join(baseFolder, "README.md"), readmeContent);
+    createFile(path.join(rooFolder, "README.md"), readmeContent);
   }
 
   await updatePackageJsonScripts(answers, answers.projectName);
