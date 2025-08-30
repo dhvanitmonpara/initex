@@ -1,5 +1,5 @@
 import mysql from 'mysql2/promise';
-import { DB_NAME } from '../constants.js';
+import { DB_NAME } from '../constants';
 
 const connectDB = async () => {
   try {

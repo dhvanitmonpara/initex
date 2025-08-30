@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { cleatDirectory } from "./helpers/clearDir.js";
+import { clearDirectory } from "./helpers/clearDir.js";
 import { createProjectFiles } from "./helpers/createProjectFiles.js";
 import { handleError } from "./helpers/handleError.js";
 import { installDependencies } from "./helpers/installDependencies.js";
@@ -13,11 +13,11 @@ async function setupProject() {
 
   try {
 
-    if (!answers.projectName) await cleatDirectory(".")
+    if (!answers.projectName) await clearDirectory(".")
 
     await installDependencies(answers)
 
-    console.log("\n✅ Installation complete!");
+    console.log("✅ Installation complete!");
     console.log("\n🗂 Creating project structure and files...");
 
     await createProjectFiles(answers);

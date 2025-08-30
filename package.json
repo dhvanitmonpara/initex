@@ -1,6 +1,6 @@
 {
   "name": "initex",
-  "version": "1.2.1",
+  "version": "1.2.16",
   "bin": {
     "initex": "index.js"
   },

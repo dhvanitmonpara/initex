@@ -1,28 +1,24 @@
-import { getExtension } from "../utils/file.js"
 import fs from 'fs'
 
-async function updatePackageJsonScripts(answers, baseFolder) {
-  const pkgPath = baseFolder ? `./${baseFolder}/package.json` : './package.json';
+async function updatePackageJsonScripts(answers, rooFolder) {
+  const pkgPath = `${rooFolder}/package.json`
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
   if (answers.useTypeScript) {
     pkg.scripts = {
       ...pkg.scripts,
       build: answers.useTypeScript ? "tsc" : "",
       start: "node dist/index.js",
+      dev: "tsx src/index.ts"
     };
-    if (answers.setupNodemon) {
-      pkg.scripts.dev = answers.useTypeScript ? "tsx src/index.ts" : "nodemon index.js";
-    }
+    pkg.main = "dist/index.js";
   } else {
     pkg.scripts = {
       ...pkg.scripts,
       start: "node index.js",
     };
-    if (answers.setupNodemon) {
-      pkg.scripts.dev = "nodemon index.js";
-    }
-    pkg.type = "module"; // ensure ESM
+    pkg.scripts.dev = "nodemon index.js";
   }
+  pkg.type = "module";
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 }
 

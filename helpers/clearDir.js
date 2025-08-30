@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-export function cleatDirectory(dirPath) {
+export function clearDirectory(dirPath) {
   if (!fs.existsSync(dirPath)) {
     throw new Error(`Path "${dirPath}" does not exist.`);
   }

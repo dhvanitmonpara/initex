@@ -3,7 +3,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
 // routes
-import healthRouter from "./routes/healthRoute"
+import healthRouter from "./routes/./routes/health.route"
 
 const app = express();
 const corsOptions: CorsOptions = {

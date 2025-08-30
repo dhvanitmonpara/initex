@@ -1,11 +1,11 @@
-import { env } from "./conf/env";
+import { env } from "./conf/env.js";
 import express from 'express';
 import { Server } from 'socket.io';
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import http from 'http';
 // routes
-import healthRouter from "./routes/health.route";
+import healthRouter from "./routes/health.route.js";
 
 const app = express();
 const server = http.createServer(app);

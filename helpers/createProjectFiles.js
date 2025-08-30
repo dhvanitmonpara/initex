@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { createConstantsFile } from '../generators/constantFile.js'
-import { generateApiHelpersContent, generateAppContent, generateControllerContent, generateDbConnectionContent, generateMainContent, generateModelContent, generateRoutesContent, generateSequelizeContent } from '../generators/contentGenerators.js'
+import { generateApiHelpersContent, generateAppContent, generateControllerContent, generateDbConnectionContent, generateEnvConfig, generateMainContent, generateModelContent, generateRoutesContent, generateSequelizeContent } from '../generators/contentGenerators.js'
 import { updatePackageJsonScripts } from "../generators/packageJson.js"
 import { createFile, ensureDir } from "../utils/file.js"
 
@@ -48,17 +48,17 @@ export async function createProjectFiles(answers) {
   // routes file
   const routesContent = generateRoutesContent(answers);
   if (answers.useTypeScript) {
-    createFile(path.join(baseFolder, "routes", "healthRoute.ts"), routesContent);
+    createFile(path.join(baseFolder, "routes", "health.route.ts"), routesContent);
   } else {
-    createFile(path.join(baseFolder, "routes", "healthRoute.js"), routesContent);
+    createFile(path.join(baseFolder, "routes", "health.route.js"), routesContent);
   }
 
   // controller file
   const controllerContent = generateControllerContent(answers);
   if (answers.useTypeScript) {
-    createFile(path.join(baseFolder, "controllers", "healthController.ts"), controllerContent);
+    createFile(path.join(baseFolder, "controllers", "health.controller.ts"), controllerContent);
   } else {
-    createFile(path.join(baseFolder, "controllers", "healthController.js"), controllerContent);
+    createFile(path.join(baseFolder, "controllers", "health.controller.js"), controllerContent);
   }
 
   // utils/ApiHelpers file
@@ -78,10 +78,10 @@ export async function createProjectFiles(answers) {
       const modelContent = generateModelContent(answers);
       const dbConnContent = generateDbConnectionContent(answers);
       if (answers.useTypeScript) {
-        createFile(path.join(baseFolder, "models", "sampleModel.ts"), modelContent);
+        createFile(path.join(baseFolder, "models", "sample.model.ts"), modelContent);
         createFile(path.join(baseFolder, "db", "index.ts"), dbConnContent);
       } else {
-        createFile(path.join(baseFolder, "models", "sampleModel.js"), modelContent);
+        createFile(path.join(baseFolder, "models", "sample.model.js"), modelContent);
         createFile(path.join(baseFolder, "db", "index.js"), dbConnContent);
       }
     } else {
@@ -89,11 +89,11 @@ export async function createProjectFiles(answers) {
       const dbConnContent = generateDbConnectionContent(answers);
       const sequelizeContent = generateSequelizeContent(answers);
       if (answers.useTypeScript) {
-        createFile(path.join(baseFolder, "models", "sampleModel.ts"), modelContent);
+        createFile(path.join(baseFolder, "models", "sample.model.ts"), modelContent);
         createFile(path.join(baseFolder, "db", "index.ts"), dbConnContent);
         createFile(path.join(baseFolder, "db", "sequelize.ts"), sequelizeContent);
       } else {
-        createFile(path.join(baseFolder, "models", "sampleModel.js"), modelContent);
+        createFile(path.join(baseFolder, "models", "sample.model.js"), modelContent);
         createFile(path.join(baseFolder, "db", "index.js"), dbConnContent);
         createFile(path.join(baseFolder, "db", "sequelize.js"), sequelizeContent);
       }
@@ -117,8 +117,8 @@ export async function createProjectFiles(answers) {
     }
     createFile(path.join(rooFolder, ".env"), envContent);
 
-    const envConfigContent = extractFileContent(getTemplatePath("env", "env.js")).trim()
-    createFile(path.join(baseFolder, "config", answers.mysqlUser ? "env.ts" : "env.js"), envConfigContent);
+    const envConfigContent = generateEnvConfig(answers)
+    createFile(path.join(baseFolder, "conf", answers.useTypeScript ? "env.ts" : "env.js"), envConfigContent);
   }
 
   // README.md
@@ -130,11 +130,12 @@ This project was generated using the Express Setup Script.
 ## Available Scripts
 
 - \`npm start\`: Runs the app.
-${answers.setupNodemon ? "- \`npm run dev\`: Runs the app in development mode with nodemon.\n" : ""}
+- \`npm run dev\`: Runs the app in development mode with nodemon.\n"
 ${answers.useTypeScript ? "- \`npm run build\`: Builds the TypeScript code.\n" : ""}
 `;
     createFile(path.join(rooFolder, "README.md"), readmeContent);
   }
 
-  await updatePackageJsonScripts(answers, answers.projectName);
+  await updatePackageJsonScripts(answers, rooFolder);
+  console.log("\n✅ Project setup complete!");
 }

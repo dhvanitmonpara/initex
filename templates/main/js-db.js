@@ -1,5 +1,5 @@
 import { env } from "./conf/env.js";
-import connectDB from "./db/index";
+import connectDB from "./db/index.js";
 import app from "./app.js";
 
 const port = env.PORT || 8000;

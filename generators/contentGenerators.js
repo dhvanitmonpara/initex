@@ -1,6 +1,5 @@
 import { extractFileContent } from '../utils/file.js'
 import path from "path";
-import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -59,15 +58,20 @@ function generateApiHelpersContent(answers) {
 }
 
 function generateDbConnectionContent(answers) {
+  console.log(answers.dbType)
   switch (answers.dbType) {
     case "MongoDB":
       return answers.useTypeScript
         ? extractFileContent(getTemplatePath("db", "mongodb-ts.ts")).trim()
         : extractFileContent(getTemplatePath("db", "mongodb-js.js")).trim()
-    case "postgres":
-      return extractFileContent(getTemplatePath("db", "postgres.js")).trim()
-    case "mysql":
-      return extractFileContent(getTemplatePath("db", "sql.js")).trim()
+    case "PostgreSQL":
+      return answers.useTypeScript
+        ? extractFileContent(getTemplatePath("db", "postgres.ts")).trim()
+        : extractFileContent(getTemplatePath("db", "postgres.js")).trim()
+    case "MySQL":
+      return answers.useTypeScript
+        ? extractFileContent(getTemplatePath("db", "sql.ts")).trim()
+        : extractFileContent(getTemplatePath("db", "sql.js")).trim()
   }
 }
 
@@ -77,12 +81,37 @@ function generateSequelizeContent() {
 
 function generateModelContent(answers) {
   if (answers.dbType === "MongoDB") {
-    return answers.useTypeScript
-      ? extractFileContent(getTemplatePath("models", "mongodb-ts.ts")).trim()
-      : extractFileContent(getTemplatePath("models", "mongodb-js.js")).trim()
+    return extractFileContent(getTemplatePath("models", "mongodb-js.js")).trim()
   } else {
-    return extractFileContent(getTemplatePath("models", "sql-js.js")).trim()
+    return answers.useTypeScript
+      ? extractFileContent(getTemplatePath("models", "sql-ts.ts")).trim()
+      : extractFileContent(getTemplatePath("models", "sql-js.js")).trim()
   }
+}
+
+function generateEnvConfig(answers) {
+  const envConfig = `import "dotenv/config";
+import { z } from "zod";
+
+const zodObject = {
+  PORT: z.coerce.number().default(8000),
+  ENVIRONMENT: z.enum(["development", "production", "test"]).default("development"),
+  HTTP_SECURE_OPTION: z.string(),
+  ACCESS_CONTROL_ORIGIN: z.string(),
+  ${answers.dbType === "PostgreSQL" ? `POSTGRES_URI: z.string(),
+  DB_TYPE: z.enum(["postgres", "mysql"]),` : ""}
+  ${answers.dbType === "MySQL" ? ` zodObject.MYSQL_HOST: z.string(),
+  MYSQL_USER: z.string(),
+  MYSQL_PASSWORD: z.string(),
+  MYSQL_DATABASE: z.string(),
+  DB_TYPE = z.enum(["postgres", "mysql"]),` : ""}
+  ${answers.dbType === "MongoDB" ? `MONGODB_URI: z.string(),` : ""}
+}
+
+const envSchema = z.object(zodObject);
+export const env = envSchema.parse(process.env);
+`
+  return envConfig.trim();
 }
 
 export {
@@ -93,5 +122,6 @@ export {
   generateApiHelpersContent,
   generateDbConnectionContent,
   generateSequelizeContent,
-  generateModelContent
+  generateModelContent,
+  generateEnvConfig
 }
