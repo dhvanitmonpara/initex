@@ -12,7 +12,7 @@ export async function installDependencies(answers) {
     console.log("\n📦 Installing dependencies...");
     await execSync("npm init -y", execOptions);
   
-    let dependencies = [`express@${answers.expressVersion}`, "dotenv", "cors"];
+    let dependencies = [`express@${answers.expressVersion}`, "dotenv", "cors", "jsonwebtoken", "cookie-parser", "zod"];
     let devDependencies = [];
   
     if (answers.useDatabase) {
@@ -24,8 +24,8 @@ export async function installDependencies(answers) {
   
     if (answers.useSocket) dependencies.push("socket.io");
     if (answers.useTypeScript)
-      devDependencies.push("typescript", "ts-node", "@types/node", "@types/express");
-    if (answers.setupNodemon) devDependencies.push("nodemon");
+      devDependencies.push("typescript", "tsx", "@types/node", "@types/express", "@types/cookie-parser", "@types/jsonwebtoken");
+    if (!answers.useTypeScript) devDependencies.push("nodemon");
   
     await execSync(`npm install ${dependencies.join(" ")}`, execOptions);
     if (devDependencies.length > 0) {

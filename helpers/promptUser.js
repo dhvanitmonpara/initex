@@ -92,12 +92,6 @@ export async function promptUser() {
     },
     {
       type: "confirm",
-      name: "setupNodemon",
-      message: "Do you want to set up nodemon for development?",
-      default: true,
-    },
-    {
-      type: "confirm",
       name: "createEnv",
       message: "Do you want to generate a sample .env file?",
       default: true,

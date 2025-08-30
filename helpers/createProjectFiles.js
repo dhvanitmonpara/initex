@@ -113,9 +113,12 @@ export async function createProjectFiles(answers) {
     } else if (answers.dbType === "PostgreSQL") {
       envContent = `PORT=8000\nPOSTGRES_URI=${answers.dbConnectionString || "your_db_connection_string"}\nDB_TYPE=postgres\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
     } else {
-      envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbName || "your_db_name"}\nDB_TYPE=MySQL\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
+      envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbName || "your_db_name"}\nDB_TYPE=mysql\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
     }
     createFile(path.join(rooFolder, ".env"), envContent);
+
+    const envConfigContent = extractFileContent(getTemplatePath("env", "env.js")).trim()
+    createFile(path.join(baseFolder, "config", answers.mysqlUser ? "env.ts" : "env.js"), envConfigContent);
   }
 
   // README.md

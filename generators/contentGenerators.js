@@ -64,9 +64,9 @@ function generateDbConnectionContent(answers) {
       return answers.useTypeScript
         ? extractFileContent(getTemplatePath("db", "mongodb-ts.ts")).trim()
         : extractFileContent(getTemplatePath("db", "mongodb-js.js")).trim()
-    case "PostgreSQL":
+    case "postgres":
       return extractFileContent(getTemplatePath("db", "postgres.js")).trim()
-    case "MySQL":
+    case "mysql":
       return extractFileContent(getTemplatePath("db", "sql.js")).trim()
   }
 }

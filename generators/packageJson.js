@@ -7,11 +7,11 @@ async function updatePackageJsonScripts(answers, baseFolder) {
   if (answers.useTypeScript) {
     pkg.scripts = {
       ...pkg.scripts,
-      build: "tsc",
+      build: answers.useTypeScript ? "tsc" : "",
       start: "node dist/index.js",
     };
     if (answers.setupNodemon) {
-      pkg.scripts.dev = "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts";
+      pkg.scripts.dev = answers.useTypeScript ? "tsx src/index.ts" : "nodemon index.js";
     }
   } else {
     pkg.scripts = {
