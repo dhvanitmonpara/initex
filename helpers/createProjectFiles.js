@@ -103,7 +103,7 @@ export async function createProjectFiles(answers) {
   createConstantsFile(answers, baseFolder);
 
   // .gitignore
-  createFile(path.join(baseFolder, ".gitignore"), "node_modules/\ndist/\n.env");
+  createFile(path.join(rooFolder, ".gitignore"), "node_modules/\ndist/\n.env\n/src/generated/prisma");
 
   // .env file
   if (answers.createEnv) {
