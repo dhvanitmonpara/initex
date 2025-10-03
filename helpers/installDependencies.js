@@ -25,7 +25,7 @@ export async function installDependencies(answers) {
 
     if (answers.useSocket) dependencies.push("socket.io");
     if (answers.useTypeScript)
-      devDependencies.push("typescript", "tsx", "@types/node", "@types/express", "@types/cookie-parser", "@types/jsonwebtoken");
+      devDependencies.push("typescript", "tsx", "@types/node", "@types/express", "@types/cookie-parser", "@types/jsonwebtoken", "@types/cors");
     if (!answers.useTypeScript) devDependencies.push("nodemon");
 
     await execSync(`npm install ${dependencies.join(" ")}`, execOptions);
