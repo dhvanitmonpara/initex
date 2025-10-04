@@ -39,7 +39,7 @@ export async function createProjectFiles(answers) {
         },
         include: [baseFolder],
       };
-      createFile(path.join(baseFolder, "tsconfig.json"), JSON.stringify(tsconfig, null, 2));
+      createFile(path.join(rooFolder, "tsconfig.json"), JSON.stringify(tsconfig, null, 2));
     }
   } else {
     createFile(path.join(baseFolder, "index.js"), mainContent);
