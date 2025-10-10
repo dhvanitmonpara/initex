@@ -1,15 +1,19 @@
-import { Sequelize } from "sequelize";
+import { Sequelize } from 'sequelize';
+import { env } from '../conf/env';
 
-const dialect = process.env.DB_TYPE === 'MySQL' ? 'mysql' : 'postgres';
-const connectionString = process.env[ dialect === 'mysql' ? 'MYSQL_URI' : 'POSTGRES_URI' ];
+const connectionString = env.DATABASE_URL;
 
-if (!connectionString) {
-  throw new Error('Database connection URI is not set');
-}
-
-const sequelize = new Sequelize(connectionString, {
-  dialect, // 'mysql' or 'postgres'
-  // add extra options as needed
+export const sequelize = new Sequelize(connectionString, {
+  dialect: env.DB_TYPE,
+  logging: false,
 });
 
-export default sequelize;
+export const connectDB = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Database connected.');
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+    process.exit(1);
+  }
+};

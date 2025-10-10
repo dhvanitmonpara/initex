@@ -59,34 +59,37 @@ function generateApiHelpersContent(answers) {
 
 function generateDbConnectionContent(answers) {
   console.log(answers.dbType)
-  switch (answers.dbType) {
-    case "MongoDB":
-      return answers.useTypeScript
-        ? extractFileContent(getTemplatePath("db", "mongodb-ts.ts")).trim()
-        : extractFileContent(getTemplatePath("db", "mongodb-js.js")).trim()
-    case "PostgreSQL":
-      return answers.useTypeScript
-        ? extractFileContent(getTemplatePath("db", "postgres.ts")).trim()
-        : extractFileContent(getTemplatePath("db", "postgres.js")).trim()
-    case "MySQL":
-      return answers.useTypeScript
-        ? extractFileContent(getTemplatePath("db", "sql.ts")).trim()
-        : extractFileContent(getTemplatePath("db", "sql.js")).trim()
-  }
-}
-
-function generateSequelizeContent() {
-  return extractFileContent(getTemplatePath("db", "sequelize.js")).trim()
-}
-
-function generateModelContent(answers) {
   if (answers.dbType === "MongoDB") {
-    return extractFileContent(getTemplatePath("models", "mongodb-js.js")).trim()
-  } else {
     return answers.useTypeScript
-      ? extractFileContent(getTemplatePath("models", "sql-ts.ts")).trim()
-      : extractFileContent(getTemplatePath("models", "sql-js.js")).trim()
+      ? extractFileContent(getTemplatePath("db", "mongodb-ts.ts")).trim()
+      : extractFileContent(getTemplatePath("db", "mongodb-js.js")).trim()
+  } else if (answers.dbType === "PostgreSQL" || answers.dbType === "MySQL") {
+    if (answers.orm === "prisma") {
+      return answers.useTypeScript
+        ? extractFileContent(getTemplatePath("db", "prisma.ts")).trim()
+        : extractFileContent(getTemplatePath("db", "prisma.js")).trim()
+    } else if (answers.orm === "sequelize") {
+      return extractFileContent(getTemplatePath("db", "sequelize.js")).trim()
+    }
   }
+}
+
+function generateModelContentForMongo(answers) {
+  return answers.prebuiltAuth
+    ? extractFileContent(getTemplatePath("models", "auth-mongodb.js")).trim()
+    : extractFileContent(getTemplatePath("models", "sample-mongodb.js")).trim()
+}
+
+function generatePrismaModelContent(answers) {
+  return answers.prebuiltAuth
+    ? extractFileContent(getTemplatePath("models", answers.dbType === "MySQL" ? "auth-mysql.prisma" : "auth-pg.prisma")).trim()
+    : extractFileContent(getTemplatePath("models", answers.dbType === "MySQL" ? "sample-mysql.prisma" : "sample-pg.prisma")).trim()
+}
+
+function generateSequelizeModelContent(answers) {
+  return answers.prebuiltAuth
+    ? extractFileContent(getTemplatePath("models", "auth-sequelize.js")).trim()
+    : extractFileContent(getTemplatePath("models", "sample-sequelize.js")).trim()
 }
 
 function generateEnvConfig(answers) {
@@ -95,18 +98,12 @@ import { z } from "zod";
 
 const zodObject = {
   PORT: z.coerce.number().default(8000),
-  ENVIRONMENT: z.enum(["development", "production", "test"]).default("development"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   HTTP_SECURE_OPTION: z.string(),
   ACCESS_CONTROL_ORIGIN: z.string(),
-  ${answers.dbType === "PostgreSQL" ? `POSTGRES_URI: z.string(),
-  DB_TYPE: z.enum(["postgres", "mysql"]),` : ""}
-  ${answers.dbType === "MySQL" ? ` zodObject.MYSQL_HOST: z.string(),
-  MYSQL_USER: z.string(),
-  MYSQL_PASSWORD: z.string(),
-  MYSQL_DATABASE: z.string(),
-  DB_TYPE = z.enum(["postgres", "mysql"]),` : ""}
-  ${answers.dbType === "MongoDB" ? `MONGODB_URI: z.string(),` : ""}
-}
+  ${answers.dbType === "PostgreSQL" || answers.dbType === "MySQL" ? `DB_TYPE: z.enum(["postgresql", "mysql"]),` : ""}
+  DATABASE_URL: z.string(),
+};
 
 const envSchema = z.object(zodObject);
 export const env = envSchema.parse(process.env);
@@ -121,7 +118,8 @@ export {
   generateControllerContent,
   generateApiHelpersContent,
   generateDbConnectionContent,
-  generateSequelizeContent,
-  generateModelContent,
+  generateModelContentForMongo,
+  generatePrismaModelContent,
+  generateSequelizeModelContent,
   generateEnvConfig
 }

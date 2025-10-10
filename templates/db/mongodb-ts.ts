@@ -3,10 +3,10 @@ import { DB_NAME } from "../constants";
 
 const connectDB = async () => {
   try {
-    const connectionString = process.env.ENVIRONMENT === "production" 
-      ? `${process.env.MONGODB_URI}${DB_NAME}` 
-      : process.env.MONGODB_URI;
-    if (!connectionString) throw new Error("MONGODB_URI is not set");
+    const connectionString = process.env.NODE_ENV === "production" 
+      ? `${process.env.DATABASE_URL}${DB_NAME}` 
+      : process.env.DATABASE_URL;
+    if (!connectionString) throw new Error("DATABASE_URL is not set");
     await mongoose.connect(connectionString);
     console.log("MongoDB connected");
   } catch (error) {

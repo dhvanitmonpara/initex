@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { createConstantsFile } from '../generators/constantFile.js'
-import { generateApiHelpersContent, generateAppContent, generateControllerContent, generateDbConnectionContent, generateEnvConfig, generateMainContent, generateModelContent, generateRoutesContent, generateSequelizeContent } from '../generators/contentGenerators.js'
+import { generateApiHelpersContent, generateAppContent, generatePrismaModelContent, generateControllerContent, generateDbConnectionContent, generateEnvConfig, generateMainContent, generateSequelizeModelContent, generateModelContentForMongo, generateRoutesContent } from '../generators/contentGenerators.js'
 import { updatePackageJsonScripts } from "../generators/packageJson.js"
 import { createFile, ensureDir } from "../utils/file.js"
 
@@ -74,28 +74,33 @@ export async function createProjectFiles(answers) {
 
   // Database files
   if (answers.useDatabase) {
+    const dbConnContent = generateDbConnectionContent(answers);
+    const modelName = answers.prebuiltAuth ? "auth.model" : "sample.model"
     if (answers.dbType === "MongoDB") {
-      const modelContent = generateModelContent(answers);
-      const dbConnContent = generateDbConnectionContent(answers);
+      const modelContent = generateModelContentForMongo(answers);
       if (answers.useTypeScript) {
-        createFile(path.join(baseFolder, "models", "sample.model.ts"), modelContent);
+        createFile(path.join(baseFolder, "models", modelName + ".ts"), modelContent);
         createFile(path.join(baseFolder, "db", "index.ts"), dbConnContent);
       } else {
-        createFile(path.join(baseFolder, "models", "sample.model.js"), modelContent);
+        createFile(path.join(baseFolder, "models", modelName + ".js"), modelContent);
         createFile(path.join(baseFolder, "db", "index.js"), dbConnContent);
       }
     } else {
-      const modelContent = generateModelContent(answers);
-      const dbConnContent = generateDbConnectionContent(answers);
-      const sequelizeContent = generateSequelizeContent(answers);
-      if (answers.useTypeScript) {
-        createFile(path.join(baseFolder, "models", "sample.model.ts"), modelContent);
+      if (answers.orm === "prisma") {
+        const modelContent = generatePrismaModelContent(answers);
+        createFile(path.join(rooFolder, "prisma", "schema.prisma"), modelContent);
         createFile(path.join(baseFolder, "db", "index.ts"), dbConnContent);
-        createFile(path.join(baseFolder, "db", "sequelize.ts"), sequelizeContent);
+      } else if (answers.orm === "sequelize") {
+        const modelContent = generateSequelizeModelContent(answers);
+        createFile(path.join(baseFolder, "models", modelName + ".ts"), modelContent);
+        createFile(path.join(baseFolder, "db", "index.ts"), dbConnContent);
       } else {
-        createFile(path.join(baseFolder, "models", "sample.model.js"), modelContent);
-        createFile(path.join(baseFolder, "db", "index.js"), dbConnContent);
-        createFile(path.join(baseFolder, "db", "sequelize.js"), sequelizeContent);
+        // TODO: Add drizzle here
+        // if (answers.useTypeScript) {
+        // } else {
+        //   createFile(path.join(baseFolder, "models", modelName + ".js"), modelContent);
+        //   createFile(path.join(baseFolder, "db", "index.js"), dbConnContent);
+        // }
       }
     }
   }
@@ -107,13 +112,14 @@ export async function createProjectFiles(answers) {
 
   // .env file
   if (answers.createEnv) {
-    let envContent = "";
+    let envContent = "PORT=8000\nNODE_ENV=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173";
+    const dbName = answers.projectName?.toLowerCase().trim().replace(/ /g, "_") || "myapp"
     if (answers.dbType === "MongoDB") {
-      envContent = `PORT=8000\nMONGODB_URI=${answers.dbConnectionString || "your_db_connection_string"}\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
+      envContent = `${envContent}\nDATABASE_URL=${answers.dbConnectionString || "mongodb://username:password@localhost:27017/" + dbName}\nDB_TYPE=mongodb`
     } else if (answers.dbType === "PostgreSQL") {
-      envContent = `PORT=8000\nPOSTGRES_URI=${answers.dbConnectionString || "your_db_connection_string"}\nDB_TYPE=postgres\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
+      envContent = `${envContent}\nDATABASE_URL=${answers.dbConnectionString || "postgres://postgres:password@localhost:5432/" + dbName}\nDB_TYPE=postgres`
     } else {
-      envContent = `PORT=8000\nMYSQL_HOST=${answers.mysqlHost || "your_mysql_host"}\nMYSQL_USER=${answers.mysqlUser || "your_mysql_user"}\nMYSQL_PASSWORD=${answers.mysqlPassword || "your_mysql_password"}\nMYSQL_DATABASE=${answers.dbName || "your_db_name"}\nDB_TYPE=mysql\nENVIRONMENT=development\nHTTP_SECURE_OPTION=true\nACCESS_CONTROL_ORIGIN=http://localhost:5173`
+      envContent = `${envContent}\nDATABASE_URL=${answers.dbConnectionString || "mysql://root:password@localhost:3306/" + dbName}\nDB_TYPE=mysql`
     }
     createFile(path.join(rooFolder, ".env"), envContent);
 
