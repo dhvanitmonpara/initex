@@ -1,7 +1,0 @@
-{
-	"name": "prisma",
-	"label": "Prisma ORM",
-	"description": "Prisma setup + schema + seed scripts",
-	"destination": ".",
-	"dependencies": ["prisma", "@prisma/client"]
-}

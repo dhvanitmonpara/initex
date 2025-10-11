@@ -1,6 +1,0 @@
-{
-	"name": "mongodb",
-	"label": "mongodb + Mongoose ORM",
-	"description": "Mongodb setup",
-	"dependencies": ["mongoose"]
-}
