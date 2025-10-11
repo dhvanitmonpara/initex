@@ -2,7 +2,7 @@ import { intro, log, outro } from "@clack/prompts";
 import { consola } from "consola";
 import { teen } from "gradient-string";
 import pc from "picocolors";
-import { generateProject } from "./generator";
+import { generateProject } from "./generator/index";
 import { promptProjectConfig } from "./prompts/projectPrompts";
 
 async function main() {

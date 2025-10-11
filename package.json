@@ -1,12 +1,13 @@
 {
   "name": "initex",
-  "version": "1.3.0",
+  "version": "1.3.13",
   "bin": {
     "initex": "./bin/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --format esm --dts",
     "test": "tsx src/index.ts --mode test",
+    "test:dist": "tsx bin/cli.js --mode test",
     "prepare": "npm run build",
     "lint-format": "biome check --write"
   },
@@ -19,7 +20,7 @@
   "files": [
     "dist",
     "bin",
-    "templates"
+    "src"
   ],
   "author": "Dhvanit Monpara",
   "license": "ISC",
@@ -29,6 +30,7 @@
     "@biomejs/biome": "2.2.5",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.7.1",
+    "tsup": "^8.5.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   },
