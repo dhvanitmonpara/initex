@@ -1,0 +1,17 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    {{#if ts}}"build": "tsc",{{/if}}
+    "start": "node {{#if ts}}dist/{{/if}}index.js",
+    "dev": "tsx {{#if ts}}src/{{/if}}index.ts"
+  },
+  "dependencies": {
+    
+  },
+  "devDependencies": {
+    
+  }
+}

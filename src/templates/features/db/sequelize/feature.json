@@ -1,0 +1,10 @@
+{
+  "name": "sequelize",
+  "label": "Sequelize ORM",
+  "description": "Sequelize + SQL database setup",
+  "dependencies": ["sequelize"],
+  "conditionalDependencies": {
+    "PostgreSQL": ["pg"],
+    "MySQL": ["mysql2"]
+  }
+}

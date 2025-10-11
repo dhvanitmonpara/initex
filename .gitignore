@@ -86,6 +86,9 @@ out
 .nuxt
 dist
 
+# testing files
+tests/
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js
@@ -117,4 +120,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# End of https://mrkandreev.name/snippets/gitignore-generator/#Node
+# End of https://mrkandreev.name/snippets/gitignore-generator/#Nodes
