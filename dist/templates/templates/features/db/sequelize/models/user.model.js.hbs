@@ -1,0 +1,34 @@
+import { DataTypes } from "sequelize"
+{{#if ts}}
+import { sequelize } from "../db";
+{{else}}
+import { sequelize } from "../db/index.js";
+{{/if}}
+
+const User = sequelize.define("users", {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  username: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  authType: {
+    type: DataTypes.ENUM(['oauth', 'manual']),
+  },
+  refreshToken: {
+    type: DataTypes.STRING,
+  },
+})
+
+export default User

@@ -6,26 +6,26 @@ import { generateProject } from "./generator/index";
 import { promptProjectConfig } from "./prompts/projectPrompts";
 
 async function main() {
-  consola.box(teen("🚀 Welcome to Initex CLI"));
-  intro(pc.italic(pc.cyan("Let's initialize your new project!")));
+	consola.box(teen("🚀 Welcome to Initex CLI"));
+	intro(pc.italic(pc.cyan("Let's initialize your new project!")));
 
-  const config = await promptProjectConfig();
+	const config = await promptProjectConfig();
 
-  await generateProject(config);
+	await generateProject(config);
 
-  log.success(`${pc.bold(pc.cyan("Project ready:"))} ${config.name}`);
-  log.info(`Next steps:\n${pc.gray(`cd ${config.name} && npm install`)}`);
+	log.success(`${pc.bold(pc.cyan("Project ready:"))} ${config.name}`);
+	log.info(`Next steps:\n${pc.gray(`cd ${config.name} && npm install`)}`);
 
-  outro(
-    `Project ${pc.bold(pc.cyan(config.name))} created with express version ${
-      config.expressVersion
-    }`
-  );
+	outro(
+		`Project ${pc.bold(pc.cyan(config.name))} created with express version ${
+			config.expressVersion
+		}`,
+	);
 
-  return config;
+	return config;
 }
 
 main().catch((err) => {
-  consola.error("💥 Unexpected error:", err);
-  process.exit(1);
+	consola.error("💥 Unexpected error:", err);
+	process.exit(1);
 });
