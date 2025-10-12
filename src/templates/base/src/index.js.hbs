@@ -1,11 +1,11 @@
-import { env } from "./conf/env{{#if ts}}.js{{/if}}";
+import { env } from "./conf/env{{#if js}}.js{{/if}}";
 {{#if useSocket}}
-import { server } from "./app{{#if ts}}.js{{/if}}";
+import { server } from "./app{{#if js}}.js{{/if}}";
 {{else}}
-import { app } from "./app{{#if ts}}.js{{/if}}";
+import { app } from "./app{{#if js}}.js{{/if}}";
 {{/if}}
 {{#if useMongodb}}
-import connectDB from "./db/index{{#if ts}}.js{{/if}}";
+import connectDB from "./db/index{{#if js}}.js{{/if}}";
 {{/if}}
 
 const port = env.PORT || 8000;

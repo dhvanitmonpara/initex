@@ -15,6 +15,7 @@ export async function copyAndRenderTemplate(
 		cwd: targetPath,
 		absolute: true,
 		dot: true,
+		ignore: ["**/feature.json"],
 	});
 
 	await Promise.all(

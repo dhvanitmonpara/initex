@@ -86,9 +86,9 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		dbType = dbTypeSelection as "mongodb" | "postgresql" | "mysql";
 
 		const defaults = {
-			MongoDB: "mongodb://localhost:27017/",
-			PostgreSQL: "postgres://postgres:password@localhost:5432",
-			MySQL: "mysql://root:password@localhost:3306",
+			mongodb: "mongodb://localhost:27017/",
+			postgresql: "postgres://postgres:password@localhost:5432",
+			mysql: "mysql://root:password@localhost:3306",
 		} as const;
 
 		const connectionInput = await text({
@@ -158,6 +158,12 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 	});
 	if (isCancel(useSocket)) process.exit(0);
 
+	const useGit = await confirm({
+		message: "Do you want to initialize git repo?",
+		initialValue: true,
+	});
+	if (isCancel(useGit)) process.exit(0);
+
 	// Normalize name
 	const normalizeProjectName = (n: string) => (n === "." ? "" : n);
 	const normalizedProjectName = normalizeProjectName(projectName);
@@ -174,6 +180,7 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		useCache,
 		cacheType,
 		useSocket,
+		useGit,
 		language,
 	};
 

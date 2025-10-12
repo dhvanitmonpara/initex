@@ -2,14 +2,19 @@ import { intro, log, outro } from "@clack/prompts";
 import { consola } from "consola";
 import { teen } from "gradient-string";
 import pc from "picocolors";
+import { loadConfig } from "./config/loadConfig";
 import { generateProject } from "./generator/index";
 import { promptProjectConfig } from "./prompts/projectPrompts";
+import type { TProjectConfig } from "./schema/ProjectConfigSchema";
 
 async function main() {
 	consola.box(teen("🚀 Welcome to Initex CLI"));
 	intro(pc.italic(pc.cyan("Let's initialize your new project!")));
 
-	const config = await promptProjectConfig();
+	let config: TProjectConfig = await loadConfig();
+	if (!config || Object.keys(config).length === 0) {
+		config = await promptProjectConfig();
+	}
 
 	await generateProject(config);
 

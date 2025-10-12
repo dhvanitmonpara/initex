@@ -1,0 +1,12 @@
+{
+	"name": "git",
+	"label": "git",
+	"description": "Git Repo setup",
+	"destination": ".",
+	"commands": [
+		{
+			"cmd": "git",
+			"args": ["init"]
+		}
+	]
+}

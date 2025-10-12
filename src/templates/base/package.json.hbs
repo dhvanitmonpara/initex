@@ -4,9 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    {{#if ts}}"build": "tsc",{{/if}}
-    "start": "node {{#if ts}}dist/{{/if}}index.js",
-    "dev": "tsx {{#if ts}}src/{{/if}}index.ts"
+    {{#if ts}}"build": "tsup",{{/if}}
+    "start": "node {{#if ts}}dist/{{else}}src/{{/if}}index.js",
+    {{#if ts}}
+    "dev": "tsx src/index.ts"
+    {{else}}
+    "dev": "nodemon src/index.js"
+    {{/if}}
   },
   "dependencies": {
     

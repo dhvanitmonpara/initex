@@ -4,16 +4,17 @@ export const ProjectConfigSchema = z
 	.object({
 		name: z.string().min(1, "Project name cannot be empty."),
 		expressVersion: z.string().optional(),
-		useDatabase: z.boolean(),
+		useDatabase: z.boolean().default(false),
 		dbType: z.enum(["mongodb", "postgresql", "mysql"]).optional(),
 		orm: z.enum(["mongoose", "prisma", "sequelize", "drizzle"]).optional(),
 		dbConnectionString: z.url("Invalid database connection string.").optional(),
 		dbName: z.string().min(1, "Database name cannot be empty.").optional(),
-		prebuiltAuth: z.boolean(),
-		useCache: z.boolean(),
+		prebuiltAuth: z.boolean().default(false),
+		useCache: z.boolean().default(false),
+		useGit: z.boolean().default(false),
 		cacheType: z.enum(["nodecache", "redis"]).optional(),
-		useSocket: z.boolean(),
-		language: z.enum(["js", "ts"]),
+		useSocket: z.boolean().default(false),
+		language: z.enum(["js", "ts"]).default("js"),
 	})
 	.superRefine((data, ctx) => {
 		if (data.useDatabase) {

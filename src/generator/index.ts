@@ -18,6 +18,10 @@ interface FeatureConfig {
 	dependencies?: string[];
 	conditionalDependencies?: Record<string, string[]>;
 	destination?: string;
+	commands?: {
+		cmd: string;
+		args: string[];
+	}[];
 }
 
 export async function generateProject(config: TProjectConfig) {
@@ -35,6 +39,7 @@ export async function generateProject(config: TProjectConfig) {
 	const context = {
 		...config,
 		ts: config.language === "ts",
+		js: config.language === "js",
 		useRedis: config.cacheType === "redis",
 	};
 
@@ -48,14 +53,16 @@ export async function generateProject(config: TProjectConfig) {
 	const allDependencies: string[] = baseDeps;
 	const allDevDependencies: string[] = baseDevDeps;
 
-	if (context.ts) allDependencies.push("tsx", "typescript");
-	if (context.ts)
+	if (context.ts) {
+		allDependencies.push("tsup", "typescript");
 		allDevDependencies.push(
+			"tsx",
 			"@types/cookie-parser",
 			"@types/express",
 			"@types/jsonwebtoken",
 			"@types/node",
 		);
+	}
 
 	console.log(selectedFeatures);
 
@@ -81,6 +88,19 @@ export async function generateProject(config: TProjectConfig) {
 		if (featureConfig.conditionalDependencies && config.dbType) {
 			const conditional = featureConfig.conditionalDependencies[config.dbType];
 			if (conditional) allDependencies.push(...conditional);
+		}
+
+		if (featureConfig.commands && featureConfig.commands?.length > 0) {
+			for (const { cmd, args } of featureConfig.commands) {
+				try {
+					await execa(cmd, args, {
+						cwd: projectRoot,
+						stdio: "pipe",
+					});
+				} catch (err) {
+					pc.red(`Command failed (${cmd} ${args.join(" ")}): ${err.stderr}`);
+				}
+			}
 		}
 	}
 
@@ -118,15 +138,12 @@ const selectFeatures = (config: TProjectContext) => {
 	const selectedFeatures: string[] = [];
 
 	if (config.prebuiltAuth) selectedFeatures.push("auth");
+	if (config.useDatabase) selectedFeatures.push(`db/${config.orm}`);
+
 	if (config.useSocket) selectedFeatures.push("socket");
+	if (config.useCache) selectedFeatures.push(`cache/${config.cacheType}`);
 
-	if (config.useDatabase) {
-		selectedFeatures.push(`db/${config.orm}`);
-	}
-
-	if (config.useCache) {
-		selectedFeatures.push(`cache/${config.cacheType}`);
-	}
+	if (config.useGit) selectedFeatures.push("git");
 
 	return selectedFeatures;
 };
