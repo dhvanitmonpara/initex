@@ -47,14 +47,14 @@ initex myapp
 
 ### ⚙️ CLI Arguments
 
-| Flag                 | Type    | Description                                       |
-| -------------------- | ------- | ------------------------------------------------- | ---------- | -------------------------------------- |
-| `-m, --mode`         | `start` | `test`                                            | `test:bin` | Run mode of the CLI (default: `start`) |
-| `-c, --custom`       | boolean | Run custom setup instead of preset                |
-| `-p, --preset`       | boolean | Use preset setup (default: true)                  |
-| `-g, --generateJson` | boolean | Generate a JSON config file for your custom setup |
-| `-s, --savePreset`   | boolean | Save the current custom setup as a preset         |
-| `-n, --name`         | string  | Specify your project name                         |
+| Flag                 | Type                            | Description                                       |
+| -------------------- | ------------------------------- | ------------------------------------------------- |
+| `-m, --mode`         | `start` \| `test` \| `test:bin` | Run mode of the CLI (default: `start`)            |
+| `-c, --custom`       | boolean                         | Run custom setup instead of preset                |
+| `-p, --preset`       | boolean                         | Use preset setup (default: true)                  |
+| `-g, --generateJson` | boolean                         | Generate a JSON config file for your custom setup |
+| `-s, --savePreset`   | boolean                         | Save the current custom setup as a preset         |
+| `-n, --name`         | string                          | Specify your project name                         |
 
 #### Examples
 

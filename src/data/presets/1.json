@@ -1,25 +1,25 @@
 {
-  "name": "Postgres + Prisma + Redis + Socket",
-  "predefined": true,
-  "preset": {
-    "name": ".",
-    "expressVersion": "latest",
-    "db": {
-      "enable": true,
-      "provider": "postgresql",
-      "connectionString": "postgres://postgres:password@localhost:5432",
-      "orm": "prisma",
-      "name": "my_database"
-    },
-    "cache": {
-      "enable": true,
-      "service": "redis"
-    },
-    "auth": {
-      "enable": false
-    },
-    "git": true,
-    "socket": true,
-    "language": "ts"
-  }
+	"name": "Postgres + Prisma + Redis + Socket",
+	"predefined": true,
+	"preset": {
+		"name": ".",
+		"expressVersion": "latest",
+		"db": {
+			"enable": true,
+			"provider": "postgresql",
+			"connectionString": "postgres://postgres:password@localhost:5432",
+			"orm": "prisma",
+			"name": "my_database"
+		},
+		"cache": {
+			"enable": true,
+			"service": "redis"
+		},
+		"auth": {
+			"enable": false
+		},
+		"git": true,
+		"socket": true,
+		"language": "ts"
+	}
 }
