@@ -1,198 +1,149 @@
-import { confirm, isCancel, select, text } from "@clack/prompts";
 import { consola } from "consola";
 import { vice } from "gradient-string";
-import minimist from "minimist";
 import {
-	ProjectConfigSchema,
-	type TProjectConfig,
+  promptConfirm,
+  promptSelect,
+  promptText,
+} from "../helpers/promptUtils";
+import {
+  ProjectConfigSchema,
+  type TProjectConfig,
 } from "../schema/ProjectConfigSchema";
+import { parseCLIArgs } from "./parseCLIArguments";
 
 export async function promptProjectConfig(): Promise<TProjectConfig> {
-	const args = minimist(process.argv.slice(2), {
-		string: ["mode"],
-		alias: { m: "mode" },
-		default: { mode: "start" },
-	});
+  const cliArgs = parseCLIArgs();
+  const isTesting = (cliArgs.mode === "test" ||
+    cliArgs.mode === "test:bin") as boolean;
 
-	let projectName = args._[0];
-	const mode = args.mode;
-	const isTesting = mode === "test" || mode === "test:bin";
+  let projectName =
+    cliArgs.name ||
+    (await promptText("Enter your project name:", "my-app", "my-app", (v) =>
+      !v ? vice("Project name cannot be empty!") : undefined
+    ));
 
-	// Project Name
-	if (!projectName) {
-		const nameInput = await text({
-			message: "Enter your project name:",
-			placeholder: "my-app",
-			initialValue: "my-app",
-			validate(value) {
-				if (!value) return vice("Project name cannot be empty!");
-			},
-		});
+  projectName = (isTesting ? `tests/${projectName}` : projectName) as string;
 
-		if (isCancel(nameInput)) {
-			consola.warn("Operation cancelled.");
-			process.exit(0);
-		}
+  const expressVersion = (await promptText(
+    "Enter Express version (leave empty for latest LTS):",
+    "latest",
+    "latest"
+  )) as string;
 
-		projectName = nameInput as string;
-	}
+  const language = await promptSelect<"js" | "ts">("Choose language:", [
+    { value: "js", label: "JavaScript" },
+    { value: "ts", label: "TypeScript" },
+  ]);
 
-	projectName = isTesting ? `tests/${projectName}` : (projectName as string);
+  const dbEnable = (await promptConfirm(
+    "Do you want to use a database?"
+  )) as boolean;
 
-	// Express Version
-	const expressVersionInput = await text({
-		message: "Enter Express version (leave empty for latest LTS):",
-		placeholder: "latest",
-		initialValue: "latest",
-	});
-	if (isCancel(expressVersionInput)) process.exit(0);
-	const expressVersion = expressVersionInput || "latest";
+  let db: TProjectConfig["db"] = {
+    enable: dbEnable,
+    provider: undefined,
+    connectionString: undefined,
+    name: undefined,
+    orm: undefined,
+  } as TProjectConfig["db"];
 
-	// ts or js
-	const language = await select({
-		message: "Choose language:",
-		options: [
-			{ value: "js", label: "JavaScript" },
-			{ value: "ts", label: "TypeScript" },
-		],
-	});
-	if (isCancel(language)) process.exit(0);
+  if (dbEnable) {
+    const provider = await promptSelect<"mongodb" | "postgresql" | "mysql">(
+      "Select a database:",
+      [
+        { value: "mongodb", label: "MongoDB" },
+        { value: "postgresql", label: "PostgreSQL" },
+        { value: "mysql", label: "MySQL" },
+      ]
+    );
 
-	// Database Setup
-	const useDatabase = await confirm({
-		message: "Do you want to use a database?",
-		initialValue: false,
-	});
-	if (isCancel(useDatabase)) process.exit(0);
+    const defaults = {
+      mongodb: "mongodb://localhost:27017/",
+      postgresql: "postgres://postgres:password@localhost:5432",
+      mysql: "mysql://root:password@localhost:3306",
+    } as const;
 
-	let dbType: "mongodb" | "postgresql" | "mysql" | undefined;
-	let orm: "prisma" | "drizzle" | "mongoose" | "sequelize" | undefined;
-	let dbConnectionString: string | undefined;
-	let dbName: string | undefined;
-	let prebuiltAuth: boolean | undefined;
-	let useCache: boolean | undefined;
-	let cacheType: "redis" | "nodecache" | undefined;
+    const connectionString = (await promptText(
+      "Enter the database connection string:",
+      defaults[provider],
+      defaults[provider]
+    )) as string;
 
-	if (useDatabase) {
-		const dbTypeSelection = await select({
-			message: "Select a database:",
-			options: [
-				{ value: "mongodb", label: "MongoDB" },
-				{ value: "postgresql", label: "PostgreSQL" },
-				{ value: "mysql", label: "MySQL" },
-			],
-		});
-		if (isCancel(dbTypeSelection)) process.exit(0);
-		dbType = dbTypeSelection as "mongodb" | "postgresql" | "mysql";
+    const name = (await promptText(
+      "Enter the database name:",
+      "my_database",
+      "my_database"
+    )) as string;
 
-		const defaults = {
-			mongodb: "mongodb://localhost:27017/",
-			postgresql: "postgres://postgres:password@localhost:5432",
-			mysql: "mysql://root:password@localhost:3306",
-		} as const;
+    const orm =
+      provider === "mongodb"
+        ? ("mongoose" as "mongoose")
+        : ((await promptSelect<"prisma" | "drizzle" | "sequelize">(
+            "Select ORM:",
+            [
+              { value: "prisma", label: "Prisma" },
+              { value: "drizzle", label: "Drizzle" },
+              { value: "sequelize", label: "Sequelize" },
+            ]
+          )) as "prisma" | "drizzle" | "sequelize");
 
-		const connectionInput = await text({
-			message: "Enter the database connection string:",
-			placeholder: defaults[dbType],
-			initialValue: defaults[dbType],
-		});
-		if (isCancel(connectionInput)) process.exit(0);
-		dbConnectionString = connectionInput as string;
+    db = {
+      enable: true,
+      provider,
+      connectionString,
+      name,
+      orm,
+    } as TProjectConfig["db"];
+  }
 
-		const dbNameInput = await text({
-			message: "Enter the database name:",
-			placeholder: "my_database",
-			initialValue: "my_database",
-		});
-		if (isCancel(dbNameInput)) process.exit(0);
-		dbName = dbNameInput as string;
+  const authEnable = dbEnable
+    ? ((await promptConfirm(
+        "Do you want to use pre-built auth?",
+        true
+      )) as boolean)
+    : false;
 
-		if (dbType === "mongodb") orm = "mongoose";
-		else {
-			const ormSelection = await select({
-				message: "Select a database:",
-				options: [
-					{ value: "prisma", label: "Prisma" },
-					{ value: "drizzle", label: "Drizzle" },
-					{ value: "sequelize", label: "Sequelize" },
-				],
-			});
-			if (isCancel(dbTypeSelection)) process.exit(0);
-			orm = ormSelection as "prisma" | "drizzle" | "sequelize";
-		}
+  const cacheEnable = authEnable
+    ? true
+    : ((await promptConfirm("Do you want to use caching?", true)) as boolean);
 
-		const usePrebuiltAuth = await confirm({
-			message: "Do you want to use pre built auth?",
-			initialValue: true,
-		});
-		if (isCancel(usePrebuiltAuth)) process.exit(0);
-		prebuiltAuth = usePrebuiltAuth;
-	}
+  const cacheService = cacheEnable
+    ? ((await promptSelect<"redis" | "nodecache">("Select a cache:", [
+        { value: "redis", label: "Redis Cache" },
+        { value: "nodecache", label: "Node Cache" },
+      ])) as "redis" | "nodecache")
+    : undefined;
 
-	if (prebuiltAuth) useCache = true;
-	else {
-		const useCacheInput = await confirm({
-			message: "Do you want to use caching?",
-			initialValue: true,
-		});
-		if (isCancel(useCacheInput)) process.exit(0);
-		useCache = useCacheInput;
-	}
+  const socket = (await promptConfirm(
+    "Do you want to use Socket.io?"
+  )) as boolean;
+  const git = (await promptConfirm(
+    "Do you want to initialize git repo?",
+    true
+  )) as boolean;
 
-	if (useCache) {
-		const cache = await select({
-			message: "Select a cache:",
-			options: [
-				{ value: "redis", label: "Redis Cache" },
-				{ value: "nodecache", label: "Node Cache" },
-			],
-		});
-		if (isCancel(cacheType)) process.exit(0);
-		cacheType = cache as "redis" | "nodecache";
-	}
+  const rawConfig: TProjectConfig = {
+    name: (projectName === "." ? "" : projectName) as string,
+    expressVersion: expressVersion as string,
+    language: language as "js" | "ts",
+    db: db as TProjectConfig["db"],
+    auth: { enable: authEnable } as TProjectConfig["auth"],
+    cache: {
+      enable: cacheEnable,
+      service: cacheService,
+    } as TProjectConfig["cache"],
+    socket: socket as boolean,
+    git: git as boolean,
+  } as TProjectConfig;
 
-	// Other options
-	const useSocket = await confirm({
-		message: "Do you want to use Socket.io?",
-		initialValue: false,
-	});
-	if (isCancel(useSocket)) process.exit(0);
+  const result = ProjectConfigSchema.safeParse(rawConfig);
+  if (!result.success) {
+    consola.error("❌ Invalid configuration:");
+    for (const issue of result.error.issues) {
+      consola.error(`→ ${issue.path.join(".")}: ${issue.message}`);
+    }
+    process.exit(1);
+  }
 
-	const useGit = await confirm({
-		message: "Do you want to initialize git repo?",
-		initialValue: true,
-	});
-	if (isCancel(useGit)) process.exit(0);
-
-	// Normalize name
-	const normalizeProjectName = (n: string) => (n === "." ? "" : n);
-	const normalizedProjectName = normalizeProjectName(projectName);
-
-	const rawConfig: TProjectConfig = {
-		name: normalizedProjectName,
-		expressVersion,
-		useDatabase,
-		dbType,
-		orm,
-		dbConnectionString,
-		dbName,
-		prebuiltAuth,
-		useCache,
-		cacheType,
-		useSocket,
-		useGit,
-		language,
-	};
-
-	// Validate with Zod
-	const result = ProjectConfigSchema.safeParse(rawConfig);
-	if (!result.success) {
-		consola.error("❌ Invalid configuration:");
-		for (const issue of result.error.issues) {
-			consola.error(`→ ${issue.path.join(".")}: ${issue.message}`);
-		}
-		process.exit(1);
-	}
-
-	return result.data;
+  return result.data;
 }

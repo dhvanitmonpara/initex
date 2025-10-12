@@ -1,5 +1,5 @@
 import { env } from "./conf/env{{#if js}}.js{{/if}}";
-{{#if useSocket}}
+{{#if socket}}
 import { server } from "./app{{#if js}}.js{{/if}}";
 {{else}}
 import { app } from "./app{{#if js}}.js{{/if}}";
@@ -15,7 +15,7 @@ const main = async () => {
   await connectDB();
   {{/if}}
 
-  const serverInstance = {{#if useSocket}}server{{else}}app{{/if}}.listen(port, () => {
+  const serverInstance = {{#if socket}}server{{else}}app{{/if}}.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
   });
 

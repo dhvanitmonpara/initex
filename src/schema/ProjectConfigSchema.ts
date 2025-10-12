@@ -4,37 +4,43 @@ export const ProjectConfigSchema = z
 	.object({
 		name: z.string().min(1, "Project name cannot be empty."),
 		expressVersion: z.string().optional(),
-		useDatabase: z.boolean().default(false),
-		dbType: z.enum(["mongodb", "postgresql", "mysql"]).optional(),
-		orm: z.enum(["mongoose", "prisma", "sequelize", "drizzle"]).optional(),
-		dbConnectionString: z.url("Invalid database connection string.").optional(),
-		dbName: z.string().min(1, "Database name cannot be empty.").optional(),
-		prebuiltAuth: z.boolean().default(false),
-		useCache: z.boolean().default(false),
-		useGit: z.boolean().default(false),
-		cacheType: z.enum(["nodecache", "redis"]).optional(),
-		useSocket: z.boolean().default(false),
+		db: z.object({
+			enable: z.boolean().default(false),
+			provider: z.enum(["mongodb", "postgresql", "mysql"]).optional(),
+			connectionString: z.url("Invalid database connection string.").optional(),
+			orm: z.enum(["mongoose", "prisma", "sequelize", "drizzle"]).optional(),
+			name: z.string().min(1, "Database name cannot be empty.").optional(),
+		}),
+		cache: z.object({
+			enable: z.boolean().default(false),
+			service: z.enum(["nodecache", "redis"]).optional(),
+		}),
+		auth: z.object({
+			enable: z.boolean().default(false),
+		}),
+		git: z.boolean().default(false),
+		socket: z.boolean().default(false),
 		language: z.enum(["js", "ts"]).default("js"),
 	})
 	.superRefine((data, ctx) => {
-		if (data.useDatabase) {
-			if (!data.dbType) {
+		if (data.db.enable) {
+			if (!data.db.provider) {
 				ctx.addIssue({
-					path: ["dbType"],
-					message: "Database type is required when using a database.",
+					path: ["db.provider"],
+					message: "Database provider is required when using a database.",
 					code: "custom",
 				});
 			}
-			if (!data.dbConnectionString) {
+			if (!data.db.connectionString) {
 				ctx.addIssue({
-					path: ["dbConnectionString"],
+					path: ["db.connectionString"],
 					message: "Connection string required.",
 					code: "custom",
 				});
 			}
-			if (!data.dbName) {
+			if (!data.db.name) {
 				ctx.addIssue({
-					path: ["dbName"],
+					path: ["db.name"],
 					message: "Database name is required.",
 					code: "custom",
 				});

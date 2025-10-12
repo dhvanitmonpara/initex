@@ -4,7 +4,7 @@ import { execa } from "execa";
 import fs from "fs-extra";
 import minimist from "minimist";
 import pc from "picocolors";
-import { baseDeps, baseDevDeps } from "../constants/baseDeps";
+import { baseDeps, baseDevDeps } from "../data/baseDeps";
 import type {
 	TProjectConfig,
 	TProjectContext,
@@ -40,7 +40,8 @@ export async function generateProject(config: TProjectConfig) {
 		...config,
 		ts: config.language === "ts",
 		js: config.language === "js",
-		useRedis: config.cacheType === "redis",
+		useRedis: config.cache.service === "redis",
+		useMongodb: config.db.provider === "mongodb",
 	};
 
 	const __filename = fileURLToPath(import.meta.url);
@@ -85,8 +86,9 @@ export async function generateProject(config: TProjectConfig) {
 		if (featureConfig.dependencies)
 			allDependencies.push(...featureConfig.dependencies);
 
-		if (featureConfig.conditionalDependencies && config.dbType) {
-			const conditional = featureConfig.conditionalDependencies[config.dbType];
+		if (featureConfig.conditionalDependencies && config.db.provider) {
+			const conditional =
+				featureConfig.conditionalDependencies[config.db.provider];
 			if (conditional) allDependencies.push(...conditional);
 		}
 
@@ -137,13 +139,14 @@ export async function generateProject(config: TProjectConfig) {
 const selectFeatures = (config: TProjectContext) => {
 	const selectedFeatures: string[] = [];
 
-	if (config.prebuiltAuth) selectedFeatures.push("auth");
-	if (config.useDatabase) selectedFeatures.push(`db/${config.orm}`);
+	if (config.auth.enable) selectedFeatures.push("auth");
+	if (config.db.enable) selectedFeatures.push(`db/${config.db.orm}`);
 
-	if (config.useSocket) selectedFeatures.push("socket");
-	if (config.useCache) selectedFeatures.push(`cache/${config.cacheType}`);
+	if (config.socket) selectedFeatures.push("socket");
+	if (config.cache.enable)
+		selectedFeatures.push(`cache/${config.cache.service}`);
 
-	if (config.useGit) selectedFeatures.push("git");
+	if (config.git) selectedFeatures.push("git");
 
 	return selectedFeatures;
 };
