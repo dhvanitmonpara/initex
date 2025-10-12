@@ -28,7 +28,7 @@ export async function generateProject(config: TProjectConfig) {
 	});
 
 	const mode = args.mode;
-	const basePath = mode !== "start" ? "src/" : "";
+	const basePath = mode === "test" ? "src/" : "";
 
 	const projectRoot = path.resolve(process.cwd(), config.name);
 

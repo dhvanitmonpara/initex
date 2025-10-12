@@ -1,10 +1,11 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-	entry: ["src/index.ts"],
+	entry: ["src/**/*.ts"],
 	outDir: "dist",
-	format: ["cjs"],
+	format: ["esm"],
+	dts: true,
 	target: "node16",
 	clean: true,
-	onSuccess: "cp -r src/templates dist/templates",
+	onSuccess: "cp -r src/templates dist",
 });

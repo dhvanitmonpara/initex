@@ -16,7 +16,7 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 
 	let projectName = args._[0];
 	const mode = args.mode;
-	const isTesting = mode === "test";
+	const isTesting = mode === "test" || mode === "test:bin";
 
 	// Project Name
 	if (!projectName) {
