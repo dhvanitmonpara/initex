@@ -1,0 +1,7 @@
+{
+	"name": "nodecache",
+	"label": "Node Cache",
+	"description": "Node Cache setup",
+	"destination": "src/services",
+	"dependencies": ["node-cache"]
+}

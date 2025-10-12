@@ -65,22 +65,25 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 	});
 	if (isCancel(useDatabase)) process.exit(0);
 
-	let dbType: "MongoDB" | "PostgreSQL" | "MySQL" | undefined;
+	let dbType: "mongodb" | "postgresql" | "mysql" | undefined;
+	let orm: "prisma" | "drizzle" | "mongoose" | "sequelize" | undefined;
 	let dbConnectionString: string | undefined;
 	let dbName: string | undefined;
 	let prebuiltAuth: boolean | undefined;
+	let useCache: boolean | undefined;
+	let cacheType: "redis" | "nodecache" | undefined;
 
 	if (useDatabase) {
 		const dbTypeSelection = await select({
 			message: "Select a database:",
 			options: [
-				{ value: "MongoDB", label: "MongoDB" },
-				{ value: "PostgreSQL", label: "PostgreSQL" },
-				{ value: "MySQL", label: "MySQL" },
+				{ value: "mongodb", label: "MongoDB" },
+				{ value: "postgresql", label: "PostgreSQL" },
+				{ value: "mysql", label: "MySQL" },
 			],
 		});
 		if (isCancel(dbTypeSelection)) process.exit(0);
-		dbType = dbTypeSelection as "MongoDB" | "PostgreSQL" | "MySQL";
+		dbType = dbTypeSelection as "mongodb" | "postgresql" | "mysql";
 
 		const defaults = {
 			MongoDB: "mongodb://localhost:27017/",
@@ -104,12 +107,48 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		if (isCancel(dbNameInput)) process.exit(0);
 		dbName = dbNameInput as string;
 
+		if (dbType === "mongodb") orm = "mongoose";
+		else {
+			const ormSelection = await select({
+				message: "Select a database:",
+				options: [
+					{ value: "prisma", label: "Prisma" },
+					{ value: "drizzle", label: "Drizzle" },
+					{ value: "sequelize", label: "Sequelize" },
+				],
+			});
+			if (isCancel(dbTypeSelection)) process.exit(0);
+			orm = ormSelection as "prisma" | "drizzle" | "sequelize";
+		}
+
 		const usePrebuiltAuth = await confirm({
 			message: "Do you want to use pre built auth?",
 			initialValue: true,
 		});
 		if (isCancel(usePrebuiltAuth)) process.exit(0);
 		prebuiltAuth = usePrebuiltAuth;
+	}
+
+	if (prebuiltAuth) useCache = true;
+	else {
+		const useCacheInput = await confirm({
+			message: "Do you want to use caching?",
+			initialValue: true,
+		});
+		if (isCancel(useCacheInput)) process.exit(0);
+		useCache = useCacheInput;
+	}
+
+	if (useCache) {
+		const cache = await select({
+			message: "Select a cache:",
+			options: [
+				{ value: "redis", label: "Redis Cache" },
+				{ value: "nodecache", label: "Node Cache" },
+			],
+		});
+		if (isCancel(cacheType)) process.exit(0);
+		cacheType = cache as "redis" | "nodecache";
 	}
 
 	// Other options
@@ -128,9 +167,12 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		expressVersion,
 		useDatabase,
 		dbType,
+		orm,
 		dbConnectionString,
 		dbName,
 		prebuiltAuth,
+		useCache,
+		cacheType,
 		useSocket,
 		language,
 	};

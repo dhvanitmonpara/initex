@@ -35,6 +35,7 @@ export async function generateProject(config: TProjectConfig) {
 	const context = {
 		...config,
 		ts: config.language === "ts",
+		useRedis: config.cacheType === "redis",
 	};
 
 	const __filename = fileURLToPath(import.meta.url);
@@ -120,11 +121,11 @@ const selectFeatures = (config: TProjectContext) => {
 	if (config.useSocket) selectedFeatures.push("socket");
 
 	if (config.useDatabase) {
-		const feature = "db";
-		let path: string | null = null;
-		if (config.dbType === "PostgreSQL") path = `${feature}/prisma`;
-		if (config.dbType === "MySQL") path = `${feature}/sequelize`;
-		selectedFeatures.push(path);
+		selectedFeatures.push(`db/${config.orm}`);
+	}
+
+	if (config.useCache) {
+		selectedFeatures.push(`cache/${config.cacheType}`);
 	}
 
 	return selectedFeatures;

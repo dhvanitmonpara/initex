@@ -1,15 +1,11 @@
-{{#if ts}}
-import { env } from "./conf/env";
-{{#if useMongodb}}
-import connectDB from "./db/index";
-{{/if}}
-import app from "./app";
+import { env } from "./conf/env{{#if ts}}.js{{/if}}";
+{{#if useSocket}}
+import { server } from "./app{{#if ts}}.js{{/if}}";
 {{else}}
-import { env } from "./conf/env.js";
-{{#if useMongodb}}
-import connectDB from "./db/index.js";
+import { app } from "./app{{#if ts}}.js{{/if}}";
 {{/if}}
-import app from "./app.js";
+{{#if useMongodb}}
+import connectDB from "./db/index{{#if ts}}.js{{/if}}";
 {{/if}}
 
 const port = env.PORT || 8000;
@@ -19,11 +15,11 @@ const main = async () => {
   await connectDB();
   {{/if}}
 
-  const server = app.listen(port, () => {
+  const serverInstance = {{#if useSocket}}server{{else}}app{{/if}}.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
   });
 
-  server.on("error", (error) => {
+  serverInstance.on("error", (error) => {
     console.error("Server failed to start:", error);
     process.exit(1);
   });

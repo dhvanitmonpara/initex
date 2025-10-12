@@ -1,0 +1,32 @@
+{{#if ts}}
+import { DefaultEventsMap, Server, Socket } from "socket.io";
+
+type SocketType = Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
+{{/if}}
+
+class SocketService {
+ private handleSocketError = ({{#if ts}}socket: SocketType, error: any{{else}}socket, error{{/if}}) => {
+    console.error(`Socket ${socket.id} error:`, error);
+    socket.emit("operation-error", {
+      code: error.code || "GENERIC_ERROR",
+      message: error.message,
+    });
+  };
+
+  listenSocket = (
+    socket: SocketType
+  ) => {
+
+    // your socket logic here
+
+    socket.on("disconnect", () => {
+      try {
+        // action you want to perform when socket disconnects
+      } catch (error) {
+        this.handleSocketError(socket, error);
+      }
+    });
+  };
+}
+
+export { SocketService, userIdToSocketMap };

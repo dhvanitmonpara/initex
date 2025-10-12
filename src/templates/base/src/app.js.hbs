@@ -1,18 +1,17 @@
-{{#if ts}}
-import { env } from "./conf/env";
-{{else}}
-import { env } from "./conf/env.js";
-{{/if}}
+import { env } from "./conf/env{{#if ts}}.js{{/if}}";
 import express from 'express';
 import { Server } from 'socket.io';
+{{#if useSocket}}
+import { SocketService } from "./services/socket.service{{#if ts}}.js{{/if}}";
+{{/if}}
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
 import http from 'http';
 // routes
-{{#if ts}}
-import healthRouter from "./routes/health.route";
-{{else}}
-import healthRouter from "./routes/health.route.js";
+import healthRouter from "./routes/health.route{{#if ts}}.js{{/if}}";
+
+{{#if useSocket}}
+const socketService = new SocketService();
 {{/if}}
 
 const app = express();
@@ -43,7 +42,7 @@ app.use(express.static("public"));
 
 {{#if useSocket}}
 io.on('connection', (socket) => {
-  // define your function
+  socketService.listenSocket(socket);
 });
 {{/if}}
 
@@ -51,7 +50,7 @@ io.on('connection', (socket) => {
 app.use("/api/v1/health", healthRouter)
 
 {{#if useSocket}}
-export default server;
+export { server, app, io };
 {{else}}
-export default app;
+export { app };
 {{/if}}
