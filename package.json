@@ -1,6 +1,6 @@
 {
 	"name": "initex",
-	"version": "1.4.32",
+	"version": "1.4.34",
 	"bin": {
 		"initex": "./bin/cli.js"
 	},
@@ -11,8 +11,8 @@
 		"prepare": "npm run build && npm run lint-format",
 		"lint-format": "biome check --write"
 	},
-	"repository": "https://github.com/Dhvanitmonpara/initex",
-	"homepage": "https://github.com/Dhvanitmonpara/initex",
+	"repository": "https://github.com/dhvanitmonpara/initex",
+	"homepage": "https://github.com/dhvanitmonpara/initex",
 	"main": "./bin/cli.js",
 	"keywords": [
 		"initex"

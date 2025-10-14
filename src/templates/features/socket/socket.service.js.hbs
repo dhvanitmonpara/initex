@@ -2,10 +2,14 @@
 import { DefaultEventsMap, Server, Socket } from "socket.io";
 
 type SocketType = Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
-{{/if}}
 
+{{/if}}
 class SocketService {
- private handleSocketError = ({{#if ts}}socket: SocketType, error: any{{else}}socket, error{{/if}}) => {
+  {{#if ts}}
+  private handleSocketError = (socket: SocketType, error: any) => {
+  {{else}}
+  _handleSocketError = (socket, error) => {
+  {{/if}}
     console.error(`Socket ${socket.id} error:`, error);
     socket.emit("operation-error", {
       code: error.code || "GENERIC_ERROR",
@@ -23,10 +27,10 @@ class SocketService {
       try {
         // action you want to perform when socket disconnects
       } catch (error) {
-        this.handleSocketError(socket, error);
+        this.{{#if js}}_{{/if}}handleSocketError(socket, error);
       }
     });
   };
 }
 
-export { SocketService, userIdToSocketMap };
+export { SocketService };

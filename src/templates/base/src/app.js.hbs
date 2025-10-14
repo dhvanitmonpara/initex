@@ -1,12 +1,12 @@
 import { env } from "./conf/env{{#if js}}.js{{/if}}";
 import express from 'express';
-import { Server } from 'socket.io';
 {{#if socket}}
+import { Server } from 'socket.io';
 import { SocketService } from "./services/socket.service{{#if js}}.js{{/if}}";
+import http from 'http';
 {{/if}}
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
-import http from 'http';
 // routes
 import healthRouter from "./routes/health.route{{#if js}}.js{{/if}}";
 
@@ -26,7 +26,7 @@ const io = new Server(server, {
 });
 {{/if}}
 
-const corsOptions: CorsOptions = {
+const corsOptions{{#if ts}}: CorsOptions{{/if}} = {
   origin: env.ACCESS_CONTROL_ORIGIN,
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
