@@ -1,6 +1,6 @@
 {
 	"name": "initex",
-	"version": "1.4.34",
+	"version": "1.4.37",
 	"bin": {
 		"initex": "./bin/cli.js"
 	},

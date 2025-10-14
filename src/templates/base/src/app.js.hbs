@@ -1,14 +1,14 @@
-import { env } from "./conf/env{{#if js}}.js{{/if}}";
+import { env } from {{#if js}}"./conf/env.js"{{else}}"@/conf/env"{{/if}};
 import express from 'express';
 {{#if socket}}
 import { Server } from 'socket.io';
-import { SocketService } from "./services/socket.service{{#if js}}.js{{/if}}";
+import { SocketService } from {{#if js}}"./services/socket.service.js"{{else}}"@/services/socket.service"{{/if}};
 import http from 'http';
 {{/if}}
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
 // routes
-import healthRouter from "./routes/health.route{{#if js}}.js{{/if}}";
+import healthRouter from {{#if js}}"./routes/health.route.js"{{else}}"@/routes/health.route"{{/if}};
 
 {{#if socket}}
 const socketService = new SocketService();

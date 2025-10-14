@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     {{#if ts}}"build": "tsup",{{/if}}
     "start": "node {{#if ts}}dist/{{else}}src/{{/if}}index.js",

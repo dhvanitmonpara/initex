@@ -1,6 +1,6 @@
 import { Router } from 'express';
 {{#if ts}}
-import { healthCheck } from '../controllers/health.controller';
+import { healthCheck } from '@/controllers/health.controller';
 {{else}}
 import { healthCheck } from '../controllers/health.controller.js';
 {{/if}}

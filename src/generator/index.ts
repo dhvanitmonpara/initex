@@ -134,8 +134,6 @@ export async function generateProject(config: TProjectConfig) {
 		}
 	}
 
-	ensureESModule(projectRoot);
-
 	console.log(`✅ Project "${config.name}" generated successfully!`);
 }
 
@@ -153,17 +151,3 @@ const selectFeatures = (config: TProjectContext) => {
 
 	return selectedFeatures;
 };
-
-async function ensureESModule(projectRoot: string) {
-	const pkgPath = path.join(projectRoot, "package.json");
-
-	try {
-		const pkg = await fs.readJSON(pkgPath);
-
-		pkg.type = "module";
-
-		await fs.writeJSON(pkgPath, pkg, { spaces: 2 });
-	} catch (error) {
-		console.error(`❌ Failed to update package.json: ${error.message}`);
-	}
-}
