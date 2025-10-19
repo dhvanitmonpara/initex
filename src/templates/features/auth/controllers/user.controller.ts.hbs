@@ -2,13 +2,11 @@ import { Request, Response } from "express";
 {{#if ts}}
 import { ApiError } from "@/utils/ApiError";
 import userService from "@/services/user.service";
-import prisma from "@/db/index";
 import asyncHandler from "@/utils/asyncHandler";
 import ApiResponse from "@/utils/ApiResponse";
 {{else}}
 import { ApiError } from "../utils/ApiError.js";
 import userService from "../services/user.service.js";
-import prisma from "../db/index.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 {{/if}}
@@ -132,7 +130,7 @@ export const loginUser = asyncHandler(async ({{#if ts}}req: Request, res: Respon
 });
 
 export const getUserData = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
-  if (!req.user || !req.user.id) {
+  if (!req.body.user || !req.body.user.id) {
     throw new ApiError({
       statusCode: 400,
       message: "User not found",
@@ -141,7 +139,7 @@ export const getUserData = asyncHandler(async ({{#if ts}}req: Request, res: Resp
   }
 
   const user = {
-    ...req.user,
+    ...req.body.user,
     password: null,
     refreshToken: null,
   };
@@ -152,20 +150,20 @@ export const getUserData = asyncHandler(async ({{#if ts}}req: Request, res: Resp
 export const getUserById = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
   const { userId } = req.params;
 
-  const user = await userService.getUserByIdService(Number(userId));
+  const user = await userService.getUserByIdService(userId);
 
   return ApiResponse.ok(user, "User feteched successfully");
 });
 
 export const logoutUser = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
-  if (!req.user?.id)
+  if (!req.body.user?.id)
     throw new ApiError({
       statusCode: 400,
       message: "User not found",
       data: { service: "userService.logoutUserService" },
     });
 
-  await userService.logoutUserService(req.user.id);
+  await userService.logoutUserService(req.body.user.id);
 
   userService.clearAuthCookies(res);
 
@@ -210,7 +208,7 @@ export const sendOtp = asyncHandler(async ({{#if ts}}req: Request, res: Response
 });
 
 export const updateUser = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
-  if (!req.user)
+  if (!req.body.user)
     throw new ApiError({
       statusCode: 401,
       message: "Unauthorized request",
@@ -219,7 +217,7 @@ export const updateUser = asyncHandler(async ({{#if ts}}req: Request, res: Respo
 
   const { accentColor, displayName } = req.body;
 
-  const updatedUser = await userService.updateUserService(req.user.id, {
+  const updatedUser = await userService.updateUserService(req.body.user.id, {
     accentColor,
     displayName,
   });

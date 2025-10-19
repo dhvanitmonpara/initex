@@ -75,7 +75,7 @@ const verifyUserJWT = async ({{#if ts}}
       refreshToken: null,
     };
 
-    req.user = mappedUser;
+    req.body.user = mappedUser;
     next();
   } catch (error) {
     handleError(error, res, "Invalid Access Token", "UNAUTHORIZED");
