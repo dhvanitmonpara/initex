@@ -1,13 +1,15 @@
 {{#if ts}}
-import { ApiResponse, AsyncHandler } from "@/utils/ApiHelpers";
+import ApiResponse from "@/utils/ApiResponse";
+import asyncHandler from "@/utils/asyncHandler";
 import { Request, Response, NextFunction } from "express";
 {{else}}
-import { ApiResponse, AsyncHandler } from "../utils/ApiHelpers.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import asyncHandler from "../utils/asyncHandler.js";
 {{/if}}
 
-const healthCheck = AsyncHandler(
+const healthCheck = asyncHandler(
   async ({{#if ts}}req: Request, res: Response, next: NextFunction{{else}}req, res, next{{/if}}) => {
-    return res.status(200).json(new ApiResponse(200, {}, "Server is healthy"));
+    return ApiResponse.ok({}, "Server is healthy");
   }
 );
 

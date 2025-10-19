@@ -1,0 +1,81 @@
+import { Response } from "express";
+import { ApiError } from {{#if js}}"./ApiError.js"{{else}}"@/utils/ApiError"{{/if}};
+import { env } from {{#if js}}"../conf/env.js"{{else}}"@/conf/env"{{/if}};
+
+interface MongoServerError extends Error {
+  name: string;
+  code: number;
+}
+
+function handleError(
+  {{#if ts}}
+  error: unknown,
+  res: Response | null,
+  fallbackMessage: string,
+  fallbackErrorCode: string,
+  duplicationErrorMessage?: string
+  {{else}}
+  error,
+  res,
+  fallbackMessage,
+  fallbackErrorCode,
+  duplicationErrorMessage
+  {{/if}}
+) {
+  if (env.NODE_ENV !== "production") {
+    console.error(fallbackMessage, error);
+  } else {
+    console.error(fallbackMessage, {
+      {{#if ts}}
+      name: (error as Error)?.name,
+      message: (error as Error)?.message,
+      code: (error as any)?.code,
+      {{else}}
+      name: error?.name,
+      message: error?.message,
+      code: error?.code,
+      {{/if}}
+    });
+  }
+
+  if (isMongoDuplicateError(error)) {
+    return res?.status(400).json({
+      error: duplicationErrorMessage || "Duplicate key error",
+      code: "DUPLICATE_KEY",
+    });
+  }
+
+  if (error instanceof ApiError) {
+    if (
+      error.statusCode === 401 &&
+      (error.message === "Access token not found" ||
+        error.message === "Access and refresh token not found")
+    ) {
+      return res?.status(401).json({
+        error: "Unauthorized",
+        hasRefreshToken: error.message === "Access token not found",
+        code: error.code || fallbackErrorCode,
+      });
+    }
+    return res?.status(error.statusCode || 500).json({
+      error: error.message || fallbackMessage,
+      code: error.code || fallbackErrorCode,
+    });
+  }
+
+  return res?.status(500).json({
+    error: fallbackMessage,
+    code: fallbackErrorCode,
+  });
+}
+
+function isMongoDuplicateError(error{{#if ts}}: unknown{{/if}}): error is MongoServerError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    {{#if ts}}(error as MongoServerError){{else}}error{{/if}}.name === "MongoServerError" &&
+    {{#if ts}}(error as MongoServerError){{else}}error{{/if}}.code === 11000
+  );
+}
+
+export default handleError;

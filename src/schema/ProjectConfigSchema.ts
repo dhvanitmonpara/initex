@@ -49,4 +49,9 @@ export const ProjectConfigSchema = z
 	});
 
 export type TProjectConfig = z.infer<typeof ProjectConfigSchema>;
-export type TProjectContext = TProjectConfig & { ts: boolean };
+export type TProjectContext = TProjectConfig & {
+	ts: boolean;
+	js: boolean;
+	useRedis: boolean;
+	useMongodb: boolean;
+};

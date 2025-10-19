@@ -1,0 +1,49 @@
+{{#if ts}}
+import type { Request, Response } from "express";
+
+class ApiResponse<T> {
+  readonly statusCode: number;
+  readonly data: T;
+  readonly message: string;
+  readonly success: boolean;
+
+  private constructor(statusCode: number, data: T, message: string) {
+    this.statusCode = statusCode;
+    this.data = data;
+    this.message = message;
+    this.success = statusCode < 400;
+  }
+
+  static ok<T>(data: T, message: string = "Success") {
+    return new ApiResponse(200, data, message);
+  }
+
+  static created<T>(data: T, message: string = "Created successfully") {
+    return new ApiResponse(201, data, message);
+  }
+}
+{{else}}
+class ApiResponse {
+  readonly statusCode;
+  readonly data;
+  readonly message;
+  readonly success;
+
+  private constructor(statusCode, data, message) {
+    this.statusCode = statusCode;
+    this.data = data;
+    this.message = message;
+    this.success = statusCode < 400;
+  }
+
+  static ok(data, message = "Success") {
+    return new ApiResponse(200, data, message);
+  }
+
+  static created(data, message = "Created successfully") {
+    return new ApiResponse(201, data, message);
+  }
+}
+{{/if}}
+
+export default ApiResponse;

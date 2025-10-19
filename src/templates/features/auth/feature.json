@@ -1,0 +1,13 @@
+{
+	"name": "auth",
+	"label": "Auth",
+	"description": "Auth setup",
+	"dependencies": [
+		"jsonwebtoken",
+		"winston",
+		"bcryptjs",
+		"axios",
+		"ua-parser-js"
+	],
+	"devDependencies": [""]
+}

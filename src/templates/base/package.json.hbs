@@ -8,10 +8,12 @@
     {{#if ts}}"build": "tsup",{{/if}}
     "start": "node {{#if ts}}dist/{{else}}src/{{/if}}index.js",
     {{#if ts}}
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
     {{else}}
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
     {{/if}}
+    "lint-format": "biome check --write",
+    "prepare": "npm run lint-format"
   },
   "dependencies": {
     
