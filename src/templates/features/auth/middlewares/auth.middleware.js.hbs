@@ -2,17 +2,37 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "@/conf/env";
-import prisma from "@/db/index";
 import { ApiError } from "@/utils/ApiError";
 import handleError from "@/utils/HandleError";
+{{#if usePrisma}}
+import prisma from "@/db/index";
+{{/if}}
+{{#if useDrizzle}}
+import { eq } from "drizzle-orm";
+import db from "@/db/index.js";
+import { UserTable } from "@/db/schema";
+{{/if}}
+{{#if useMongodb}}
 import { toObjectId } from "@/utils/toObject";
+import UserModel from "@/models/user.model";
+{{/if}}
 {{else}}
 import jwt from "jsonwebtoken";
 import { env } from "../conf/env.js";
-import prisma from "../db/index.js";
 import { ApiError } from "../utils/ApiError.js";
 import handleError from "../utils/HandleError.js";
+{{#if usePrisma}}
+import prisma from "../db/index.js";
+{{/if}}
+{{#if useDrizzle}}
+import { eq } from "drizzle-orm";
+import db from "../db/index.js";
+import { UserTable } from "../db/schema";
+{{/if}}
+{{#if useMongodb}}
 import { toObjectId } from "../utils/toObject.js";
+import UserModel from "../models/user.model.js";
+{{/if}}
 {{/if}}
 
 const verifyUserJWT = async ({{#if ts}}
@@ -55,6 +75,11 @@ const verifyUserJWT = async ({{#if ts}}
       where: {
         id: decodedToken.id,
       },
+    });
+{{/if}}
+{{#if useDrizzle}}
+    const user = await db.query.users.findFirst({
+      where: eq(UserTable.id, decodedToken.id),
     });
 {{/if}}
 

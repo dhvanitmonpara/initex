@@ -72,8 +72,6 @@ export async function generateProject(config: TProjectConfig) {
 		);
 	}
 
-	console.log(selectedFeatures);
-
 	for (const featureName of selectedFeatures) {
 		const featurePath = path.resolve(
 			__dirname,

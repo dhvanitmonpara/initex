@@ -207,24 +207,6 @@ export const sendOtp = asyncHandler(async ({{#if ts}}req: Request, res: Response
   );
 });
 
-export const updateUser = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
-  if (!req.body.user)
-    throw new ApiError({
-      statusCode: 401,
-      message: "Unauthorized request",
-      data: { service: "userService.updateUserService" },
-    });
-
-  const { accentColor, displayName } = req.body;
-
-  const updatedUser = await userService.updateUserService(req.body.user.id, {
-    accentColor,
-    displayName,
-  });
-
-  return ApiResponse.ok(updatedUser, "User updated successfully");
-});
-
 export const verifyOtp = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
   const { email, otp } = req.body;
 

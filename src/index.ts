@@ -4,6 +4,7 @@ import { teen } from "gradient-string";
 import pc from "picocolors";
 import { loadConfig } from "./config/loadConfig";
 import { safeSaveJson } from "./config/saveConfig";
+import { InitexArt } from "./constants/initexArt";
 import { generateProject } from "./generator/index";
 import { parseCLIArgs } from "./prompts/parseCLIArguments";
 import { promptPresetSelection } from "./prompts/presetPrompts";
@@ -13,9 +14,8 @@ import type { TProjectConfig } from "./schema/ProjectConfigSchema";
 async function main() {
 	const cliArgs = parseCLIArgs();
 
-	consola.box(teen("🚀 Welcome to Initex CLI"));
+	console.log(teen(InitexArt));
 	intro(pc.italic(pc.cyan("Let's initialize your new project!")));
-	console.log(cliArgs);
 
 	let config: TProjectConfig = await loadConfig();
 	if (

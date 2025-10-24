@@ -75,17 +75,28 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 			"my_database",
 		)) as string;
 
-		const orm =
-			provider === "mongodb"
-				? ("mongoose" as "mongoose")
-				: ((await promptSelect<"prisma" | "drizzle" | "sequelize">(
-						"Select ORM:",
-						[
+		let orm: "mongoose" | "prisma" | "drizzle" | "sequelize";
+
+		if (provider === "mongodb") {
+			orm = "mongoose";
+		} else {
+			const options =
+				provider === "postgresql"
+					? [
 							{ value: "prisma", label: "Prisma" },
 							{ value: "drizzle", label: "Drizzle" },
 							{ value: "sequelize", label: "Sequelize" },
-						],
-					)) as "prisma" | "drizzle" | "sequelize");
+						]
+					: [
+							{ value: "prisma", label: "Prisma" },
+							{ value: "sequelize", label: "Sequelize" },
+						];
+
+			orm = (await promptSelect<(typeof options)[number]["value"]>(
+				"Select ORM:",
+				options,
+			)) as typeof orm;
+		}
 
 		db = {
 			enable: true,

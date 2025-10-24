@@ -7,10 +7,20 @@ import axios from "axios";
 import { env } from "@/conf/env";
 import { ApiError } from "@/utils/ApiError";
 import generateDeviceFingerprint from "@/utils/generateDeviceFingerprint";
-import prisma from "@/db/index";
 import nodeCache from "@/services/nodecache.service";
 import { hashOTP } from "@/utils/cryptographer";
+{{#if usePrisma}}
+import prisma from "@/db/index";
+{{/if}}
+{{#if useDrizzle}}
+import { eq, or, sql } from "drizzle-orm";
+import db from "@/db/index.js";
+import { UserTable } from "@/db/schema";
+{{/if}}
+{{#if useMongodb}}
 import { toObjectId } from "@/utils/toObject";
+import UserModel from "@/models/user.model";
+{{/if}}
 {{else}}
 import { env } from "../conf/env.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -18,7 +28,18 @@ import generateDeviceFingerprint from "../utils/generateDeviceFingerprint.js";
 import prisma from "../db/index.js";
 import nodeCache from "./nodecache.service.js";
 import { hashOTP } from "../utils/cryptographer.js";
+{{#if usePrisma}}
+import prisma from "../db/index.js";
+{{/if}}
+{{#if useDrizzle}}
+import { eq, or, sql } from "drizzle-orm";
+import db from "../db/index.js";
+import { UserTable } from "../db/schema";
+{{/if}}
+{{#if useMongodb}}
 import { toObjectId } from "../utils/toObject.js";
+import UserModel from "../models/user.model.js";
+{{/if}}
 {{/if}}
 
 class UserService {
@@ -104,6 +125,11 @@ class UserService {
     {{#if usePrisma}}
     const user = await prisma.user.findUnique({ where: { id: userId } });
     {{/if}}
+    {{#if useDrizzle}}
+    const user = await db.query.users.findFirst({
+      where: eq(UserTable.id, userId),
+    });
+    {{/if}}
 
     if (!user)
       throw new ApiError({
@@ -137,6 +163,12 @@ class UserService {
       { $set: { refreshToken } },
       { new: true, runValidators: true }
     );
+    {{/if}}
+    {{#if useDrizzle}}
+    await db
+      .update(UserTable)
+      .set({ refreshToken })
+      .where(eq(UserTable.id, user.id));
     {{/if}}
 
     return { accessToken, refreshToken, userAgent, ip };
@@ -189,13 +221,18 @@ class UserService {
 
     // 3. Check existing user
     {{#if usePrisma}}
-    const existingUser = await prisma.user.findFirst({
-      where: { email: user.email.toLowerCase() },
+    const existingUser = await db.query.users.findFirst({
+      where: eq(UserTable.email, user.email.toLowerCase()),
     });
     {{/if}}
     {{#if useMongodb}}
     const existingUser = await UserModel.findOne({
       email: user.email.toLowerCase(),
+    });
+    {{/if}}
+    {{#if useDrizzle}}
+    const existingUser = await db.query.users.findFirst({
+      where: eq(UserTable.email, user.email.toLowerCase()),
     });
     {{/if}}
 
@@ -239,6 +276,17 @@ class UserService {
       authType: "oauth",
     });
     {{/if}}
+    {{#if useDrizzle}}
+    const createdUser = await db
+      .insert(UserTable)
+      .values({
+        email,
+        username,
+        password: null,
+        authType: "oauth",
+      })
+      .returning();
+    {{/if}}
 
     if (!createdUser)
       throw new ApiError({
@@ -248,7 +296,7 @@ class UserService {
       });
 
     const { accessToken, refreshToken } =
-      await userService.generateAccessAndRefreshToken(createdUser.id, req);
+      await userService.generateAccessAndRefreshToken(createdUser{{#if useDrizzle}}[0]{{/if}}.id, req);
 
     if (!accessToken || !refreshToken) {
       throw new ApiError({
@@ -290,6 +338,11 @@ class UserService {
     {{#if useMongodb}}
     const existingUser = await UserModel.findOne({ email });
     {{/if}}
+    {{#if useDrizzle}}
+    const existingUser = await db.query.users.findFirst({
+      where: eq(UserTable.email, email),
+    });
+    {{/if}}
     if (existingUser)
       throw new ApiError({
         statusCode: 400,
@@ -302,6 +355,11 @@ class UserService {
     {{/if}}
     {{#if useMongodb}}
     const usernameTaken = await UserModel.findOne({ username });
+    {{/if}}
+    {{#if useDrizzle}}
+    const usernameTaken = await db.query.users.findFirst({
+      where: eq(UserTable.username, username),
+    });
     {{/if}}
     if (usernameTaken)
       throw new ApiError({
@@ -357,9 +415,20 @@ class UserService {
       authType: "manual",
     });
     {{/if}}
+    {{#if useDrizzle}}
+    const createdUser = await db
+      .insert(UserTable)
+      .values({
+        email,
+        password: encryptedPassword,
+        username,
+        authType: "manual",
+      })
+      .returning();
+    {{/if}}
 
     const { accessToken, refreshToken } =
-      await this.generateAccessAndRefreshToken(createdUser.id, req);
+      await this.generateAccessAndRefreshToken(createdUser{{#if useDrizzle}}[0]{{/if}}.id, req);
 
     if (!accessToken || !refreshToken)
       throw new ApiError({
@@ -381,6 +450,11 @@ class UserService {
     {{/if}}
     {{#if useMongodb}}
     const user = await UserModel.findOne({ email });
+    {{/if}}
+    {{#if useDrizzle}}
+    const user = await db.query.users.findFirst({
+      where: eq(UserTable.email, email),
+    });
     {{/if}}
     if (!user)
       throw new ApiError({
@@ -416,6 +490,11 @@ class UserService {
     {{#if useMongodb}}
     const user = await UserModel.findById(toObjectId(userId));
     {{/if}}
+    {{#if useDrizzle}}
+    const user = await db.query.users.findFirst({
+      where: eq(UserTable.id, userId),
+    });
+    {{/if}}
     if (!user)
       throw new ApiError({
         statusCode: 400,
@@ -436,6 +515,12 @@ class UserService {
       { new: true, runValidators: true }
     );
     {{/if}}
+    {{#if useDrizzle}}
+    await db
+      .update(UserTable)
+      .set({ refreshToken: "" })
+      .where(eq(UserTable.id, userId));
+    {{/if}}
   };
 
   clearAuthCookies = (res{{#if ts}}: Response{{/if}}) => {
@@ -452,6 +537,11 @@ class UserService {
     {{/if}}
     {{#if useMongodb}}
     const user = await UserModel.findById(toObjectId(userId));
+    {{/if}}
+    {{#if useDrizzle}}
+    const user = await db.query.users.findFirst({
+      where: eq(UserTable.id, userId),
+    });
     {{/if}}
 
     if (!user)
@@ -495,6 +585,11 @@ class UserService {
     {{/if}}
     {{#if useMongodb}}
     const user = await UserModel.findById(toObjectId(decodedToken._id));
+    {{/if}}
+    {{#if useDrizzle}}
+    const user = await db.query.users.findFirst({
+      where: eq(UserTable.id, decodedToken.id),
+    });
     {{/if}}
     if (!user || !user.refreshToken)
       throw new ApiError({
@@ -553,42 +648,6 @@ class UserService {
     return { otp: data.details.otp, messageId: data.messageId };
   };
 
-  updateUserService = async (
-    {{#if ts}}
-    userId: string,
-    updates: { accentColor?: string; displayName?: string }
-    {{else}}userId, updates{{/if}}
-  ) => {
-    {{#if usePrisma}}
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    {{/if}}
-    {{#if useMongodb}}
-    const user = await UserModel.findById(toObjectId(userId));
-    {{/if}}
-    if (!user)
-      throw new ApiError({
-        statusCode: 404,
-        message: "User not found",
-        data: { service: "userService.updateUserService" },
-      });
-
-    {{#if usePrisma}}
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: updates,
-    });
-    {{/if}}
-    {{#if useMongodb}}
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      toObjectId(userId),
-      { $set: updates },
-      { new: true, runValidators: true }
-    );
-    {{/if}}
-
-    return updatedUser;
-  };
-
   compareOTP = async ({{#if ts}}email: string, otp: string{{else}}email, otp{{/if}}) => {
     try {
       const storedOtp = nodeCache.get(`otp:${email}`);
@@ -623,7 +682,6 @@ class UserService {
     return isValid;
   };
 
-  // services/userService.ts
   searchUsersService = async (query{{#if ts}}: string{{/if}}) => {
     if (!query)
       throw new ApiError({
@@ -657,6 +715,19 @@ class UserService {
       },
       { _id: 1, username: 1, email: 1 }
     ).lean();
+    {{/if}}
+    {{#if useDrizzle}}
+    const users = await db.query.users.findMany({
+      where: or(
+        sql`LOWER(${UserTable.username}) LIKE LOWER(${`%${query}%`})`,
+        sql`LOWER(${UserTable.email}) LIKE LOWER(${`%${query}%`})`
+      ),
+      columns: {
+        id: true,
+        username: true,
+        email: true,
+      },
+    });
     {{/if}}
 
     return users;
