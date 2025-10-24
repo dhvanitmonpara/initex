@@ -17,6 +17,7 @@ interface FeatureConfig {
 	description: string;
 	dependencies?: string[];
 	conditionalDependencies?: Record<string, string[]>;
+	conditionalDevDependencies?: Record<string, string[]>;
 	destination?: string;
 	commands?: {
 		cmd: string;
@@ -36,12 +37,17 @@ export async function generateProject(config: TProjectConfig) {
 
 	const projectRoot = path.resolve(process.cwd(), config.name);
 
-	const context = {
+	const context: TProjectContext = {
 		...config,
 		ts: config.language === "ts",
 		js: config.language === "js",
 		useRedis: config.cache.service === "redis",
 		useMongodb: config.db.provider === "mongodb",
+		usePrisma: config.db.orm === "prisma",
+		useSequelize: config.db.orm === "sequelize",
+		useDrizzle: config.db.orm === "drizzle",
+		usePostgres: config.db.provider === "postgresql",
+		useMysql: config.db.provider === "mysql",
 	};
 
 	const __filename = fileURLToPath(import.meta.url);
@@ -91,6 +97,18 @@ export async function generateProject(config: TProjectConfig) {
 			const conditional =
 				featureConfig.conditionalDependencies[config.db.provider];
 			if (conditional) allDependencies.push(...conditional);
+		}
+
+		if (featureConfig.conditionalDependencies && config.db.provider) {
+			const conditional =
+				featureConfig.conditionalDependencies[config.db.provider];
+			if (conditional) allDependencies.push(...conditional);
+		}
+
+		if (featureConfig.conditionalDevDependencies && config.db.provider) {
+			const conditional =
+				featureConfig.conditionalDevDependencies[config.db.provider];
+			if (conditional) allDevDependencies.push(...conditional);
 		}
 
 		if (featureConfig.commands && featureConfig.commands?.length > 0) {

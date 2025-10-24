@@ -1,0 +1,15 @@
+{
+	"name": "drizzle",
+	"label": "Drizzle ORM + SQL",
+	"description": "SQL setup",
+	"destination": ".",
+	"dependencies": ["drizzle-orm"],
+	"devDependency": ["drizzle-kit"],
+	"conditionalDependencies": {
+		"postgresql": ["pg"],
+		"mysql": ["mysql2"]
+	},
+	"conditionalDevDependencies": {
+		"postgresql": ["@types/pg"]
+	}
+}

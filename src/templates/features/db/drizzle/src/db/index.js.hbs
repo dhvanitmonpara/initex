@@ -1,0 +1,11 @@
+{{#if ts}}
+import { env } from "@/conf/env";
+{{else}}
+import { env } from "../conf/env.js";
+{{/if}}
+
+import { drizzle } from 'drizzle-orm/{{#if usePostgres}}node-postgres{{else}}mysql2{{/if}}';
+
+const db = drizzle(env.DATABASE_URL!);
+
+export default db;

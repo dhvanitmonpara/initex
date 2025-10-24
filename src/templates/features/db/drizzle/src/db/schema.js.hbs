@@ -1,0 +1,15 @@
+import { {{#if usePostgres}}pgEnum, integer{{else}}mysqlEnum, serial{{/if}}, {{#if usePostgres}}pgTable{{else}}mysqlTable{{/if}}, timestamp, varchar } from "drizzle-orm/{{#if usePostgres}}pg-core{{else}}mysql-core{{/if}}";
+
+export const AuthTypeEnum = {{#if usePostgres}}pgEnum{{else}}mysqlEnum{{/if}}("authType", ["manual", "oauth"]);
+
+export const UserTable = {{#if usePostgres}}pgTable{{else}}mysqlTable{{/if}}("user", {
+  id: {{#if usePostgres}}integer{{else}}serial{{/if}}("id").integer().primaryKey().generatedAlwaysAsIdentity(),
+  username: varchar("username", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  password: varchar("password", { length: 255 }),
+  authType: AuthTypeEnum("authType").notNull(),
+  refreshToken: varchar("refreshToken", { length: 255 }),
+
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});

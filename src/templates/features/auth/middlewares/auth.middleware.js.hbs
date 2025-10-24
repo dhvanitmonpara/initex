@@ -5,12 +5,14 @@ import { env } from "@/conf/env";
 import prisma from "@/db/index";
 import { ApiError } from "@/utils/ApiError";
 import handleError from "@/utils/HandleError";
+import { toObjectId } from "@/utils/toObject";
 {{else}}
 import jwt from "jsonwebtoken";
 import { env } from "../conf/env.js";
 import prisma from "../db/index.js";
 import { ApiError } from "../utils/ApiError.js";
 import handleError from "../utils/HandleError.js";
+import { toObjectId } from "../utils/toObject.js";
 {{/if}}
 
 const verifyUserJWT = async ({{#if ts}}
@@ -45,11 +47,16 @@ const verifyUserJWT = async ({{#if ts}}
       });
     }
 
+{{#if useMongodb}}
+    const user = await UserModel.findById(toObjectId(decodedToken._id));
+{{/if}}
+{{#if usePrisma}}
     const user = await prisma.user.findUnique({
       where: {
         id: decodedToken.id,
       },
     });
+{{/if}}
 
     if (!user) {
       throw new ApiError({

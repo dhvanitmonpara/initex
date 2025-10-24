@@ -54,4 +54,9 @@ export type TProjectContext = TProjectConfig & {
 	js: boolean;
 	useRedis: boolean;
 	useMongodb: boolean;
+	usePrisma: boolean;
+	useSequelize: boolean;
+	useDrizzle: boolean;
+	usePostgres: boolean;
+	useMysql: boolean;
 };
