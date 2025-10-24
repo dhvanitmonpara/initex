@@ -15,7 +15,11 @@ export async function copyAndRenderTemplate(
 		cwd: targetPath,
 		absolute: true,
 		dot: true,
-		ignore: ["**/feature.json", ...(context.js ? ["**/*.ts.hbs"] : [])],
+		ignore: [
+			"feature.json",
+			"**/feature.json",
+			...(context.js ? ["**/*.ts.hbs"] : []),
+		],
 	});
 
 	await Promise.all(

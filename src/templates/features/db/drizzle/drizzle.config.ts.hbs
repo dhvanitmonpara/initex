@@ -1,16 +1,16 @@
 import { defineConfig } from 'drizzle-kit';
 {{#if ts}}
-import { env } from "@/conf/env"
+import { env } from "./src/conf/env"
 {{else}}
-import { env } from "../conf/env.js"
+import { env } from "./src/conf/env.js"
 {{/if}}
 
-export defineConfig({
+export default defineConfig({
   out: './drizzle',
   schema: './src/db/schema.ts',
   dialect: '{{db.provider}}',
   dbCredentials: {
-    connectionString: env.DATABASE_URL as string,
+    url: env.DATABASE_URL,
   },
   verbose: true,
   strict: true

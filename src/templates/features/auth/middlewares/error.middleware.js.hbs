@@ -9,7 +9,26 @@ import { ApiError } from "../utils/ApiError.js";
 import logger from "../utils/logger.js";
 {{/if}}
 
+{{#if useMongodb}}
+{{#if ts}}
+interface MongoServerError extends Error {
+  name: string;
+  code: number;
+}
+{{/if}}
+{{/if}}
+
 class ErrorMiddlewares {
+  {{#if useMongodb}}
+  private isMongoDuplicateError(error: unknown): error is MongoServerError {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      (error as MongoServerError).name === "MongoServerError" &&
+      (error as MongoServerError).code === 11000
+    );
+  }
+  {{/if}}
   public generalErrorHandler = ({{#if ts}}
     err: Error | ApiError,
     req: Request,
@@ -17,15 +36,41 @@ class ErrorMiddlewares {
     next: NextFunction{{else}}err, req, res, next{{/if}}
   ): void => {
     const isDev = env.NODE_ENV === "development";
+    const fallbackMessage = "Internal Server Error";
+    const fallbackErrorCode = "UNHANDLED_ERROR";
 
-    const error =
-      err instanceof ApiError
-        ? err
-        : new ApiError({
-            statusCode: 500,
-            message: err.message || "Internal Server Error",
-            code: "UNHANDLED_ERROR",
-          });
+    let error{{#if ts}}: ApiError{{/if}};
+
+    if (err instanceof ApiError) {
+      error = err;
+    }{{#if useMongodb}} else if (this.isMongoDuplicateError(err)) {
+      error = new ApiError({
+        statusCode: 400,
+        message: "Duplicate key error",
+        code: "DUPLICATE_KEY",
+      });
+    }{{/if}} else {
+      const e = err as Error;
+      error = new ApiError({
+        statusCode: 500,
+        message: e?.message || fallbackMessage,
+        code: fallbackErrorCode,
+      });
+    }
+
+    if (
+      error.statusCode === 401 &&
+      (error.message === "Access token not found" ||
+        error.message === "Access and refresh token not found")
+    ) {
+      const hasRefreshToken = error.message === "Access token not found";
+
+      ApiResponse.error(401, "Unauthorized", error.code || fallbackErrorCode, {
+        hasRefreshToken,
+      }).send(res);
+
+      return;
+    }
 
     const logMeta = {
       path: req.originalUrl,
@@ -40,17 +85,18 @@ class ErrorMiddlewares {
       logger.warn(error.message, logMeta);
     }
 
-    const response{{#if ts}}: Record<string, unknown>{{/if}} = {
-      success: false,
-      message: error.message,
-      code: error.code,
-    };
+    const apiRes = ApiResponse.error(
+      error.statusCode,
+      error.message || fallbackMessage,
+      error.code || fallbackErrorCode,
+      error.errors
+    );
 
-    if (error.errors) response.errors = error.errors;
-    if (error.data) response.data = error.data;
-    if (isDev && error.stack) response.stack = error.stack;
+    if (isDev && error.stack) {
+      (apiRes as any).stack = error.stack;
+    }
 
-    res.status(error.statusCode).json(response);
+    apiRes.send(res);
   };
 
   public notFoundErrorHandler = (

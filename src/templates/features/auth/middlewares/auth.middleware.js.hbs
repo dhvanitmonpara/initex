@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "@/conf/env";
 import { ApiError } from "@/utils/ApiError";
-import handleError from "@/utils/HandleError";
+import asyncHandler from "@/utils/asyncHandler";
 {{#if usePrisma}}
 import prisma from "@/db/index";
 {{/if}}
@@ -20,7 +20,7 @@ import UserModel from "@/models/user.model";
 import jwt from "jsonwebtoken";
 import { env } from "../conf/env.js";
 import { ApiError } from "../utils/ApiError.js";
-import handleError from "../utils/HandleError.js";
+import asyncHandler from "../utils/asyncHandler";
 {{#if usePrisma}}
 import prisma from "../db/index.js";
 {{/if}}
@@ -35,7 +35,7 @@ import UserModel from "../models/user.model.js";
 {{/if}}
 {{/if}}
 
-const verifyUserJWT = async ({{#if ts}}
+const verifyUserJWT = asyncHandler(async ({{#if ts}}
   req: Request,
   res: Response,
   next: NextFunction,
@@ -109,9 +109,6 @@ const verifyUserJWT = async ({{#if ts}}
 
     req.body.user = mappedUser;
     next();
-  } catch (error) {
-    handleError(error, res, "Invalid Access Token", "UNAUTHORIZED");
-  }
-};
+});
 
 export { verifyUserJWT };
