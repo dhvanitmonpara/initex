@@ -1,0 +1,16 @@
+{{#if ts}}
+import ApiResponse from "@/common/utils/ApiResponse";
+import asyncHandler from "@/common/utils/asyncHandler";
+import { Request, Response, NextFunction } from "express";
+{{else}}
+import ApiResponse from "../../common/utils/ApiResponse.js";
+import asyncHandler from "../../common/utils/asyncHandler.js";
+{{/if}}
+
+const healthCheck = asyncHandler(
+  async ({{#if ts}}req: Request, res: Response, next: NextFunction{{else}}req, res, next{{/if}}) => {
+    return ApiResponse.ok({}, "Server is healthy");
+  }
+);
+
+export { healthCheck };

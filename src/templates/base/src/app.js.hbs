@@ -1,4 +1,4 @@
-import { env } from {{#if js}}"./conf/env.js"{{else}}"@/conf/env"{{/if}};
+import { env } from {{#if js}}"./common/config/env.js"{{else}}"@/common/config/env"{{/if}};
 import express from 'express';
 {{#if socket}}
 import { Server } from 'socket.io';
@@ -8,11 +8,11 @@ import http from 'http';
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import cors, { CorsOptions } from "cors";
-import errorMiddleware from {{#if js}}"./middlewares/error.middleware.js"{{else}}"@/middlewares/error.middleware"{{/if}};
+import errorMiddleware from {{#if js}}"./common/middlewares/error.middleware.js"{{else}}"@/common/middlewares/error.middleware"{{/if}};
 // routes
-import healthRouter from {{#if js}}"./routes/health.route.js"{{else}}"@/routes/health.route"{{/if}};
+import healthRouter from {{#if js}}"./features/health/health.route.js"{{else}}"@/features/health/health.route"{{/if}};
 {{#if auth.enable}}
-import userRouter from {{#if js}}"./routes/user.route.js"{{else}}"@/routes/user.route"{{/if}};
+import authRouter from {{#if js}}"./features/user/user.route.js"{{else}}"@/features/user/user.route"{{/if}};
 {{/if}}
 
 {{#if socket}}
@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
 // routes
 app.use("/api/v1/health", healthRouter)
 {{#if auth.enable}}
-app.use("/api/v1/users", userRouter)
+app.use("/api/v1/auth", authRouter)
 {{/if}}
 
 app.use(errorMiddleware.notFoundErrorHandler);

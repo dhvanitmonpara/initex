@@ -1,0 +1,115 @@
+{{#if ts}}
+import type { NextFunction, Request, Response } from "express";
+import { env } from "@/common/config/env";
+import { ApiError } from "@/common/utils/ApiError";
+import logger from "@/common/utils/logger";
+{{else}}
+import { env } from "../config/env.js";
+import { ApiError } from "../utils/ApiError.js";
+import logger from "../utils/logger.js";
+{{/if}}
+
+{{#if useMongodb}}
+{{#if ts}}
+interface MongoServerError extends Error {
+  name: string;
+  code: number;
+}
+{{/if}}
+{{/if}}
+
+class ErrorMiddlewares {
+  {{#if useMongodb}}
+  private isMongoDuplicateError(error: unknown): error is MongoServerError {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      (error as MongoServerError).name === "MongoServerError" &&
+      (error as MongoServerError).code === 11000
+    );
+  }
+  {{/if}}
+  public generalErrorHandler = ({{#if ts}}
+    err: Error | ApiError,
+    req: Request,
+    res: Response,
+    next: NextFunction{{else}}err, req, res, next{{/if}}
+  ): void => {
+    const isDev = env.NODE_ENV === "development";
+    const fallbackMessage = "Internal Server Error";
+    const fallbackErrorCode = "UNHANDLED_ERROR";
+
+    let error{{#if ts}}: ApiError{{/if}};
+
+    if (err instanceof ApiError) {
+      error = err;
+    }{{#if useMongodb}} else if (this.isMongoDuplicateError(err)) {
+      error = new ApiError({
+        statusCode: 400,
+        message: "Duplicate key error",
+        code: "DUPLICATE_KEY",
+      });
+    }{{/if}} else {
+      const e = err as Error;
+      error = new ApiError({
+        statusCode: 500,
+        message: e?.message || fallbackMessage,
+        code: fallbackErrorCode,
+      });
+    }
+
+    if (
+      error.statusCode === 401 &&
+      (error.message === "Access token not found" ||
+        error.message === "Access and refresh token not found")
+    ) {
+      const hasRefreshToken = error.message === "Access token not found";
+
+      ApiResponse.error(401, "Unauthorized", error.code || fallbackErrorCode, {
+        hasRefreshToken,
+      }).send(res);
+
+      return;
+    }
+
+    const logMeta = {
+      path: req.originalUrl,
+      method: req.method,
+      statusCode: error.statusCode,
+      code: error.code,
+    };
+
+    if (error.statusCode >= 500) {
+      logger.error(error.message, { ...logMeta, stack: error.stack });
+    } else {
+      logger.warn(error.message, logMeta);
+    }
+
+    const apiRes = ApiResponse.error(
+      error.statusCode,
+      error.message || fallbackMessage,
+      error.code || fallbackErrorCode,
+      error.errors
+    );
+
+    if (isDev && error.stack) {
+      (apiRes as any).stack = error.stack;
+    }
+
+    apiRes.send(res);
+  };
+
+  public notFoundErrorHandler = (
+    {{#if ts}}
+    req: Request,
+    res: Response,
+    next: NextFunction
+    {{else}}req, res, next{{/if}}
+  ): void => {
+    const message = `Route ${req.originalUrl} not found`;
+    logger.warn(message, { method: req.method, path: req.originalUrl });
+    next(new ApiError({ statusCode: 404, message, code: "NOT_FOUND" }));
+  };
+}
+
+export default Object.freeze(new ErrorMiddlewares());

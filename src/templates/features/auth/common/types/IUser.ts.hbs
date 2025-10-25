@@ -1,0 +1,7 @@
+export interface IUser {
+  {{#if useMongodb}}_id{{else}}id{{/if}}: string;
+  username: string;
+  email: string;
+  password: string;
+  refreshToken?: string;
+}

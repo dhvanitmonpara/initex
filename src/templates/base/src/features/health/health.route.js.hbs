@@ -1,0 +1,11 @@
+import { Router } from 'express';
+{{#if ts}}
+import { healthCheck } from '@/features/health/health.controller';
+{{else}}
+import { healthCheck } from './health.controller.js';
+{{/if}}
+
+const router = Router();
+router.get('/', healthCheck);
+
+export default router;

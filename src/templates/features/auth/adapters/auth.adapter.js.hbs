@@ -1,0 +1,166 @@
+{{#if ts}}
+import { IUser } from "@/common/types/IUser";
+{{#if usePrisma}}
+import prisma from "@/common/config/db";
+{{/if}}
+{{#if useDrizzle}}
+import { eq, or, sql } from "drizzle-orm";
+import db from "@/common/config/db/index.js";
+import { UserTable } from "@/common/config/db/schema";
+{{/if}}
+{{#if useMongodb}}
+import { toObjectId } from "@/common/utils/toObject";
+import UserModel from "@/features/user/user.model";
+{{/if}}
+{{else}}
+import { IUser } from "../common/types/IUser";
+{{#if usePrisma}}
+import prisma from "../common/db/index.js";
+{{/if}}
+{{#if useDrizzle}}
+import { eq, or, sql } from "drizzle-orm";
+import db from "../common/db/index.js";
+import { UserTable } from "../common/db/schema.js";
+{{/if}}
+{{#if useMongodb}}
+import { toObjectId } from "../common/utils/toObject.js";
+import UserModel from "../features/user/user.model.js";
+{{/if}}
+{{/if}}
+
+export const findById = async ({{#if ts}}userId: string{{else}}userId{{/if}}) => {
+  {{#if useMongodb}}
+  const user = await UserModel.findById(toObjectId(userId));
+  {{/if}}
+  {{#if usePrisma}}
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  {{/if}}
+  {{#if useDrizzle}}
+  const user = await db.query.users.findFirst({
+    where: eq(UserTable.id, userId),
+  });
+  {{/if}}
+
+  return user;
+}
+
+export const updateRefreshToken = async ({{#if ts}}user: IUser, refreshToken: string{{else}}user, refreshToken{{/if}}) => {
+  {{#if usePrisma}}
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken },
+  });
+  {{/if}}
+  {{#if useMongodb}}
+  await UserModel.findByIdAndUpdate(
+    toObjectId(user._id),
+    { $set: { refreshToken } },
+    { new: true, runValidators: true }
+  );
+  {{/if}}
+  {{#if useDrizzle}}
+  await db
+    .update(UserTable)
+    .set({ refreshToken })
+    .where(eq(UserTable.id, user.id));
+  {{/if}}
+}
+
+export const findByEmail = async ({{#if ts}}email: string{{else}}email{{/if}}) => {
+  {{#if usePrisma}}
+  const user = await db.query.users.findFirst({
+    where: eq(UserTable.email, email.toLowerCase()),
+  });
+  {{/if}}
+  {{#if useMongodb}}
+  const user = await UserModel.findOne({
+    email: email.toLowerCase(),
+  });
+  {{/if}}
+  {{#if useDrizzle}}
+  const user = await db.query.users.findFirst({
+    where: eq(UserTable.email, email.toLowerCase()),
+  });
+  {{/if}}
+
+  return user;
+}
+
+export const create = async ({{#if ts}}user: Partial<IUser>{{else}}user{{/if}}) => {
+  {{#if usePrisma}}
+  const createdUser = await prisma.user.create(user);
+  {{/if}}
+  {{#if useMongodb}}
+  const createdUser = await UserModel.create(user);
+  {{/if}}
+  {{#if useDrizzle}}
+  const createdUser = await db
+    .insert(UserTable)
+    .values(user)
+    .returning()?.[0];
+  {{/if}}
+
+  return createdUser;
+}
+
+export const findByUsername = async ({{#if ts}}username: string{{else}}username{{/if}}) => {
+  {{#if usePrisma}}
+  const user = await prisma.user.findFirst({
+    where: { username },
+  });
+  {{/if}}
+  {{#if useMongodb}}
+  const user = await UserModel.findOne({ username });
+  {{/if}}
+  {{#if useDrizzle}}
+  const user = await db.query.users.findFirst({
+    where: eq(UserTable.username, username),
+  });
+  {{/if}}
+
+  return user;
+}
+
+export const searchUsers = async ({{#if ts}}query: string{{else}}query{{/if}}) => {
+  {{#if usePrisma}}
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        { username: { contains: query, mode: "insensitive" } },
+        { email: { contains: query, mode: "insensitive" } },
+      ],
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+    },
+  });
+  {{/if}}
+  {{#if useMongodb}}
+  const users = await UserModel.find(
+    {
+      $or: [
+        { username: { $regex: query, $options: "i" } },
+        { email: { $regex: query, $options: "i" } },
+      ],
+    },
+    { _id: 1, username: 1, email: 1 }
+  ).lean();
+  {{/if}}
+  {{#if useDrizzle}}
+  const users = await db.query.users.findMany({
+    where: or(
+      sql`LOWER(${UserTable.username}) LIKE LOWER(${`%${query}%`})`,
+      sql`LOWER(${UserTable.email}) LIKE LOWER(${`%${query}%`})`
+    ),
+    columns: {
+      id: true,
+      username: true,
+      email: true,
+    },
+  });
+  {{/if}}
+
+  return users;
+}

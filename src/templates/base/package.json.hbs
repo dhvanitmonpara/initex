@@ -2,15 +2,15 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "type": "module",
   "scripts": {
     {{#if ts}}"build": "tsup",{{/if}}
-    "start": "node {{#if ts}}dist/{{else}}src/{{/if}}index.js",
+    "start": "node {{#if ts}}dist/{{else}}src/{{/if}}server.js",
     {{#if ts}}
-    "dev": "tsx src/index.ts",
+    "dev": "tsx src/server.ts",
     {{else}}
-    "dev": "nodemon src/index.js",
+    "dev": "nodemon src/server.js",
     {{/if}}
     "lint-format": "biome check --write",
     "prepare": "npm run lint-format"

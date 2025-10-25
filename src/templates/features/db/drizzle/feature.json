@@ -3,5 +3,9 @@
 	"label": "Drizzle ORM + PostgreSQL",
 	"description": "PostgreSQL setup",
 	"destination": ".",
-	"dependencies": ["drizzle-orm", "drizzle-kit"]
+	"dependencies": ["drizzle-orm", "drizzle-kit"],
+	"conditionalDependencies": {
+		"postgresql": ["pg"],
+		"mysql": ["mysql2"]
+	}
 }

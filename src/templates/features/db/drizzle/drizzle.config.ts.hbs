@@ -1,8 +1,8 @@
 import { defineConfig } from 'drizzle-kit';
 {{#if ts}}
-import { env } from "./src/conf/env"
+import { env } from "./src/config/env"
 {{else}}
-import { env } from "./src/conf/env.js"
+import { env } from "./src/config/env.js"
 {{/if}}
 
 export default defineConfig({

@@ -1,0 +1,71 @@
+import { Router } from "express";
+{{#if ts}}
+import * as UserController from "@/features/auth/auth.controller";
+import { verifyUserJWT } from "@/common/middlewares/auth.middleware";
+import { validate } from "@/common/middlewares/validate.middleware";
+import * as authSchemas from "@/features/auth/auth.schema";
+{{else}}
+import * as UserController from "../auth/auth.controller.js";
+import { verifyUserJWT } from "../../common/middlewares/auth.middleware.js";
+import { validate } from "../../common/middlewares/validate.middleware.js";
+import * as authSchemas from "../auth/auth.schema.js";
+{{/if}}
+
+const router = Router();
+
+// Public routes
+router.post(
+  "/register",
+  validate(authSchemas.registrationSchema),
+  UserController.registerUser
+);
+router.post(
+  "/initialize",
+  validate(authSchemas.initializeUserSchema),
+  UserController.initializeUser
+);
+router.post(
+  "/login",
+  validate(authSchemas.loginSchema),
+  UserController.loginUser
+);
+router.post(
+  "/auth/finalize",
+  validate(authSchemas.tempTokenSchema),
+  UserController.handleTempToken
+);
+router.get(
+  "/google/callback",
+  validate(authSchemas.googleCallbackSchema, "query"),
+  UserController.googleCallback
+);
+router.post(
+  "/oauth",
+  validate(authSchemas.userOAuthSchema),
+  UserController.handleUserOAuth
+);
+router.post("/refresh", UserController.refreshAccessToken);
+router.post(
+  "/otp/send",
+  validate(authSchemas.registrationSchema),
+  UserController.sendOtp
+);
+router.post(
+  "/otp/verify",
+  validate(authSchemas.verifyOtpSchema),
+  UserController.verifyOtp
+);
+
+// Protected routes
+router.use(verifyUserJWT);
+
+router.get("/me", UserController.getUserData);
+router.get(
+  "/id/:userId",
+  validate(authSchemas.userIdSchema, "params"),
+  UserController.getUserById
+);
+router.post("/logout", UserController.logoutUser);
+router.get("/search/:query", UserController.searchUsers);
+
+export default router;

@@ -1,0 +1,77 @@
+{{#if ts}}
+import { NextFunction, Request, Response } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { env } from "@/common/config/env";
+import { ApiError } from "@/common/utils/ApiError";
+import asyncHandler from "@/common/utils/asyncHandler";
+import * as authRepo from "@/features/auth/auth.repository";
+{{else}}
+import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
+import { ApiError } from "../utils/ApiError.js";
+import asyncHandler from "../utils/asyncHandler";
+import * as authRepo from "../../features/auth/auth.repository.js";
+{{/if}}
+
+const verifyUserJWT = asyncHandler(async ({{#if ts}}
+  req: Request,
+  res: Response,
+  next: NextFunction,
+{{else}}req, res, next{{/if}}) => {
+  const token =
+    req.cookies?.accessToken ||
+    req.header("Authorization")?.replace("Bearer ", "");
+
+  if (!token) {
+    throw new ApiError({
+      statusCode: 401,
+      message: "Unauthorized",
+      data: { service: "authMiddleware.verifyUserJWT" },
+    });
+  }
+
+  const decodedToken = jwt.verify(
+    token,
+    env.ACCESS_TOKEN_SECRET
+  ){{#if ts}} as JwtPayload{{/if}};
+
+  if (!decodedToken || typeof decodedToken == "string") {
+    throw new ApiError({
+      statusCode: 401,
+      message: "Invalid Access Token",
+      code: "INVALID_ACCESS_TOKEN",
+      data: { service: "authMiddleware.verifyUserJWT" },
+    });
+  }
+
+  const user = await authRepo.findById(decodedToken.{{#if useMongodb}}_id{{else}}id{{/if}})
+
+  if (!user) {
+    throw new ApiError({
+      statusCode: 401,
+      message: "User not found",
+      code: "USER_NOT_FOUND",
+      data: { service: "authMiddleware.verifyUserJWT" },
+    });
+  }
+
+  if (!user.refreshToken) {
+    throw new ApiError({
+      statusCode: 401,
+      message: "Refresh token session is not valid",
+      code: "INVALID_SESSION",
+      data: { service: "authMiddleware.verifyUserJWT" },
+    });
+  }
+
+  const mappedUser = {
+    ...user,
+    password: null,
+    refreshToken: null,
+  };
+
+  req.body.user = mappedUser;
+  next();
+});
+
+export { verifyUserJWT };
