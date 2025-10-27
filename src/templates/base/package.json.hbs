@@ -12,6 +12,10 @@
     {{else}}
     "dev": "nodemon src/server.js",
     {{/if}}
+    {{#if db.enable}}
+    "db:up": "docker compose -f infra/docker-compose.yml up -d",
+    "db:down": "docker compose -f infra/docker-compose.yml down",
+    {{/if}}
     "lint-format": "biome check --write",
     "prepare": "npm run lint-format"
   },

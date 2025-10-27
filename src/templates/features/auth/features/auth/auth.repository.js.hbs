@@ -1,6 +1,6 @@
 {{#if ts}}
 import * as authAdapter from "@/adapters/auth.adapter";
-import { User } from "@/common/types/IUser";
+import { IUser } from "@/common/types/IUser";
 {{else}}
 import * as authAdapter from "../../adapters/auth.adapter.js";
 {{/if}}
@@ -9,7 +9,7 @@ export const findById = async ({{#if ts}}userId: string{{else}}userId{{/if}}) =>
   return await authAdapter.findById(userId);
 }
 
-export const updateRefreshToken = async ({{#if ts}}user: User, refreshToken: string{{else}}user, refreshToken{{/if}}) => {
+export const updateRefreshToken = async ({{#if ts}}user: IUser, refreshToken: string{{else}}user, refreshToken{{/if}}) => {
   return await authAdapter.updateRefreshToken(user, refreshToken);
 }
 
@@ -17,7 +17,7 @@ export const findByEmail = async ({{#if ts}}email: string{{else}}email{{/if}}) =
   return await authAdapter.findByEmail(email);
 }
 
-export const create = async ({{#if ts}}user: Partial<User>{{else}}user{{/if}}) => {
+export const create = async ({{#if ts}}user: IUser{{else}}user{{/if}}) => {
   return await authAdapter.create(user);
 }
 

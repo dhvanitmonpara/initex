@@ -9,6 +9,7 @@ import type {
 	TProjectConfig,
 	TProjectContext,
 } from "../../schemas/ProjectConfigSchema";
+import { parseConnectionString } from "../../utils/parseConnectionString";
 import { copyAndRenderTemplate } from "./copyAndRender";
 
 interface FeatureConfig {
@@ -48,6 +49,7 @@ export async function generateProject(config: TProjectConfig) {
 		useDrizzle: config.db.orm === "drizzle",
 		usePostgres: config.db.provider === "postgresql",
 		useMysql: config.db.provider === "mysql",
+		...parseConnectionString(config.db.connectionString),
 	};
 
 	const __filename = fileURLToPath(import.meta.url);

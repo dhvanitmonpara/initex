@@ -1,7 +1,16 @@
+{{#if useMongodb}}
+import { Types } from "mongoose";
+
+{{/if}}
 export interface IUser {
-  {{#if useMongodb}}_id{{else}}id{{/if}}: string;
+  {{#if useMongodb}}
+  _id?: string | Types.ObjectId;
+  {{else}}
+  id?: string;
+  {{/if}}
   username: string;
   email: string;
   password: string;
+  authType: "manual" | "oauth";
   refreshToken?: string;
 }

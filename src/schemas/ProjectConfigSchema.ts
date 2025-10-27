@@ -59,4 +59,10 @@ export type TProjectContext = TProjectConfig & {
 	useDrizzle: boolean;
 	usePostgres: boolean;
 	useMysql: boolean;
+	dbType: string;
+	dbUser: string;
+	dbPassword: string;
+	dbHost: string;
+	dbPort: string;
+	dbName: string;
 };

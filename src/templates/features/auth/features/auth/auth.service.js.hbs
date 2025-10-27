@@ -353,7 +353,7 @@ class AuthService {
         data: { service: "authService.logoutAuthService" },
       });
 
-    await authRepo.updateRefreshToken(user.{{#if useMongodb}}_id{{else}}id{{/if}}, "");
+    await authRepo.updateRefreshToken(user, "");
   };
 
   clearAuthCookies = (res{{#if ts}}: Response{{/if}}) => {

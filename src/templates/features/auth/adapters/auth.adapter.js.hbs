@@ -12,6 +12,10 @@ import { UserTable } from "@/common/config/db/schema";
 import { toObjectId } from "@/common/utils/toObject";
 import UserModel from "@/features/user/user.model";
 {{/if}}
+{{#if useSequelize}}
+import User from "@/features/auth/auth.model";
+import { Op } from "sequelize";
+{{/if}}
 {{else}}
 import { IUser } from "../common/types/IUser";
 {{#if usePrisma}}
@@ -26,6 +30,10 @@ import { UserTable } from "../common/db/schema.js";
 import { toObjectId } from "../common/utils/toObject.js";
 import UserModel from "../features/user/user.model.js";
 {{/if}}
+{{#if useSequelize}}
+import User from "../features/auth/auth.model";
+import { Op } from "sequelize";
+{{/if}}
 {{/if}}
 
 export const findById = async ({{#if ts}}userId: string{{else}}userId{{/if}}) => {
@@ -38,6 +46,11 @@ export const findById = async ({{#if ts}}userId: string{{else}}userId{{/if}}) =>
   {{#if useDrizzle}}
   const user = await db.query.users.findFirst({
     where: eq(UserTable.id, userId),
+  });
+  {{/if}}
+  {{#if useSequelize}}
+  const { dataValues: user } = await User.findOne({
+    where: { id: userId },
   });
   {{/if}}
 
@@ -64,12 +77,15 @@ export const updateRefreshToken = async ({{#if ts}}user: IUser, refreshToken: st
     .set({ refreshToken })
     .where(eq(UserTable.id, user.id));
   {{/if}}
+  {{#if useSequelize}}
+  await User.update({ refreshToken }, { where: { id: user.id } });
+  {{/if}}
 }
 
 export const findByEmail = async ({{#if ts}}email: string{{else}}email{{/if}}) => {
   {{#if usePrisma}}
-  const user = await db.query.users.findFirst({
-    where: eq(UserTable.email, email.toLowerCase()),
+  const user = await prisma.user.findFirst({
+    where: { email: email.toLowerCase() },
   });
   {{/if}}
   {{#if useMongodb}}
@@ -82,13 +98,18 @@ export const findByEmail = async ({{#if ts}}email: string{{else}}email{{/if}}) =
     where: eq(UserTable.email, email.toLowerCase()),
   });
   {{/if}}
+  {{#if useSequelize}}
+  const { dataValues: user } = await User.findOne({
+    where: { email: email.toLowerCase() }
+  });
+  {{/if}}
 
   return user;
 }
 
-export const create = async ({{#if ts}}user: Partial<IUser>{{else}}user{{/if}}) => {
+export const create = async ({{#if ts}}user: IUser{{else}}user{{/if}}) => {
   {{#if usePrisma}}
-  const createdUser = await prisma.user.create(user);
+  const createdUser = await prisma.user.create({ data: user });
   {{/if}}
   {{#if useMongodb}}
   const createdUser = await UserModel.create(user);
@@ -98,6 +119,9 @@ export const create = async ({{#if ts}}user: Partial<IUser>{{else}}user{{/if}}) 
     .insert(UserTable)
     .values(user)
     .returning()?.[0];
+  {{/if}}
+  {{#if useSequelize}}
+  const { dataValues: createdUser } = await User.create({ ...user });
   {{/if}}
 
   return createdUser;
@@ -115,6 +139,11 @@ export const findByUsername = async ({{#if ts}}username: string{{else}}username{
   {{#if useDrizzle}}
   const user = await db.query.users.findFirst({
     where: eq(UserTable.username, username),
+  });
+  {{/if}}
+  {{#if useSequelize}}
+  const { dataValues: user } = await User.findOne({
+    where: { username },
   });
   {{/if}}
 
@@ -159,6 +188,17 @@ export const searchUsers = async ({{#if ts}}query: string{{else}}query{{/if}}) =
       username: true,
       email: true,
     },
+  });
+  {{/if}}
+  {{#if useSequelize}}
+  const users = await User.findAll({
+    where: {
+      [Op.or]: [
+        { username: { [Op.{{#if useMysql}}like{{else}}iLike{{/if}}]: `%${query}%` } },
+        { email: { [Op.{{#if useMysql}}like{{else}}iLike{{/if}}]: `%${query}%` } }
+      ]
+    },
+    attributes: ['id', 'username', 'email']
   });
   {{/if}}
 

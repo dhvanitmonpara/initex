@@ -60,9 +60,9 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		);
 
 		const defaults = {
-			mongodb: "mongodb://localhost:27017/",
-			postgresql: "postgres://postgres:password@localhost:5432",
-			mysql: "mysql://root:password@localhost:3306",
+			mongodb: `mongodb://localhost:27017/${projectName}`,
+			postgresql: `postgres://postgres:password@localhost:5432/${projectName}`,
+			mysql: `mysql://root:password@localhost:3306/${projectName}`,
 		} as const;
 
 		const connectionString = (await promptText(

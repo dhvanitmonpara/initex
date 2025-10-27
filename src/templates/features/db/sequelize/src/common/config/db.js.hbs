@@ -1,14 +1,14 @@
 import { Sequelize } from 'sequelize';
 {{#if ts}}
-import { env } from '@/config/env';
+import { env } from '@/common/config/env';
 {{else}}
-import { env } from '../config/env.js';
+import { env } from './env.js';
 {{/if}}
 
 const connectionString = env.DATABASE_URL;
 
 export const sequelize = new Sequelize(connectionString, {
-  dialect: env.DB_TYPE,
+  dialect: "{{db.provider}}",
   logging: false,
 });
 

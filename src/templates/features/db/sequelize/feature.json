@@ -2,6 +2,7 @@
 	"name": "sequelize",
 	"label": "Sequelize ORM",
 	"description": "Sequelize + SQL database setup",
+	"destination": ".",
 	"dependencies": ["sequelize"],
 	"conditionalDependencies": {
 		"postgresql": ["pg"],
