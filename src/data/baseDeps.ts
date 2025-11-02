@@ -1,4 +1,4 @@
-const baseDevDeps = ["nodemon", "swagger-jsdoc", "swagger-ui-express"];
+const baseDevDeps = ["swagger-jsdoc", "swagger-ui-express"];
 const baseDeps = [
 	"cookie-parser",
 	"cors",

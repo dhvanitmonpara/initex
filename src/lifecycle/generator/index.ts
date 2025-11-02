@@ -49,6 +49,9 @@ export async function generateProject(config: TProjectConfig) {
 		useDrizzle: config.db.orm === "drizzle",
 		usePostgres: config.db.provider === "postgresql",
 		useMysql: config.db.provider === "mysql",
+		isBunRuntime: config.runtime === "bun",
+		isDenoRuntime: config.runtime === "deno",
+		isNodeRuntime: config.runtime === "node",
 		...parseConnectionString(config.db.connectionString),
 	};
 
@@ -63,9 +66,8 @@ export async function generateProject(config: TProjectConfig) {
 	const allDevDependencies: string[] = baseDevDeps;
 
 	if (context.ts) {
-		allDependencies.push("tsup", "typescript");
+		allDependencies.push("typescript");
 		allDevDependencies.push(
-			"tsx",
 			"@types/cookie-parser",
 			"@types/express",
 			"@types/jsonwebtoken",
@@ -131,9 +133,12 @@ export async function generateProject(config: TProjectConfig) {
 			`Installing ${allDependencies.length} dependencies and ${allDevDependencies.length} dev dependencies`,
 		),
 	);
+
+	const installArg = config.packageManager === "npm" ? "install" : "add";
+
 	if (allDependencies.length > 0) {
 		try {
-			await execa("npm", ["install", ...allDependencies], {
+			await execa(config.packageManager, [installArg, ...allDependencies], {
 				cwd: projectRoot,
 				stdio: "pipe",
 			});
@@ -144,10 +149,17 @@ export async function generateProject(config: TProjectConfig) {
 
 	if (allDevDependencies.length > 0) {
 		try {
-			await execa("npm", ["install", "--save-dev", ...allDevDependencies], {
-				cwd: projectRoot,
-				stdio: "pipe",
-			});
+			const devFlag = ["npm", "yarn", "pnpm"].includes(config.packageManager)
+				? "-D"
+				: "--dev";
+			await execa(
+				config.packageManager,
+				[installArg, devFlag, ...allDevDependencies],
+				{
+					cwd: projectRoot,
+					stdio: "pipe",
+				},
+			);
 		} catch (err) {
 			pc.red(`Install failed: ${err.stderr}`);
 		}
@@ -158,6 +170,14 @@ export async function generateProject(config: TProjectConfig) {
 
 const selectFeatures = (config: TProjectContext) => {
 	const selectedFeatures: string[] = [];
+
+	if (config.ts) {
+		if (config.runtime === "bun") {
+			selectedFeatures.push("runtime/bun");
+		} else {
+			selectedFeatures.push("runtime/node");
+		}
+	}
 
 	if (config.auth.enable) selectedFeatures.push("auth");
 	if (config.db.enable) selectedFeatures.push(`db/${config.db.orm}`);

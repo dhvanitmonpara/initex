@@ -37,6 +37,31 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		{ value: "ts", label: "TypeScript" },
 	]);
 
+	const runtime = await promptSelect<"node" | "deno" | "bun">(
+		"Choose runtime:",
+		[
+			{ value: "node", label: "Node.js" },
+			{ value: "deno", label: "Deno" },
+			{ value: "bun", label: "Bun" },
+		],
+	);
+
+	let packageManager: "npm" | "yarn" | "pnpm" | "bun" | "deno" = "npm";
+	if (runtime === "bun") {
+		packageManager = "bun";
+	} else if (runtime === "deno") {
+		packageManager = "deno";
+	} else {
+		packageManager = await promptSelect<"npm" | "yarn" | "pnpm">(
+			"Choose package manager:",
+			[
+				{ value: "npm", label: "npm" },
+				{ value: "yarn", label: "yarn" },
+				{ value: "pnpm", label: "pnpm" },
+			],
+		);
+	}
+
 	const dbEnable = (await promptConfirm(
 		"Do you want to use a database?",
 	)) as boolean;
@@ -139,6 +164,8 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		name: (projectName === "." ? "" : projectName) as string,
 		expressVersion: expressVersion as string,
 		language: language as "js" | "ts",
+		runtime,
+		packageManager,
 		db: db as TProjectConfig["db"],
 		auth: { enable: authEnable } as TProjectConfig["auth"],
 		cache: {

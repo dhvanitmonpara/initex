@@ -1,0 +1,7 @@
+{
+	"name": "bun",
+	"label": "Bun",
+	"description": "Bun setup",
+	"destination": ".",
+	"devDependencies": ["@types/bun"]
+}

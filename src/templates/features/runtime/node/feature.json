@@ -1,0 +1,7 @@
+{
+	"name": "node",
+	"label": "Node",
+	"description": "Node + Tsup setup",
+	"destination": ".",
+	"dependencies": ["tsup", "tsx"]
+}

@@ -5,24 +5,25 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    {{#if ts}}"build": "tsup",{{/if}}
-    "start": "node {{#if ts}}dist/{{else}}src/{{/if}}server.js",
+    {{#if ts}}"build": {{#if isBunRuntime}}"bun run build.ts"{{else}}"tsup"{{/if}},{{/if}}
+    "start": "{{runtime}} {{#if ts}}dist/{{else}}src/{{/if}}server.js",
     {{#if ts}}
-    "dev": "tsx src/server.ts",
+    "dev": "{{#if isBunRuntime}}bun{{else}}tsx{{/if}} src/server.ts",
     {{else}}
-    "dev": "nodemon src/server.js",
+    "dev": "{{runtime}} --watch src/server.js",
     {{/if}}
     {{#if db.enable}}
     "db:up": "docker compose -f infra/docker-compose.yml up -d",
     "db:down": "docker compose -f infra/docker-compose.yml down",
+    {{#if usePrisma}}"db:sync": "{{#if isBunRuntime}}bun x{{else}}npx{{/if}} prisma generate && {{#if isBunRuntime}}bun x{{else}}npx{{/if}} prisma migrate deploy",{{/if}}
+    {{#if useSequelize}}"db:migrate": "{{#if isBunRuntime}}bun x{{else}}npx{{/if}} sequelize-cli db:migrate"{{/if}}
+    {{#if useDrizzle}}"db:migrate": "{{#if isBunRuntime}}bun x{{else}}npx{{/if}} drizzle-kit migrate"{{/if}}
     {{/if}}
     "lint-format": "biome check --write",
-    "prepare": "npm run lint-format"
+    "predev": "{{runtime}} run lint-format",
+    {{#if ts}}"prebuild": "{{runtime}} run lint-format{{#if usePrisma}} && {{runtime}} run db:sync{{/if}}{{#if useSequelize}} && {{runtime}} run db:migrate{{/if}}{{#if useDrizzle}} && {{runtime}} run db:migrate{{/if}}",{{/if}}
+    "prestart": "{{runtime}} run lint-format{{#if usePrisma}} && {{runtime}} run db:sync{{/if}}{{#if useSequelize}} && {{runtime}} run db:migrate{{/if}}{{#if useDrizzle}} && {{runtime}} run db:migrate{{/if}}"
   },
-  "dependencies": {
-    
-  },
-  "devDependencies": {
-    
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }

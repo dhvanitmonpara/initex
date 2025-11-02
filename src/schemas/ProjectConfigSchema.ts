@@ -21,6 +21,10 @@ export const ProjectConfigSchema = z
 		git: z.boolean().default(false),
 		socket: z.boolean().default(false),
 		language: z.enum(["js", "ts"]).default("js"),
+		runtime: z.enum(["node", "deno", "bun"]).default("node"),
+		packageManager: z
+			.enum(["npm", "yarn", "pnpm", "bun", "deno"])
+			.default("npm"),
 	})
 	.superRefine((data, ctx) => {
 		if (data.db.enable) {
@@ -65,4 +69,7 @@ export type TProjectContext = TProjectConfig & {
 	dbHost: string;
 	dbPort: string;
 	dbName: string;
+	isBunRuntime: boolean;
+	isDenoRuntime: boolean;
+	isNodeRuntime: boolean;
 };
