@@ -1,9 +1,9 @@
 {{#if ts}}
 import type { NextFunction, Request, Response } from "express";
 import type { ZodType } from "zod";
-import { ApiError } from "@/common/utils/ApiError";
+import ApiError from "@/common/utils/ApiError";
 {{else}}
-import { ApiError } from "../utils/ApiError";
+import ApiError from "../utils/ApiError.js";
 {{/if}}
 
 export const validate =

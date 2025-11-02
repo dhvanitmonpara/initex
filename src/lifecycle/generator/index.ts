@@ -71,6 +71,7 @@ export async function generateProject(config: TProjectConfig) {
 			"@types/jsonwebtoken",
 			"@types/node",
 			"@types/cors",
+			"@types/swagger-jsdoc",
 		);
 	}
 

@@ -41,3 +41,7 @@ export const initializeUserSchema = registrationSchema.extend({
 export const googleCallbackSchema = z.object({
   code: z.string("Code is required"),
 });
+
+export const searchQuerySchema = z.object({
+  query: z.string("Query is required"),
+});

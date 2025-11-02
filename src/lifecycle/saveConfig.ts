@@ -3,24 +3,27 @@ import fs from "fs-extra";
 import type { TProjectConfig } from "../schemas/ProjectConfigSchema";
 
 export async function saveJson(
-	fileName: string,
+	targetPath: string,
 	data: TProjectConfig,
 	pretty = true,
-) {
-	if (!fileName.endsWith(".json")) {
-		throw new Error("File name must end with .json");
+): Promise<string> {
+	if (typeof targetPath !== "string" || !targetPath.trim()) {
+		throw new Error("Target path must be a non-empty string");
 	}
 
 	if (typeof data !== "object" || data === null) {
 		throw new Error("Data must be a non-null object");
 	}
 
-	const filePath = path.resolve(process.cwd(), fileName);
+	const resolved = path.resolve(targetPath);
 
-	// Ensure the directory exists
+	const isFile = path.extname(resolved) === ".json";
+	const filePath = isFile
+		? resolved
+		: path.join(resolved, "initex.config.json");
+
 	await fs.ensureDir(path.dirname(filePath));
 
-	// Write the file
 	const jsonString = pretty
 		? JSON.stringify(data, null, 2)
 		: JSON.stringify(data);
@@ -30,11 +33,15 @@ export async function saveJson(
 	return filePath;
 }
 
-export async function safeSaveJson(fileName: string, data: TProjectConfig) {
+export async function safeSaveJson(
+	targetPath: string,
+	data: TProjectConfig,
+): Promise<string | null> {
 	try {
-		return await saveJson(fileName, data);
+		return await saveJson(targetPath, data);
 	} catch (err) {
-		console.error(`Failed to save JSON: ${err.message}`);
+		const message = err instanceof Error ? err.message : String(err);
+		console.error(`Failed to save JSON: ${message}`);
 		return null;
 	}
 }

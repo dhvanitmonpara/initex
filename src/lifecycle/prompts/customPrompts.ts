@@ -13,7 +13,7 @@ import { handleDirConflict } from "../handleDirConflict";
 import { parseCLIArgs } from "../parseCLIArguments";
 
 export async function promptProjectConfig(): Promise<TProjectConfig> {
-	const cliArgs = parseCLIArgs();
+	const cliArgs = await parseCLIArgs();
 	const isTesting = (cliArgs.mode === "test" ||
 		cliArgs.mode === "test:bin") as boolean;
 

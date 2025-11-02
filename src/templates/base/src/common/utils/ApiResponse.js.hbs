@@ -1,47 +1,159 @@
 {{#if ts}}
-import type { Request, Response } from "express";
+import type { Response } from "express";
 
-class ApiResponse<T> {
-  readonly statusCode: number;
-  readonly data: T;
-  readonly message: string;
+class ApiResponse<T = any> {
   readonly success: boolean;
+  readonly statusCode: number;
+  readonly message: string;
+  readonly code?: string;
+  readonly data?: T;
+  readonly errors?: Record<string, unknown>[];
+  readonly stack?: string;
+  readonly meta?: Record<string, unknown>;
 
-  private constructor(statusCode: number, data: T, message: string) {
+  private constructor({
+    statusCode,
+    success,
+    message,
+    code,
+    data,
+    errors,
+    stack,
+    meta,
+  }: {
+    statusCode: number;
+    success: boolean;
+    message: string;
+    code?: string;
+    data?: T;
+    errors?: Record<string, unknown>[];
+    stack?: string;
+    meta?: Record<string, unknown>;
+  }) {
     this.statusCode = statusCode;
-    this.data = data;
+    this.success = success;
     this.message = message;
-    this.success = statusCode < 400;
+    this.code = code;
+    this.data = data;
+    this.errors = errors;
+    this.stack = stack;
+    this.meta = meta;
   }
 
-  static ok<T>(data: T, message: string = "Success") {
-    return new ApiResponse(200, data, message);
+  static ok<T>(data: T, message = "Success") {
+    return new ApiResponse<T>({
+      statusCode: 200,
+      success: true,
+      message,
+      data,
+    });
   }
 
-  static created<T>(data: T, message: string = "Created successfully") {
-    return new ApiResponse(201, data, message);
+  static created<T>(data: T, message = "Created successfully") {
+    return new ApiResponse<T>({
+      statusCode: 201,
+      success: true,
+      message,
+      data,
+    });
+  }
+
+  // ApiResponse.ts
+  static error(
+    statusCode: number,
+    message: string,
+    code?: string,
+    errors?: Record<string, unknown>[],
+    stack?: string,
+    meta?: Record<string, unknown>
+  ) {
+    return new ApiResponse({
+      statusCode,
+      success: false,
+      message,
+      code,
+      errors,
+      stack,
+      meta,
+    });
+  }
+
+  send(res: Response): void {
+    res.status(this.statusCode).json({
+      success: this.success,
+      statusCode: this.statusCode,
+      message: this.message,
+      code: this.code,
+      data: this.data ?? null,
+      meta: this.meta ?? null,
+      errors: this.errors ?? null,
+      ...(this.stack ? { stack: this.stack } : {}),
+    });
   }
 }
 {{else}}
 class ApiResponse {
-  readonly statusCode;
-  readonly data;
-  readonly message;
-  readonly success;
-
-  private constructor(statusCode, data, message) {
+  constructor({
+    statusCode,
+    success,
+    message,
+    code,
+    data,
+    errors,
+    stack,
+    meta,
+  }) {
     this.statusCode = statusCode;
-    this.data = data;
+    this.success = success;
     this.message = message;
-    this.success = statusCode < 400;
+    this.code = code;
+    this.data = data;
+    this.errors = errors;
+    this.stack = stack;
+    this.meta = meta;
   }
 
   static ok(data, message = "Success") {
-    return new ApiResponse(200, data, message);
+    return new ApiResponse({
+      statusCode: 200,
+      success: true,
+      message,
+      data,
+    });
   }
 
   static created(data, message = "Created successfully") {
-    return new ApiResponse(201, data, message);
+    return new ApiResponse({
+      statusCode: 201,
+      success: true,
+      message,
+      data,
+    });
+  }
+
+  static error(statusCode, message, code, errors, stack, meta) {
+    return new ApiResponse({
+      statusCode,
+      success: false,
+      message,
+      code,
+      errors,
+      stack,
+      meta,
+    });
+  }
+
+  send(res) {
+    res.status(this.statusCode).json({
+      success: this.success,
+      statusCode: this.statusCode,
+      message: this.message,
+      code: this.code,
+      data: this.data ?? null,
+      meta: this.meta ?? null,
+      errors: this.errors ?? null,
+      ...(this.stack ? { stack: this.stack } : {}),
+    });
   }
 }
 {{/if}}

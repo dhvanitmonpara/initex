@@ -12,7 +12,7 @@ import { safeSaveJson } from "./lifecycle/saveConfig";
 import type { TProjectConfig } from "./schemas/ProjectConfigSchema";
 
 async function main() {
-	const cliArgs = parseCLIArgs();
+	const cliArgs = await parseCLIArgs();
 
 	console.log(teen(InitexArt));
 	intro(pc.italic(pc.cyan("Let's initialize your new project!")));
@@ -24,7 +24,8 @@ async function main() {
 	) {
 		config = await promptProjectConfig();
 
-		if (cliArgs.custom.generateJson) safeSaveJson("initex.config.json", config);
+		if (cliArgs.custom.generateJson)
+			safeSaveJson(cliArgs.custom.generateJson ?? ".", config);
 		if (cliArgs.custom.savePreset) {
 			consola.log(
 				pc.red(

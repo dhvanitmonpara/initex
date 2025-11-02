@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
 {{#if ts}}
-import { ApiError } from "@/common/utils/ApiError";
+import ApiError from "@/common/utils/ApiError";
 import authService from "@/features/auth/auth.service";
 import asyncHandler from "@/common/utils/asyncHandler";
 import ApiResponse from "@/common/utils/ApiResponse";
 {{else}}
 import authService from "./auth.service";
-import { ApiError } from "../../common/utils/ApiError";
-import asyncHandler from "../../common/utils/asyncHandler";
-import ApiResponse from "../../common/utils/ApiResponse";
+import ApiError from "../../common/utils/ApiError.js";
+import asyncHandler from "../../common/utils/asyncHandler.js";
+import ApiResponse from "../../common/utils/ApiResponse.js";
 {{/if}}
 
 export const googleCallback = asyncHandler(
@@ -17,7 +17,7 @@ export const googleCallback = asyncHandler(
 
     const { redirectUrl } = await authService.handleGoogleOAuth(code, req);
 
-    return res.redirect(redirectUrl);
+    return res.status(302).redirect(redirectUrl);
   }
 );
 
@@ -67,14 +67,6 @@ export const handleTempToken = asyncHandler(
 export const initializeUser = asyncHandler(
   async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
     const { email, username, password } = req.body;
-
-    // Optional: can replace this with a Zod validation middleware
-    if (!email || !username || !password)
-      throw new ApiError({
-        statusCode: 400,
-        message: "All fields are required",
-        data: { service: "authService.initializeAuthService" },
-      });
 
     const savedEmail = await authService.initializeAuthService(
       email,
@@ -132,7 +124,7 @@ export const loginUser = asyncHandler(async ({{#if ts}}req: Request, res: Respon
 export const getUserData = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
   if (!req.body.user || !req.body.user.id) {
     throw new ApiError({
-      statusCode: 400,
+      statusCode: 404,
       message: "User not found",
       data: { service: "authService.getUserDataService" },
     });
@@ -158,8 +150,8 @@ export const getUserById = asyncHandler(async ({{#if ts}}req: Request, res: Resp
 export const logoutUser = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
   if (!req.body.user?.id)
     throw new ApiError({
-      statusCode: 400,
-      message: "User not found",
+      statusCode: 404,
+      message: "User doesn't exists",
       data: { service: "authService.logoutAuthService" },
     });
 

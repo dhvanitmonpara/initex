@@ -1,12 +1,14 @@
 {{#if ts}}
 import type { NextFunction, Request, Response } from "express";
 import { env } from "@/common/config/env";
-import { ApiError } from "@/common/utils/ApiError";
+import ApiError from "@/common/utils/ApiError";
 import logger from "@/common/utils/logger";
+import ApiResponse from "@/common/utils/ApiResponse";
 {{else}}
 import { env } from "../config/env.js";
-import { ApiError } from "../utils/ApiError.js";
+import ApiError from "../utils/ApiError.js";
 import logger from "../utils/logger.js";
+import ApiResponse from "../utils/ApiResponse.js";
 {{/if}}
 
 {{#if useMongodb}}
@@ -15,9 +17,9 @@ interface MongoServerError extends Error {
   name: string;
   code: number;
 }
-{{/if}}
-{{/if}}
 
+{{/if}}
+{{/if}}
 class ErrorMiddlewares {
   {{#if useMongodb}}
   private isMongoDuplicateError(error: unknown): error is MongoServerError {
@@ -51,9 +53,10 @@ class ErrorMiddlewares {
       });
     }{{/if}} else {
       const e = err as Error;
+      const msg = typeof e?.message === "string" ? e.message : String(err);
       error = new ApiError({
         statusCode: 500,
-        message: e?.message || fallbackMessage,
+        message: msg || fallbackMessage,
         code: fallbackErrorCode,
       });
     }
@@ -65,9 +68,14 @@ class ErrorMiddlewares {
     ) {
       const hasRefreshToken = error.message === "Access token not found";
 
-      ApiResponse.error(401, "Unauthorized", error.code || fallbackErrorCode, {
-        hasRefreshToken,
-      }).send(res);
+      ApiResponse.error(
+        401,
+        "Unauthorized",
+        error.code || fallbackErrorCode,
+        error.errors,
+        error.stack,
+        { hasRefreshToken }
+      ).send(res);
 
       return;
     }
@@ -79,24 +87,32 @@ class ErrorMiddlewares {
       code: error.code,
     };
 
-    if (error.statusCode >= 500) {
-      logger.error(error.message, { ...logMeta, stack: error.stack });
-    } else {
-      logger.warn(error.message, logMeta);
-    }
+    const { statusCode, message } = error;
+    const logData = {
+      ...logMeta,
+      ...(statusCode >= 500 ? { stack: error.stack } : {}),
+    };
 
-    const apiRes = ApiResponse.error(
-      error.statusCode,
-      error.message || fallbackMessage,
-      error.code || fallbackErrorCode,
-      error.errors
-    );
-
+    let apiRes: ApiResponse<unknown>;
     if (isDev && error.stack) {
-      (apiRes as any).stack = error.stack;
+      apiRes = ApiResponse.error(
+        statusCode,
+        error.message || fallbackMessage,
+        error.code || fallbackErrorCode,
+        error.errors,
+        error.stack
+      );
+    } else {
+      apiRes = ApiResponse.error(
+        error.statusCode,
+        error.message || fallbackMessage,
+        error.code || fallbackErrorCode,
+        error.errors
+      );
     }
 
     apiRes.send(res);
+    return;
   };
 
   public notFoundErrorHandler = (

@@ -5,19 +5,19 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 {{#if ts}}
 import { env } from "@/common/config/env";
-import { ApiError } from "@/common/utils/ApiError";
+import ApiError from "@/common/utils/ApiError";
 import generateDeviceFingerprint from "@/common/utils/generateDeviceFingerprint";
 import nodeCache from "@/services/nodecache.service";
 import { hashOTP } from "@/common/utils/cryptographer";
-import * as authRepo from "@/adapters/auth.adapter";
+import * as authRepo from "@/features/auth/auth.repository";
 {{else}}
 import { env } from "../../common/config/env.js";
-import { ApiError } from "../../common/utils/ApiError.js";
+import ApiError from "../../common/utils/ApiError.js";
 import generateDeviceFingerprint from "../../common/utils/generateDeviceFingerprint.js";
 import prisma from "../../common/config/db.js";
 import nodeCache from "./nodecache.service.js";
 import { hashOTP } from "../../common/utils/cryptographer.js";
-import * as authRepo from "../../adapters/auth.adapter.js";
+import * as authRepo from "./auth.repository.js";
 {{/if}}
 
 class AuthService {
@@ -101,7 +101,7 @@ class AuthService {
     if (!user)
       throw new ApiError({
         statusCode: 404,
-        message: "User not found",
+        message: "User doesn't exists",
         data: { service: "authService.generateAccessAndRefreshToken" },
       });
 
@@ -278,8 +278,8 @@ class AuthService {
     const user = nodeCache.get(`pending:${email}`);
     if (!user)
       throw new ApiError({
-        statusCode: 400,
-        message: "User not found",
+        statusCode: 404,
+        message: "User doesn't exists",
         data: { service: "authService.registerAuthService" },
       });
 
@@ -319,8 +319,8 @@ class AuthService {
 
     if (!user)
       throw new ApiError({
-        statusCode: 400,
-        message: "User not found",
+        statusCode: 404,
+        message: "User doesn't exists",
         data: { service: "authService.loginAuthService" },
       });
     if (!user.password)
@@ -348,8 +348,8 @@ class AuthService {
     const user = await authRepo.findById(userId);
     if (!user)
       throw new ApiError({
-        statusCode: 400,
-        message: "User not found",
+        statusCode: 404,
+        message: "User doesn't exists",
         data: { service: "authService.logoutAuthService" },
       });
 
@@ -476,13 +476,6 @@ class AuthService {
   };
 
   verifyOtpService = async {{#if ts}}(email: string, otp: string): Promise<boolean>{{else}}(email, otp){{/if}} => {
-    if (!email || !otp)
-      throw new ApiError({
-        statusCode: 400,
-        message: "Email and OTP are required",
-        data: { service: "authService.verifyOtpService" },
-      });
-
     const cachedOtp = nodeCache.get<string>(`otp:${email}`);
     if (!cachedOtp) return false;
 
@@ -493,13 +486,6 @@ class AuthService {
   };
 
   searchUsersService = async (query{{#if ts}}: string{{/if}}) => {
-    if (!query)
-      throw new ApiError({
-        statusCode: 400,
-        message: "Query is required",
-        data: { service: "authService.searchUsersService" },
-      });
-
     const users = await authRepo.searchUsers(query);
 
     return users;

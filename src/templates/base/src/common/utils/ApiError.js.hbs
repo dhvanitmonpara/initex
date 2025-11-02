@@ -1,5 +1,5 @@
 {{#if ts}}
-export class ApiError extends Error {
+class ApiError extends Error {
   statusCode: number;
   code: string;
   success: boolean;
@@ -21,6 +21,7 @@ export class ApiError extends Error {
     data?: unknown;
   }) {
     super(message);
+
     this.statusCode = statusCode;
     this.code = code;
     this.success = false;
@@ -32,22 +33,16 @@ export class ApiError extends Error {
   }
 }
 {{else}}
-export class ApiError extends Error {
-  statusCode;
-  code;
-  success;
-  errors;
-  data;
-  isOperational;
-
+class ApiError extends Error {
   constructor({
     statusCode = 500,
     message = "Something went wrong",
     code = "GENERIC_ERROR",
     errors,
     data,
-  }) {
+  } = {}) {
     super(message);
+
     this.statusCode = statusCode;
     this.code = code;
     this.success = false;
@@ -59,3 +54,5 @@ export class ApiError extends Error {
   }
 }
 {{/if}}
+
+export default ApiError;

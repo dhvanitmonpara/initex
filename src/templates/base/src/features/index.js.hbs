@@ -1,0 +1,12 @@
+import { Application } from "express";
+import healthRouter from {{#if js}}"./features/health/health.route.js"{{else}}"@/features/health/health.route"{{/if}};
+{{#if auth.enable}}
+import authRouter from {{#if js}}"./features/user/user.route.js"{{else}}"@/features/user/user.route"{{/if}};
+{{/if}}
+
+export const registerRoutes = (app{{#if ts}}: Application{{/if}}) => {
+  app.use("/api/v1/health", healthRouter)
+  {{#if auth.enable}}
+  app.use("/api/v1/auth", authRouter)
+  {{/if}}
+};

@@ -2,14 +2,14 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "@/common/config/env";
-import { ApiError } from "@/common/utils/ApiError";
+import ApiError from "@/common/utils/ApiError";
 import asyncHandler from "@/common/utils/asyncHandler";
 import * as authRepo from "@/features/auth/auth.repository";
 {{else}}
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
-import { ApiError } from "../utils/ApiError.js";
-import asyncHandler from "../utils/asyncHandler";
+import ApiError from "../utils/ApiError.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import * as authRepo from "../../features/auth/auth.repository.js";
 {{/if}}
 
