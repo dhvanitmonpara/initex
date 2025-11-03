@@ -17,7 +17,7 @@ async function main() {
 	console.log(teen(InitexArt));
 	intro(pc.italic(pc.cyan("Let's initialize your new project!")));
 
-	let config: TProjectConfig = await loadConfig();
+	let config: TProjectConfig = await loadConfig(cliArgs);
 	if (
 		cliArgs.setup === "custom" &&
 		(!config || Object.keys(config).length === 0)
@@ -36,7 +36,7 @@ async function main() {
 				pc.blue("So it is recommended to use a file generator (-g) instead"),
 			);
 		}
-	} else {
+	} else if (!config || Object.keys(config).length === 0) {
 		config = await promptPresetSelection();
 	}
 

@@ -1,21 +1,23 @@
 import path from "node:path";
+import fs from "fs-extra";
 import minimist from "minimist";
 
 export type CLIConfig = {
 	mode: "start" | "test" | "test:bin";
 	name?: string;
-	setup: "custom" | "preset";
+	setup: "custom" | "preset" | "config";
 	custom?: {
 		generateJson?: string | null;
 		savePreset?: boolean;
 	};
+	configPath?: string | null;
 };
 
 export async function parseCLIArgs(): Promise<CLIConfig> {
 	const argv = process.argv.slice(2);
 
 	const args = minimist(argv, {
-		string: ["mode", "name"],
+		string: ["mode", "name", "config"],
 		boolean: ["test", "c", "p", "g", "s"],
 		alias: {
 			m: "mode",
@@ -24,6 +26,7 @@ export async function parseCLIArgs(): Promise<CLIConfig> {
 			g: "generateJson",
 			s: "savePreset",
 			n: "name",
+			C: "config",
 		},
 		default: {
 			mode: "start",
@@ -37,20 +40,29 @@ export async function parseCLIArgs(): Promise<CLIConfig> {
 	else if (args.mode === "test" || args.mode === "test:bin")
 		mode = args.mode as CLIConfig["mode"];
 
-	const setup: "custom" | "preset" = args.c ? "custom" : "preset";
+	const argsName = args.n || args.name || args._[0] || ".";
+	const name = argsName === "." ? "" : argsName;
 
-	const name = args._[0] as string | undefined;
+	// --- Determine setup priority ---
+	// Priority: config > custom > preset
+	let setup: CLIConfig["setup"] = "preset";
+	if (args.c) setup = "custom";
+	if (args.config) setup = "config"; // config always wins
 
+	// --- Handle custom setup ---
 	let generateJson: string | null = null;
-
 	const gIndex = argv.findIndex((a) => a === "-g" || a === "--generateJson");
 	if (gIndex !== -1) {
 		const next = argv[gIndex + 1];
-
 		if (next && !next.startsWith("-")) {
 			generateJson = path.resolve(next);
 		} else {
-			generateJson = process.cwd();
+			generateJson = path.resolve(
+				process.cwd(),
+				mode.startsWith("test") ? "tests" : "",
+				name || "",
+				"./.initex",
+			);
 		}
 	}
 
@@ -62,5 +74,18 @@ export async function parseCLIArgs(): Promise<CLIConfig> {
 		};
 	}
 
-	return { mode, name, setup, custom };
+	// --- Handle config file setup ---
+	let configPath: string | null = null;
+	if (setup === "config") {
+		if (!args.config || typeof args.config !== "string") {
+			throw new Error(`--config flag provided but no path specified`);
+		}
+
+		configPath = path.resolve(args.config);
+		if (!fs.existsSync(configPath)) {
+			throw new Error(`Config file not found: ${configPath}`);
+		}
+	}
+
+	return { mode, name, setup, custom, configPath };
 }

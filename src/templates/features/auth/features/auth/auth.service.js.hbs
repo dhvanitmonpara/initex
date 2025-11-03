@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+{{#if useMongodb}}import { Types } from "mongoose";{{/if}}
 {{#if ts}}
 import { env } from "@/common/config/env";
 import ApiError from "@/common/utils/ApiError";

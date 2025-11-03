@@ -72,4 +72,6 @@ export type TProjectContext = TProjectConfig & {
 	isBunRuntime: boolean;
 	isDenoRuntime: boolean;
 	isNodeRuntime: boolean;
+	runtimeCommand: string;
+	runtimeExecCommand: string;
 };

@@ -52,14 +52,15 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 	} else if (runtime === "deno") {
 		packageManager = "deno";
 	} else {
-		packageManager = await promptSelect<"npm" | "yarn" | "pnpm">(
-			"Choose package manager:",
-			[
-				{ value: "npm", label: "npm" },
-				{ value: "yarn", label: "yarn" },
-				{ value: "pnpm", label: "pnpm" },
-			],
-		);
+		packageManager = await promptSelect<
+			"npm" | "yarn" | "pnpm" | "bun" | "deno"
+		>("Choose package manager:", [
+			{ value: "npm", label: "npm" },
+			{ value: "yarn", label: "yarn" },
+			{ value: "pnpm", label: "pnpm" },
+			{ value: "bun", label: "bun" },
+			{ value: "deno", label: "deno" },
+		]);
 	}
 
 	const dbEnable = (await promptConfirm(

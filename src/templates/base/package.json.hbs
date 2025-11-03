@@ -6,23 +6,24 @@
   "type": "module",
   "scripts": {
     {{#if ts}}"build": {{#if isBunRuntime}}"bun run build.ts"{{else}}"tsup"{{/if}},{{/if}}
-    "start": "{{runtime}} {{#if ts}}dist/{{else}}src/{{/if}}server.js",
+    "start": "{{runtimeCommand}} {{#if ts}}dist/{{else}}src/{{/if}}server.js",
     {{#if ts}}
     "dev": "{{#if isBunRuntime}}bun{{else}}tsx{{/if}} src/server.ts",
     {{else}}
-    "dev": "{{runtime}} --watch src/server.js",
+    "dev": "{{runtimeCommand}} --watch src/server.js",
     {{/if}}
     {{#if db.enable}}
     "db:up": "docker compose -f infra/docker-compose.yml up -d",
     "db:down": "docker compose -f infra/docker-compose.yml down",
-    {{#if usePrisma}}"db:sync": "{{#if isBunRuntime}}bun x{{else}}npx{{/if}} prisma generate && {{#if isBunRuntime}}bun x{{else}}npx{{/if}} prisma migrate deploy",{{/if}}
-    {{#if useSequelize}}"db:migrate": "{{#if isBunRuntime}}bun x{{else}}npx{{/if}} sequelize-cli db:migrate"{{/if}}
-    {{#if useDrizzle}}"db:migrate": "{{#if isBunRuntime}}bun x{{else}}npx{{/if}} drizzle-kit migrate"{{/if}}
+    {{#if usePrisma}}"db:sync": "{{runtimeExecCommand}} prisma generate && {{runtimeExecCommand}} prisma migrate deploy",{{/if}}
+    {{#if useSequelize}}"db:migrate": "{{runtimeExecCommand}} sequelize-cli db:migrate",{{/if}}
+    {{#if useDrizzle}}"db:migrate": "{{runtimeExecCommand}} drizzle-kit migrate",{{/if}}
     {{/if}}
-    "lint-format": "biome check --write",
-    "predev": "{{runtime}} run lint-format",
-    {{#if ts}}"prebuild": "{{runtime}} run lint-format{{#if usePrisma}} && {{runtime}} run db:sync{{/if}}{{#if useSequelize}} && {{runtime}} run db:migrate{{/if}}{{#if useDrizzle}} && {{runtime}} run db:migrate{{/if}}",{{/if}}
-    "prestart": "{{runtime}} run lint-format{{#if usePrisma}} && {{runtime}} run db:sync{{/if}}{{#if useSequelize}} && {{runtime}} run db:migrate{{/if}}{{#if useDrizzle}} && {{runtime}} run db:migrate{{/if}}"
+    "lint": "{{runtimeExecCommand}} biome check",
+    "lint-format": "{{runtimeExecCommand}} biome check --write",
+    "predev": "{{runtimeCommand}} run lint-format",
+    {{#if ts}}"prebuild": "{{runtimeCommand}} run lint-format{{#if usePrisma}} && {{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}} && {{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}} && {{runtimeCommand}} run db:migrate{{/if}}",{{/if}}
+    "prestart": "{{runtimeCommand}} run lint-format{{#if usePrisma}} && {{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}} && {{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}} && {{runtimeCommand}} run db:migrate{{/if}}"
   },
   "dependencies": {},
   "devDependencies": {}

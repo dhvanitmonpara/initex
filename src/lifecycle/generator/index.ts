@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { log } from "@clack/prompts";
 import { execa } from "execa";
 import fs from "fs-extra";
 import minimist from "minimist";
@@ -52,6 +53,8 @@ export async function generateProject(config: TProjectConfig) {
 		isBunRuntime: config.runtime === "bun",
 		isDenoRuntime: config.runtime === "deno",
 		isNodeRuntime: config.runtime === "node",
+		runtimeCommand: config.runtime === "node" ? "npm" : config.runtime,
+		runtimeExecCommand: config.runtime === "bun" ? "bun x" : "npx",
 		...parseConnectionString(config.db.connectionString),
 	};
 
@@ -128,7 +131,7 @@ export async function generateProject(config: TProjectConfig) {
 		}
 	}
 
-	console.log(
+	log.step(
 		pc.cyan(
 			`Installing ${allDependencies.length} dependencies and ${allDevDependencies.length} dev dependencies`,
 		),
@@ -164,8 +167,6 @@ export async function generateProject(config: TProjectConfig) {
 			pc.red(`Install failed: ${err.stderr}`);
 		}
 	}
-
-	console.log(`✅ Project "${config.name}" generated successfully!`);
 }
 
 const selectFeatures = (config: TProjectContext) => {

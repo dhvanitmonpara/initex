@@ -5,19 +5,20 @@ import prisma from "@/common/config/db";
 {{/if}}
 {{#if useDrizzle}}
 import { eq, or, sql } from "drizzle-orm";
-import db from "@/common/config/db/index.js";
+import db from "@/common/config/db/index";
 import { UserTable } from "@/common/config/db/schema";
 {{/if}}
 {{#if useMongodb}}
 import { toObjectId } from "@/common/utils/toObject";
 import UserModel from "@/features/user/user.model";
+import { Types } from "mongoose";
 {{/if}}
 {{#if useSequelize}}
 import User from "@/features/auth/auth.model";
 import { Op } from "sequelize";
 {{/if}}
 {{else}}
-import { IUser } from "../common/types/IUser";
+import { IUser } from "../common/types/IUser.js";
 {{#if usePrisma}}
 import prisma from "../common/db/index.js";
 {{/if}}
@@ -29,6 +30,7 @@ import { UserTable } from "../common/db/schema.js";
 {{#if useMongodb}}
 import { toObjectId } from "../common/utils/toObject.js";
 import UserModel from "../features/user/user.model.js";
+import { Types } from "mongoose";
 {{/if}}
 {{#if useSequelize}}
 import User from "../features/auth/auth.model";
@@ -36,7 +38,7 @@ import { Op } from "sequelize";
 {{/if}}
 {{/if}}
 
-export const findById = async ({{#if ts}}userId: string{{else}}userId{{/if}}) => {
+export const findById = async ({{#if ts}}userId: string{{#if useMongodb}} | Types.ObjectId{{/if}}{{else}}userId{{/if}}) => {
   {{#if useMongodb}}
   const user = await UserModel.findById(toObjectId(userId));
   {{/if}}
@@ -191,15 +193,27 @@ export const searchUsers = async ({{#if ts}}query: string{{else}}query{{/if}}) =
   });
   {{/if}}
   {{#if useSequelize}}
-  const users = await User.findAll({
-    where: {
-      [Op.or]: [
-        { username: { [Op.{{#if useMysql}}like{{else}}iLike{{/if}}]: `%${query}%` } },
-        { email: { [Op.{{#if useMysql}}like{{else}}iLike{{/if}}]: `%${query}%` } }
-      ]
-    },
-    attributes: ['id', 'username', 'email']
-  });
+    {{#if useMysql}}
+    const users = await User.findAll({
+      where: {
+        [Op.or]: [
+          { username: { [Op.like]: `%${query}%` } },
+          { email: { [Op.like]: `%${query}%` } }
+        ]
+      },
+      attributes: ['id', 'username', 'email']
+    });
+    {{else}}
+    const users = await User.findAll({
+      where: {
+        [Op.or]: [
+          { username: { [Op.iLike]: `%${query}%` } },
+          { email: { [Op.iLike]: `%${query}%` } }
+        ]
+      },
+      attributes: ['id', 'username', 'email']
+    });
+    {{/if}}
   {{/if}}
 
   return users;

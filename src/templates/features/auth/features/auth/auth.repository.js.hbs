@@ -4,8 +4,9 @@ import { IUser } from "@/common/types/IUser";
 {{else}}
 import * as authAdapter from "../../adapters/auth.adapter.js";
 {{/if}}
+{{#if useMongodb}}import { Types } from "mongoose";{{/if}}
 
-export const findById = async ({{#if ts}}userId: string{{else}}userId{{/if}}) => {
+export const findById = async ({{#if ts}}userId: string{{#if useMongodb}} | Types.ObjectId{{/if}}{{else}}userId{{/if}}) => {
   return await authAdapter.findById(userId);
 }
 
