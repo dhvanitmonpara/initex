@@ -40,8 +40,7 @@ export async function parseCLIArgs(): Promise<CLIConfig> {
 	else if (args.mode === "test" || args.mode === "test:bin")
 		mode = args.mode as CLIConfig["mode"];
 
-	const argsName = args.n || args.name || args._[0] || ".";
-	const name = argsName === "." ? "" : argsName;
+	const name = args.n || args.name || args._[0];
 
 	// --- Determine setup priority ---
 	// Priority: config > custom > preset

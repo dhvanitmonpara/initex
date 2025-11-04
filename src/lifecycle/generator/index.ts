@@ -55,7 +55,9 @@ export async function generateProject(config: TProjectConfig) {
 		isNodeRuntime: config.runtime === "node",
 		runtimeCommand: config.runtime === "node" ? "npm" : config.runtime,
 		runtimeExecCommand: config.runtime === "bun" ? "bun x" : "npx",
-		...parseConnectionString(config.db.connectionString),
+		...(config.db.enable
+			? parseConnectionString(config.db.connectionString)
+			: {}),
 	};
 
 	const __filename = fileURLToPath(import.meta.url);

@@ -9,7 +9,16 @@ export async function copyAndRenderTemplate(
 	targetPath: string,
 	context: TProjectContext,
 ) {
-	await fs.copy(templatePath, targetPath);
+	await fs.copy(templatePath, targetPath, {
+		filter: (src) => {
+			try {
+				if (path.basename(src) === "feature.json") return false;
+				return true;
+			} catch (_) {
+				return true;
+			}
+		},
+	});
 
 	const files = await glob("**/*.hbs", {
 		cwd: targetPath,

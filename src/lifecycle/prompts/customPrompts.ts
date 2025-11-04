@@ -162,7 +162,7 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 	)) as boolean;
 
 	const rawConfig: TProjectConfig = {
-		name: (projectName === "." ? "" : projectName) as string,
+		name: projectName as string,
 		expressVersion: expressVersion as string,
 		language: language as "js" | "ts",
 		runtime,

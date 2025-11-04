@@ -70,7 +70,7 @@ export async function promptPresetSelection(): Promise<TProjectConfig> {
 
 	const rawConfig: TProjectConfig = {
 		...selectedPreset,
-		name: projectName === "." ? "" : projectName,
+		name: projectName,
 	} as TProjectConfig;
 
 	const result = ProjectConfigSchema.safeParse(rawConfig);
