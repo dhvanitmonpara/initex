@@ -15,9 +15,9 @@ import * as authRepo from "../../features/auth/auth.repository.js";
 
 const verifyUserJWT = asyncHandler(async ({{#if ts}}
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
-{{else}}req, res, next{{/if}}) => {
+{{else}}req, _res, next{{/if}}) => {
   const token =
     req.cookies?.accessToken ||
     req.header("Authorization")?.replace("Bearer ", "");
@@ -35,7 +35,7 @@ const verifyUserJWT = asyncHandler(async ({{#if ts}}
     env.ACCESS_TOKEN_SECRET
   ){{#if ts}} as JwtPayload{{/if}};
 
-  if (!decodedToken || typeof decodedToken == "string") {
+  if (!decodedToken || typeof decodedToken === "string") {
     throw new ApiError({
       statusCode: 401,
       message: "Invalid Access Token",

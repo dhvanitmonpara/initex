@@ -26,23 +26,17 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 	projectName = (isTesting ? `tests/${projectName}` : projectName) as string;
 	await handleDirConflict(projectName);
 
-	const expressVersion = (await promptText(
-		"Enter Express version (leave empty for latest LTS):",
-		"latest",
-		"latest",
-	)) as string;
-
 	const language = await promptSelect<"js" | "ts">("Choose language:", [
-		{ value: "js", label: "JavaScript" },
 		{ value: "ts", label: "TypeScript" },
+		{ value: "js", label: "JavaScript" },
 	]);
 
 	const runtime = await promptSelect<"node" | "deno" | "bun">(
 		"Choose runtime:",
 		[
+			{ value: "bun", label: "Bun" },
 			{ value: "node", label: "Node.js" },
 			{ value: "deno", label: "Deno" },
-			{ value: "bun", label: "Bun" },
 		],
 	);
 
@@ -55,16 +49,17 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		packageManager = await promptSelect<
 			"npm" | "yarn" | "pnpm" | "bun" | "deno"
 		>("Choose package manager:", [
+			{ value: "bun", label: "bun" },
 			{ value: "npm", label: "npm" },
 			{ value: "yarn", label: "yarn" },
 			{ value: "pnpm", label: "pnpm" },
-			{ value: "bun", label: "bun" },
 			{ value: "deno", label: "deno" },
 		]);
 	}
 
 	const dbEnable = (await promptConfirm(
 		"Do you want to use a database?",
+		true,
 	)) as boolean;
 
 	let db: TProjectConfig["db"] = {
@@ -79,15 +74,15 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		const provider = await promptSelect<"mongodb" | "postgresql" | "mysql">(
 			"Select a database:",
 			[
-				{ value: "mongodb", label: "MongoDB" },
 				{ value: "postgresql", label: "PostgreSQL" },
+				{ value: "mongodb", label: "MongoDB" },
 				{ value: "mysql", label: "MySQL" },
 			],
 		);
 
 		const defaults = {
-			mongodb: `mongodb://localhost:27017/${projectName}`,
 			postgresql: `postgres://postgres:password@localhost:5432/${projectName}`,
+			mongodb: `mongodb://localhost:27017/${projectName}`,
 			mysql: `mysql://root:password@localhost:3306/${projectName}`,
 		} as const;
 
@@ -111,8 +106,8 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 			const options =
 				provider === "postgresql"
 					? [
-							{ value: "prisma", label: "Prisma" },
 							{ value: "drizzle", label: "Drizzle" },
+							{ value: "prisma", label: "Prisma" },
 							{ value: "sequelize", label: "Sequelize" },
 						]
 					: [
@@ -177,7 +172,6 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 
 	const rawConfig: TProjectConfig = {
 		name: projectName as string,
-		expressVersion: expressVersion as string,
 		language: language as "js" | "ts",
 		runtime,
 		packageManager,

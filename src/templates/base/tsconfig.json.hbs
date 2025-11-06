@@ -9,6 +9,9 @@
     "paths": {
       "@/*": ["*"]
     },
+		{{#if useNodemailer}}
+    "jsx": "react",
+		{{/if}}
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"declaration": false,

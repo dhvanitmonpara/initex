@@ -3,7 +3,6 @@
 	"predefined": true,
 	"preset": {
 		"name": ".",
-		"expressVersion": "latest",
 		"db": {
 			"enable": true,
 			"provider": "mysql",

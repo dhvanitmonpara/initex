@@ -1,7 +1,7 @@
 {{#if ts}}
 import type { Response } from "express";
 
-class ApiResponse<T = any> {
+class ApiResponse<T = unknown> {
   readonly success: boolean;
   readonly statusCode: number;
   readonly message: string;

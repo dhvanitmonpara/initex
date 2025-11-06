@@ -3,7 +3,6 @@ import z from "zod";
 export const ProjectConfigSchema = z
 	.object({
 		name: z.string().min(1, "Project name cannot be empty."),
-		expressVersion: z.string().optional(),
 		db: z.object({
 			enable: z.boolean().default(false),
 			provider: z.enum(["mongodb", "postgresql", "mysql"]).optional(),
@@ -78,4 +77,5 @@ export type TProjectContext = TProjectConfig & {
 	isNodeRuntime: boolean;
 	runtimeCommand: string;
 	runtimeExecCommand: string;
+	useNodemailer: boolean;
 };

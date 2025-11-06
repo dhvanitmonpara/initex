@@ -28,9 +28,9 @@ class AuthService {
     sameSite: "none" | "lax";
     domain?: string;
   }{{/if}} = null;
-  accessTokenExpiry = 60 * 1000 * parseInt(env.ACCESS_TOKEN_LIFE || "0"); // In minutes
+  accessTokenExpiry = 60 * 1000 * parseInt(env.ACCESS_TOKEN_LIFE || "0", 10); // In minutes
   refreshTokenExpiry =
-    60 * 60 * 1000 * 24 * parseInt(env.REFRESH_TOKEN_LIFE || "0"); // In days
+    60 * 60 * 1000 * 24 * parseInt(env.REFRESH_TOKEN_LIFE || "0", 10); // In days
 
   constructor() {
     this.options = {
@@ -78,7 +78,7 @@ class AuthService {
       },
       env.ACCESS_TOKEN_SECRET,
       {
-        expiresIn: `${parseInt(env.ACCESS_TOKEN_LIFE || "0")}m`,
+        expiresIn: `${parseInt(env.ACCESS_TOKEN_LIFE || "0", 10)}m`,
       }
     );
   }
@@ -91,7 +91,7 @@ class AuthService {
       },
       env.REFRESH_TOKEN_SECRET,
       {
-        expiresIn: `${parseInt(env.REFRESH_TOKEN_LIFE || "0")}d`,
+        expiresIn: `${parseInt(env.REFRESH_TOKEN_LIFE || "0", 10)}d`,
       }
     );
   }
@@ -339,7 +339,7 @@ class AuthService {
         data: { service: "authService.loginAuthService" },
       });
 
-    const { accessToken, refreshToken, userAgent, ip } =
+    const { accessToken, refreshToken } =
       await authService.generateAccessAndRefreshToken(user.{{#if useMongodb}}_id{{else}}id{{/if}}, req);
 
     return { user, accessToken, refreshToken };

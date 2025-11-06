@@ -65,7 +65,7 @@ export const handleTempToken = asyncHandler(
 );
 
 export const initializeUser = asyncHandler(
-  async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
+  async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
     const { email, username, password } = req.body;
 
     const savedEmail = await authService.initializeAuthService(
@@ -121,7 +121,7 @@ export const loginUser = asyncHandler(async ({{#if ts}}req: Request, res: Respon
   );
 });
 
-export const getUserData = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
+export const getUserData = asyncHandler(async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
   if (!req.body.user || !req.body.user.id) {
     throw new ApiError({
       statusCode: 404,
@@ -139,7 +139,7 @@ export const getUserData = asyncHandler(async ({{#if ts}}req: Request, res: Resp
   return ApiResponse.ok(user, "User fetched successfully!");
 });
 
-export const getUserById = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
+export const getUserById = asyncHandler(async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
   const { userId } = req.params;
 
   const user = await authService.getUserByIdService(userId);
@@ -186,7 +186,7 @@ export const refreshAccessToken = asyncHandler(
   }
 );
 
-export const sendOtp = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
+export const sendOtp = asyncHandler(async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
   const { email } = req.body;
 
   const { messageId } = await authService.sendOtpService(email);
@@ -199,7 +199,7 @@ export const sendOtp = asyncHandler(async ({{#if ts}}req: Request, res: Response
   );
 });
 
-export const verifyOtp = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
+export const verifyOtp = asyncHandler(async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
   const { email, otp } = req.body;
 
   const isVerified = await authService.verifyOtpService(email, otp);
@@ -212,7 +212,7 @@ export const verifyOtp = asyncHandler(async ({{#if ts}}req: Request, res: Respon
   );
 });
 
-export const searchUsers = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
+export const searchUsers = asyncHandler(async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
   const { query } = req.params;
 
   const users = await authService.searchUsersService(query);

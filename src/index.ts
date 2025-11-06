@@ -47,11 +47,7 @@ async function main() {
 	log.success(`${pc.bold(pc.cyan("Project ready:"))} ${config.name}`);
 	log.info(`Next steps:\n${pc.gray(`cd ${config.name} && npm install`)}`);
 
-	outro(
-		`Project ${pc.bold(pc.cyan(config.name))} created with express version ${
-			config.expressVersion
-		}`,
-	);
+	outro(`Project ${pc.bold(pc.cyan(config.name))} created successfully!`);
 
 	return config;
 }

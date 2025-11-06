@@ -84,7 +84,7 @@ const mailTemplates{{#if ts}}: Record<
       text: `Welcome ${d?.username ?? "User"} to MyApp!`,
     };
   },
-  "FEEDBACK-RECEIVED": async (d) => {
+  "FEEDBACK-RECEIVED": async (_d) => {
     const html = await render(<FeedbackReceivedEmail projectName="MyApp" />);
     return {
       subject: "Feedback Received",

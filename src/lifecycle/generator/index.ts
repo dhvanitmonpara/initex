@@ -55,6 +55,7 @@ export async function generateProject(config: TProjectConfig) {
 		isNodeRuntime: config.runtime === "node",
 		runtimeCommand: config.runtime === "node" ? "npm" : config.runtime,
 		runtimeExecCommand: config.runtime === "bun" ? "bun x" : "npx",
+		useNodemailer: config.smtp.service === "nodemailer",
 		...(config.db.enable
 			? parseConnectionString(config.db.connectionString)
 			: {}),
@@ -133,7 +134,7 @@ export async function generateProject(config: TProjectConfig) {
 		}
 	}
 
-	log.step(
+	log.info(
 		pc.cyan(
 			`Installing ${allDependencies.length} dependencies and ${allDevDependencies.length} dev dependencies`,
 		),

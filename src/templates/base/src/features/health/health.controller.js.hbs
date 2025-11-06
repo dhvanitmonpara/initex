@@ -8,7 +8,7 @@ import asyncHandler from "../../common/utils/asyncHandler.js";
 {{/if}}
 
 const healthCheck = asyncHandler(
-  async ({{#if ts}}req: Request, res: Response, next: NextFunction{{else}}req, res, next{{/if}}) => {
+  async ({{#if ts}}_req: Request, _res: Response, _next: NextFunction{{else}}_req, _res, _next{{/if}}) => {
     return ApiResponse.ok({}, "Server is healthy");
   }
 );

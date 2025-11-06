@@ -5,14 +5,18 @@ import ApiError from "@/common/utils/ApiError";
 {{else}}
 import ApiError from "../utils/ApiError.js";
 {{/if}}
+{{#if ts}}
+
+type TValidateRequest = Request & { validated?: Record<string, unknown> };
+{{/if}}
 
 export const validate =
 {{#if ts}}
   <T>(schema: ZodType<T>, dataSource: "body" | "query" | "params" = "body") =>
-  (req: Request, res: Response, next: NextFunction) => {
+  (req: TValidateRequest, _res: Response, next: NextFunction) => {
 {{else}}
   (schema, dataSource = "body") =>
-    (req, res, next) => {
+    (req, _res, next) => {
 {{/if}}
     const data = req[dataSource];
 
@@ -37,13 +41,8 @@ export const validate =
     }
 
     // Attach validated data
-    {{#if ts}}
-    (req as any).validated = (req as any).validated || {};
-    (req as any).validated[dataSource] = result.data;
-    {{else}}
     req.validated = req.validated || {};
     req.validated[dataSource] = result.data;
-    {{/if}}
 
     next();
   };
