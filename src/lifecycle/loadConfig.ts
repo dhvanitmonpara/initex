@@ -5,6 +5,7 @@ import { mind } from "gradient-string";
 import yaml from "js-yaml";
 import pc from "picocolors";
 import { ProjectConfigSchema } from "../schemas/ProjectConfigSchema.js";
+import { handleDirConflict } from "./handleDirConflict.js";
 import type { CLIConfig } from "./parseCLIArguments.js";
 
 export async function loadConfig(config: CLIConfig) {
@@ -49,6 +50,7 @@ export async function loadConfig(config: CLIConfig) {
 		}
 
 		const validated = ProjectConfigSchema.parse(rawConfig);
+		await handleDirConflict(validated.name);
 		return validated;
 	} catch (err) {
 		console.error(pc.red(`\n💥 Config load error:`));

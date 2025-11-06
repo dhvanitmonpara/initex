@@ -4,6 +4,7 @@ import { teen } from "gradient-string";
 import pc from "picocolors";
 import { InitexArt } from "./constants/initexArt";
 import { generateProject } from "./lifecycle/generator/index";
+import { handleDirConflict } from "./lifecycle/handleDirConflict";
 import { loadConfig } from "./lifecycle/loadConfig";
 import { parseCLIArgs } from "./lifecycle/parseCLIArguments";
 import { promptProjectConfig } from "./lifecycle/prompts/customPrompts";
@@ -37,6 +38,7 @@ async function main() {
 			);
 		}
 	} else if (!config || Object.keys(config).length === 0) {
+		await handleDirConflict(cliArgs.name);
 		config = await promptPresetSelection();
 	}
 

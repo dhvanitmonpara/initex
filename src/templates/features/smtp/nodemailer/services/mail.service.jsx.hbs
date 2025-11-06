@@ -1,0 +1,183 @@
+import crypto from "node:crypto";
+import { render } from "@react-email/render";
+import nodemailer, {
+  SentMessageInfo,
+  Transporter,
+  TransportOptions,
+} from "nodemailer";
+import { env } from {{#if ts}}"@/common/config/env"{{else}}"../conf/env.js";{{/if}}
+import FeedbackReceivedEmail from {{#if ts}}"@/email/FeedbackReceivedEmail"{{else}}"../emails/FeedbackReceivedEmail.js";{{/if}}
+import FeedbackSentEmail from {{#if ts}}"@/email/FeedbackSent"{{else}}"../emails/FeedbackSent.js";{{/if}}
+import NewDeviceLoginEmail from {{#if ts}}"@/email/NewDeviceLogin"{{else}}"../emails/NewDeviceLogin.js";{{/if}}
+import OtpVerificationEmail from {{#if ts}}"@/email/OtpVerificationEmail"{{else}}"../emails/OtpVerificationEmail.js";{{/if}}
+import WelcomeEmail from {{#if ts}}"@/email/WelcomeEmail"{{else}}"../emails/WelcomeEmail.js";{{/if}}
+
+{{#if ts}}
+type MailType =
+  | "OTP"
+  | "WELCOME"
+  | "FEEDBACK-RECEIVED"
+  | "FEEDBACK-SENT"
+  | "NEW-DEVICE-LOGIN";
+
+interface MailDetails {
+  [key: string]: unknown;
+}
+
+export interface MailConfig {
+  projectName?: string;
+  defaultFrom?: string;
+  transport?: TransportOptions;
+}
+
+{{/if}}
+const defaultTransport = {
+  ...(env.NODE_ENV === "development" || env.NODE_ENV === "test"
+    ? {
+        host: env.MAILTRAP_HOST,
+        port: env.MAILTRAP_PORT,
+        auth: {
+          user: env.MAILTRAP_USER,
+          pass: env.MAILTRAP_PASS,
+        },
+      }
+    : {
+        service: "gmail",
+        port: 465,
+        secure: true,
+        auth: {
+          user: env.GMAIL_USER,
+          pass: env.GMAIL_APP_PASSWORD,
+        },
+        tls: {
+          rejectUnauthorized: false,
+        },
+      }),
+} as TransportOptions;
+
+const mailTemplates{{#if ts}}: Record<
+  MailType,
+  (details?: MailDetails) => Promise<{ subject: string; html: string; text: string }>
+>{{/if}} = {
+  OTP: async (d) => {
+    const otp = d?.otp ?? "000000";
+    const html = await render(
+      <OtpVerificationEmail
+        projectName={d?.projectName}
+        otp={otp}
+        username={d?.username}
+      />
+    );
+    return {
+      subject: "Your OTP Code",
+      html,
+      text: `Your OTP code is: ${otp}. It expires in 1 minute.`,
+    };
+  },
+  WELCOME: async (d) => {
+    const html = await render(
+      <WelcomeEmail username={d?.username ?? "User"} projectName="MyApp" />
+    );
+    return {
+      subject: "Welcome to MyApp!",
+      html,
+      text: `Welcome ${d?.username ?? "User"} to MyApp!`,
+    };
+  },
+  "FEEDBACK-RECEIVED": async (d) => {
+    const html = await render(<FeedbackReceivedEmail projectName="MyApp" />);
+    return {
+      subject: "Feedback Received",
+      html,
+      text: "Thanks for your feedback!",
+    };
+  },
+  "FEEDBACK-SENT": async (d) => {
+    const html = await render(
+      <FeedbackSentEmail
+        title={d?.title}
+        description={d?.description}
+        sendBy={d?.sendBy}
+        projectName="MyApp"
+      />
+    );
+    return {
+      subject: `Feedback from ${d?.sendBy}`,
+      html,
+      text: `${d?.title}\n${d?.description}\n— ${d?.sendBy}`,
+    };
+  },
+  "NEW-DEVICE-LOGIN": async (d) => {
+    const html = await render(
+      <NewDeviceLoginEmail
+        deviceName={d?.deviceName}
+        location={d?.location}
+        projectName="MyApp"
+      />
+    );
+    return {
+      subject: "New Device Login Detected",
+      html,
+      text: `Device: ${d?.deviceName}\nLocation: ${d?.location}`,
+    };
+  },
+};
+
+export class MailService {
+  private transporter{{#if ts}}: Transporter<SentMessageInfo, TransportOptions>;{{/if}}
+  private projectName{{#if ts}}: string;{{/if}}
+  private defaultFrom{{#if ts}}: string;{{/if}}
+
+  constructor(config{{#if ts}}: MailConfig{{/if}} = {}) {
+    this.transporter = nodemailer.createTransport(
+      config.transport ?? defaultTransport
+    );
+    this.projectName = config.projectName ?? "Ascedium";
+    this.defaultFrom =
+      config.defaultFrom ?? `"${this.projectName}" <no-reply@ascedium.com>`;
+  }
+
+  generateOtp = () => crypto.randomInt(100000, 999999).toString();
+
+  async send(
+    {{#if ts}}
+    to: string,
+    type: MailType,
+    details: MailDetails = {},
+    options: Partial<MailDetails> = {}
+    {{else}}
+    to,
+    type,
+    details = {},
+    options = {}
+    {{/if}}
+  ) {
+    if (!to || !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(to)) {
+      throw new Error("Invalid email address");
+    }
+
+    if (type === "OTP" && !details.otp) details.otp = this.generateOtp();
+
+    const tpl = await mailTemplates[type](details);
+
+    try {
+      const info = await this.transporter.sendMail({
+        from: options.from || this.defaultFrom,
+        to,
+        subject: tpl.subject,
+        text: tpl.text,
+        html: tpl.html,
+        ...options,
+      });
+
+      return { success: true, messageId: info.messageId, type, details };
+    } catch (err) {
+      console.error("Mail send error:", err);
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Unknown error",
+        type,
+      };
+    }
+  }
+}

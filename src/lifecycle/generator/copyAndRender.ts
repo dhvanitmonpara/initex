@@ -44,6 +44,10 @@ export async function copyAndRenderTemplate(
 					outputPath = outputPath.replace(/\.js$/, ".ts");
 				}
 
+				if (context.ts && outputPath.endsWith(".jsx")) {
+					outputPath = outputPath.replace(/\.jsx$/, ".tsx");
+				}
+
 				await fs.ensureDir(path.dirname(outputPath));
 				await fs.writeFile(outputPath, rendered, "utf-8");
 				await fs.remove(filePath);

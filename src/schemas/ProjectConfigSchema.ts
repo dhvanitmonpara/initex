@@ -18,6 +18,10 @@ export const ProjectConfigSchema = z
 		auth: z.object({
 			enable: z.boolean().default(false),
 		}),
+		smtp: z.object({
+			enable: z.boolean().default(false),
+			service: z.enum(["nodemailer", "resend"]).optional(),
+		}),
 		git: z.boolean().default(false),
 		socket: z.boolean().default(false),
 		language: z.enum(["js", "ts"]).default("js"),

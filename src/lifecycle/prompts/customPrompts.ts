@@ -142,6 +142,20 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 			)) as boolean)
 		: false;
 
+	const smtpEnable = authEnable
+		? true
+		: ((await promptConfirm(
+				"Do you want to use SMTP service?",
+				true,
+			)) as boolean);
+
+	const smtpService = smtpEnable
+		? await promptSelect<"nodemailer" | "resend">("Select an SMTP service:", [
+				{ value: "nodemailer", label: "Nodemailer" },
+				{ value: "resend", label: "Resend" },
+			])
+		: undefined;
+
 	const cacheEnable = authEnable
 		? true
 		: ((await promptConfirm("Do you want to use caching?", true)) as boolean);
@@ -175,6 +189,10 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		} as TProjectConfig["cache"],
 		socket: socket as boolean,
 		git: git as boolean,
+		smtp: {
+			enable: smtpEnable,
+			service: smtpService,
+		},
 	} as TProjectConfig;
 
 	const result = ProjectConfigSchema.safeParse(rawConfig);

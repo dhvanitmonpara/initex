@@ -184,6 +184,7 @@ const selectFeatures = (config: TProjectContext) => {
 
 	if (config.auth.enable) selectedFeatures.push("auth");
 	if (config.db.enable) selectedFeatures.push(`db/${config.db.orm}`);
+	if (config.smtp.enable) selectedFeatures.push(`smtp/${config.smtp.service}`);
 
 	if (config.socket) selectedFeatures.push("socket");
 	if (config.cache.enable)

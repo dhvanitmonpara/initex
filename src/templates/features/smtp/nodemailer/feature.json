@@ -1,0 +1,8 @@
+{
+	"name": "nodemailer",
+	"label": "Nodemailer",
+	"description": "Nodemailer mail setup",
+	"destination": "src",
+	"dependencies": ["nodemailer", "@react-email/components"],
+	"devDependencies": ["@types/nodemailer", "react-email", "@types/react"]
+}

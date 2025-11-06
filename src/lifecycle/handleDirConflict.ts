@@ -1,4 +1,5 @@
 import path from "node:path";
+import { log } from "@clack/prompts";
 import fs from "fs-extra";
 import { vice } from "gradient-string";
 import { promptSelect, promptText } from "../utils/promptUtils";
@@ -35,7 +36,7 @@ async function handleDirConflict(dirName: string) {
 
 	switch (choice) {
 		case "clean":
-			console.log(`Cleaning directory: ${dirPath}`);
+			log.step(`Cleaning directory: ${dirPath}`);
 			await fs.rm(dirPath, { recursive: true, force: true });
 			await fs.mkdir(dirPath);
 			return dirName;

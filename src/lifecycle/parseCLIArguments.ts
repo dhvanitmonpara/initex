@@ -1,4 +1,5 @@
 import path from "node:path";
+import { log } from "@clack/prompts";
 import fs from "fs-extra";
 import minimist from "minimist";
 
@@ -77,12 +78,14 @@ export async function parseCLIArgs(): Promise<CLIConfig> {
 	let configPath: string | null = null;
 	if (setup === "config") {
 		if (!args.config || typeof args.config !== "string") {
-			throw new Error(`--config flag provided but no path specified`);
+			log.error(`--config flag provided but no path specified`);
 		}
 
 		configPath = path.resolve(args.config);
 		if (!fs.existsSync(configPath)) {
-			throw new Error(`Config file not found: ${configPath}`);
+			log.error(
+				`Config file not found: ${configPath.replace(process.cwd(), ".")}`,
+			);
 		}
 	}
 
