@@ -4,7 +4,7 @@ import swaggerUi from "swagger-ui-express";
 {{#if socket}}
 import { Server } from 'socket.io';
 import { SocketService } from {{#if js}}"./services/socket.service.js"{{else}}"@/services/socket.service"{{/if}};
-import http from 'http';
+import http from 'node:http';
 {{/if}}
 import cookieParser from "cookie-parser";
 import helmet from "helmet";

@@ -59,6 +59,7 @@ export type TProjectConfig = z.infer<typeof ProjectConfigSchema>;
 export type TProjectContext = TProjectConfig & {
 	ts: boolean;
 	js: boolean;
+	noGit: boolean;
 	useRedis: boolean;
 	useMongodb: boolean;
 	usePrisma: boolean;

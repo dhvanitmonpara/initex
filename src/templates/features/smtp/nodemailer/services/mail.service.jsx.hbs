@@ -6,11 +6,11 @@ import nodemailer, {
   TransportOptions,
 } from "nodemailer";
 import { env } from {{#if ts}}"@/common/config/env"{{else}}"../conf/env.js";{{/if}}
-import FeedbackReceivedEmail from {{#if ts}}"@/email/FeedbackReceivedEmail"{{else}}"../emails/FeedbackReceivedEmail.js";{{/if}}
-import FeedbackSentEmail from {{#if ts}}"@/email/FeedbackSent"{{else}}"../emails/FeedbackSent.js";{{/if}}
-import NewDeviceLoginEmail from {{#if ts}}"@/email/NewDeviceLogin"{{else}}"../emails/NewDeviceLogin.js";{{/if}}
-import OtpVerificationEmail from {{#if ts}}"@/email/OtpVerificationEmail"{{else}}"../emails/OtpVerificationEmail.js";{{/if}}
-import WelcomeEmail from {{#if ts}}"@/email/WelcomeEmail"{{else}}"../emails/WelcomeEmail.js";{{/if}}
+import FeedbackReceivedEmail from {{#if ts}}"@/emails/FeedbackReceivedEmail"{{else}}"../emails/FeedbackReceivedEmail.js";{{/if}}
+import FeedbackSentEmail from {{#if ts}}"@/emails/FeedbackSent"{{else}}"../emails/FeedbackSent.js";{{/if}}
+import NewDeviceLoginEmail from {{#if ts}}"@/emails/NewDeviceLogin"{{else}}"../emails/NewDeviceLogin.js";{{/if}}
+import OtpVerificationEmail from {{#if ts}}"@/emails/OtpVerificationEmail"{{else}}"../emails/OtpVerificationEmail.js";{{/if}}
+import WelcomeEmail from {{#if ts}}"@/emails/WelcomeEmail"{{else}}"../emails/WelcomeEmail.js";{{/if}}
 
 {{#if ts}}
 type MailType =

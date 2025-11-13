@@ -43,6 +43,7 @@ export async function generateProject(config: TProjectConfig) {
 		...config,
 		ts: config.language === "ts",
 		js: config.language === "js",
+		noGit: !config.git,
 		useRedis: config.cache.service === "redis",
 		useMongodb: config.db.provider === "mongodb",
 		usePrisma: config.db.orm === "prisma",
@@ -70,6 +71,7 @@ export async function generateProject(config: TProjectConfig) {
 	const selectedFeatures = selectFeatures(context);
 	const allDependencies: string[] = baseDeps;
 	const allDevDependencies: string[] = baseDevDeps;
+	const commands = [];
 
 	if (context.ts) {
 		allDependencies.push("typescript");
@@ -121,16 +123,7 @@ export async function generateProject(config: TProjectConfig) {
 		}
 
 		if (featureConfig.commands && featureConfig.commands?.length > 0) {
-			for (const { cmd, args } of featureConfig.commands) {
-				try {
-					await execa(cmd, args, {
-						cwd: projectRoot,
-						stdio: "pipe",
-					});
-				} catch (err) {
-					pc.red(`Command failed (${cmd} ${args.join(" ")}): ${err.stderr}`);
-				}
-			}
+			commands.push(...featureConfig.commands);
 		}
 	}
 
@@ -168,6 +161,19 @@ export async function generateProject(config: TProjectConfig) {
 			);
 		} catch (err) {
 			pc.red(`Install failed: ${err.stderr}`);
+		}
+	}
+
+	if (commands.length > 0) {
+		for (const { cmd, args } of commands) {
+			try {
+				await execa(cmd, args, {
+					cwd: projectRoot,
+					stdio: "pipe",
+				});
+			} catch (err) {
+				pc.red(`Command failed (${cmd} ${args.join(" ")}): ${err.stderr}`);
+			}
 		}
 	}
 }

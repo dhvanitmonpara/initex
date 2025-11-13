@@ -166,7 +166,7 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		"Do you want to use Socket.io?",
 	)) as boolean;
 	const git = (await promptConfirm(
-		"Do you want to initialize git repo?",
+		"Do you want to initialize git repo with husky?",
 		true,
 	)) as boolean;
 

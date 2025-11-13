@@ -12,19 +12,25 @@
     {{else}}
     "dev": "{{runtimeCommand}} --watch src/server.js",
     {{/if}}
-    {{#if db.enable}}
+{{#if git}}    "prepare": "{{runtimeExecCommand}} husky install",{{/if}}
+{{#if noGit}}    "predev": "{{runtimeCommand}} run lint-format",{{/if}}
+{{#if ts}}    "prebuild": "{{runtimeCommand}} run lint-format && {{#if usePrisma}}{{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}}{{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}}{{runtimeCommand}} run db:migrate{{/if}}",{{/if}}
+{{#if js}}    "prestart": "{{#if usePrisma}}{{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}}{{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}}{{runtimeCommand}} run db:migrate{{/if}}",{{/if}}
+{{#if db.enable}}
     "db:up": "docker compose -f infra/docker-compose.yml up -d",
     "db:down": "docker compose -f infra/docker-compose.yml down",
-{{#if usePrisma}}  "db:sync": "{{runtimeExecCommand}} prisma generate && {{runtimeExecCommand}} prisma migrate deploy",{{/if}}
-{{#if useSequelize}}  "db:migrate": "{{runtimeExecCommand}} sequelize-cli db:migrate",{{/if}}
-{{#if useDrizzle}}  "db:migrate": "{{runtimeExecCommand}} drizzle-kit migrate",{{/if}}
-    {{/if}}
+{{#if usePrisma}}    "db:sync": "{{runtimeExecCommand}} prisma generate && {{runtimeExecCommand}} prisma migrate deploy",{{/if}}
+{{#if useSequelize}}    "db:migrate": "{{runtimeExecCommand}} sequelize-cli db:migrate",{{/if}}
+{{#if useDrizzle}}    "db:migrate": "{{runtimeExecCommand}} drizzle-kit migrate",{{/if}}
+{{/if}}
     "lint": "{{runtimeExecCommand}} biome check",
-    "lint-format": "{{runtimeExecCommand}} biome check --write",
-    "predev": "{{runtimeCommand}} run lint-format",
-{{#if ts}}  "prebuild": "{{runtimeCommand}} run lint-format{{#if usePrisma}} && {{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}} && {{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}} && {{runtimeCommand}} run db:migrate{{/if}}",{{/if}}
-    "prestart": "{{runtimeCommand}} run lint-format{{#if usePrisma}} && {{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}} && {{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}} && {{runtimeCommand}} run db:migrate{{/if}}"
+    "lint-format": "{{runtimeExecCommand}} biome check --write"
   },
+{{#if git}}
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx,json,md}": "biome check --write"
+  },
+{{/if}}
   "dependencies": {},
   "devDependencies": {}
 }

@@ -3,10 +3,40 @@
 	"label": "git",
 	"description": "Git Repo setup",
 	"destination": ".",
+	"devDependencies": [
+		"husky",
+		"@commitlint/{config-conventional,cli}",
+		"lint-staged"
+	],
 	"commands": [
 		{
 			"cmd": "git",
 			"args": ["init"]
+		},
+		{
+			"cmd": "npm",
+			"args": ["install", "husky"]
+		},
+		{
+			"cmd": "npm",
+			"args": [
+				"install",
+				"@commitlint/cli",
+				"@commitlint/config-conventional",
+				"--save-dev"
+			]
+		},
+		{
+			"cmd": "npx",
+			"args": ["husky", "install"]
+		},
+		{
+			"cmd": "chmod",
+			"args": ["+x", ".husky/commit-msg"]
+		},
+		{
+			"cmd": "chmod",
+			"args": ["+x", ".husky/pre-commit"]
 		}
 	]
 }
