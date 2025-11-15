@@ -4,22 +4,21 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 {{#if useMongodb}}import { Types } from "mongoose";{{/if}}
-{{#if ts}}
-import { env } from "@/common/config/env";
+{{#if ts}}import { env } from "@/common/config/env";
 import ApiError from "@/common/utils/ApiError";
 import generateDeviceFingerprint from "@/common/utils/generateDeviceFingerprint";
 import nodeCache from "@/services/nodecache.service";
 import { hashOTP } from "@/common/utils/cryptographer";
 import * as authRepo from "@/features/auth/auth.repository";
-{{else}}
-import { env } from "../../common/config/env.js";
+import mailService from "@/services/mail.service";
+{{else}}import { env } from "../../common/config/env.js";
 import ApiError from "../../common/utils/ApiError.js";
 import generateDeviceFingerprint from "../../common/utils/generateDeviceFingerprint.js";
 import prisma from "../../common/config/db.js";
 import nodeCache from "./nodecache.service.js";
 import { hashOTP } from "../../common/utils/cryptographer.js";
 import * as authRepo from "./auth.repository.js";
-{{/if}}
+import mailService from "../../services/mail.service.js";{{/if}}
 
 class AuthService {
   options{{#if ts}}: null | {
@@ -423,22 +422,13 @@ class AuthService {
   };
 
   sendOtpService = async (email{{#if ts}}: string{{/if}}) => {
-    const mailResponse = await axios.post(
-      "https://simple-smtp-service.vercel.app/api/v1/mail",
-      {
-        to: email,
-        type: "OTP",
-        options: { from: `"{{name}}" <no-reply@{{name}}.com>` },
-      },
-      {
-        headers: {
-          "x-api-token": env.SMTP_API_TOKEN,
-          "Content-Type": "application/json",
-        },
-      }
+    const data = await mailService.send(
+      email,
+      "OTP",
+      {},
+      { from: `"." <no-reply@..com>` }
     );
 
-    const data = mailResponse.data?.data;
     if (!data?.success || !data?.details?.otp)
       throw new ApiError({
         statusCode: 500,
@@ -446,7 +436,7 @@ class AuthService {
         data: { service: "authService.sendOtpService" },
       });
 
-    const hashedOTP = await hashOTP(data.details.otp);
+    const hashedOTP = await hashOTP(data.details.otp as string);
 
     const cacheSuccess = nodeCache.set(`otp:${email}`, hashedOTP, 65);
     if (!cacheSuccess)

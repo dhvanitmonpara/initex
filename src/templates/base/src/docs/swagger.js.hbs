@@ -17,7 +17,7 @@ const options = {
     ],
   },
   // 👇 look inside ALL feature folders
-  apis: ["./src/features/**/*.routes.js"],
+  apis: ["./src/features/**/*.route.{{#if js}}js{{else}}ts{{/if}}"],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

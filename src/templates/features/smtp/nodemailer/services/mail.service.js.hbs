@@ -11,6 +11,9 @@ import FeedbackSentEmail from {{#if ts}}"@/emails/FeedbackSent"{{else}}"../email
 import NewDeviceLoginEmail from {{#if ts}}"@/emails/NewDeviceLogin"{{else}}"../emails/NewDeviceLogin.js";{{/if}}
 import OtpVerificationEmail from {{#if ts}}"@/emails/OtpVerificationEmail"{{else}}"../emails/OtpVerificationEmail.js";{{/if}}
 import WelcomeEmail from {{#if ts}}"@/emails/WelcomeEmail"{{else}}"../emails/WelcomeEmail.js";{{/if}}
+{{#if ts}}
+import { Address } from "nodemailer/lib/mailer";
+{{/if}}
 
 {{#if ts}}
 type MailType =
@@ -46,8 +49,8 @@ const defaultTransport = {
         port: 465,
         secure: true,
         auth: {
-          user: env.GMAIL_USER,
-          pass: env.GMAIL_APP_PASSWORD,
+          user: env.GMAIL_APP_USER,
+          pass: env.GMAIL_APP_PASS,
         },
         tls: {
           rejectUnauthorized: false,
@@ -144,7 +147,7 @@ export class MailService {
       config.defaultFrom ?? `"${this.projectName}" <no-reply@ascedium.com>`;
   }
 
-  generateOtp = () => crypto.randomInt(100000, 999999).toString();
+  private generateOtp = () => crypto.randomInt(100000, 999999).toString();
 
   async send(
     {{#if ts}}
@@ -169,7 +172,7 @@ export class MailService {
 
     try {
       const info = await this.transporter.sendMail({
-        from: options.from || this.defaultFrom,
+        from: (options.from as string | Address) || this.defaultFrom,
         to,
         subject: tpl.subject,
         text: tpl.text,
@@ -188,3 +191,6 @@ export class MailService {
     }
   }
 }
+
+const mailService = new MailService();
+export default mailService;

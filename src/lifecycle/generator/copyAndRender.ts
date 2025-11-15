@@ -29,8 +29,7 @@ export async function copyAndRenderTemplate(
 		ignore: [
 			"feature.json",
 			"**/feature.json",
-			"**/types/**",
-			...(context.js ? ["**/*.ts.hbs"] : []),
+			...(context.js ? ["**/*.ts.hbs", "**/types/**"] : []),
 		],
 	});
 

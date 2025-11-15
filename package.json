@@ -1,6 +1,6 @@
 {
   "name": "initex",
-  "version": "1.6.26",
+  "version": "1.6.29",
   "bin": {
     "initex": "./bin/cli.js"
   },
@@ -19,8 +19,7 @@
   ],
   "files": [
     "dist",
-    "bin",
-    "src"
+    "bin"
   ],
   "author": "Dhvanit Monpara",
   "license": "ISC",

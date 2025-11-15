@@ -6,6 +6,7 @@ const baseDeps = [
 	"express",
 	"zod",
 	"helmet",
+	"multer",
 ];
 
 export { baseDeps, baseDevDeps };
