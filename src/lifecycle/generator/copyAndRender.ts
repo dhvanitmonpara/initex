@@ -12,7 +12,9 @@ export async function copyAndRenderTemplate(
 	await fs.copy(templatePath, targetPath, {
 		filter: (src) => {
 			try {
-				if (path.basename(src) === "feature.json") return false;
+				const base = path.basename(src);
+				if (base === "feature.json") return false;
+				if (context.js && base === "types") return false;
 				return true;
 			} catch (_) {
 				return true;
@@ -27,6 +29,7 @@ export async function copyAndRenderTemplate(
 		ignore: [
 			"feature.json",
 			"**/feature.json",
+			"**/types/**",
 			...(context.js ? ["**/*.ts.hbs"] : []),
 		],
 	});

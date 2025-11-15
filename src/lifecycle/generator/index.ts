@@ -10,6 +10,7 @@ import type {
 	TProjectConfig,
 	TProjectContext,
 } from "../../schemas/ProjectConfigSchema";
+import deleteFile from "../../utils/deleteFile";
 import { parseConnectionString } from "../../utils/parseConnectionString";
 import { copyAndRenderTemplate } from "./copyAndRender";
 
@@ -18,6 +19,7 @@ interface FeatureConfig {
 	label: string;
 	description: string;
 	dependencies?: string[];
+	devDependencies?: string[];
 	conditionalDependencies?: Record<string, string[]>;
 	conditionalDevDependencies?: Record<string, string[]>;
 	destination?: string;
@@ -104,6 +106,9 @@ export async function generateProject(config: TProjectConfig) {
 		if (featureConfig.dependencies)
 			allDependencies.push(...featureConfig.dependencies);
 
+		if (featureConfig.devDependencies)
+			allDevDependencies.push(...featureConfig.devDependencies);
+
 		if (featureConfig.conditionalDependencies && config.db.provider) {
 			const conditional =
 				featureConfig.conditionalDependencies[config.db.provider];
@@ -142,15 +147,16 @@ export async function generateProject(config: TProjectConfig) {
 				stdio: "pipe",
 			});
 		} catch (err) {
-			pc.red(`Install failed: ${err.stderr}`);
+			log.error(pc.red(`Install failed: ${err.stderr}`));
+			log.info(pc.red(`Dependencies: ${allDependencies.join(", ")}`));
 		}
 	}
 
 	if (allDevDependencies.length > 0) {
 		try {
-			const devFlag = ["npm", "yarn", "pnpm"].includes(config.packageManager)
-				? "-D"
-				: "--dev";
+			const devFlag = ["deno", "bun"].includes(config.packageManager)
+				? "--dev"
+				: "-D";
 			await execa(
 				config.packageManager,
 				[installArg, devFlag, ...allDevDependencies],
@@ -160,21 +166,33 @@ export async function generateProject(config: TProjectConfig) {
 				},
 			);
 		} catch (err) {
-			pc.red(`Install failed: ${err.stderr}`);
+			log.error(pc.red(`Install failed: ${err.stderr}`));
+			log.info(pc.red(`Dev dependencies: ${allDevDependencies.join(", ")}`));
 		}
 	}
 
 	if (commands.length > 0) {
 		for (const { cmd, args } of commands) {
+			const cmdExec = cmd
+				.replace("npm", config.packageManager)
+				.replace("npx", config.runtime === "bun" ? "bunx" : "npx");
 			try {
-				await execa(cmd, args, {
+				await execa(cmdExec, args, {
 					cwd: projectRoot,
 					stdio: "pipe",
 				});
 			} catch (err) {
-				pc.red(`Command failed (${cmd} ${args.join(" ")}): ${err.stderr}`);
+				log.error(
+					pc.red(
+						`Command failed (${cmdExec} ${args.join(" ")}): ${err.stderr}`,
+					),
+				);
 			}
 		}
+	}
+
+	if (["pnpm", "bun", "yarn"].includes(config.packageManager)) {
+		deleteFile(path.join(projectRoot, "package-lock.json"));
 	}
 }
 

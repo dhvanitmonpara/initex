@@ -5,7 +5,8 @@
 	"destination": ".",
 	"devDependencies": [
 		"husky",
-		"@commitlint/{config-conventional,cli}",
+		"@commitlint/cli",
+		"@commitlint/config-conventional",
 		"lint-staged"
 	],
 	"commands": [
@@ -28,7 +29,7 @@
 		},
 		{
 			"cmd": "npx",
-			"args": ["husky", "install"]
+			"args": ["husky"]
 		},
 		{
 			"cmd": "chmod",

@@ -8,6 +8,5 @@
 		"bcryptjs",
 		"axios",
 		"ua-parser-js"
-	],
-	"devDependencies": [""]
+	]
 }

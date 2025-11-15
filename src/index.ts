@@ -26,7 +26,7 @@ async function main() {
 		config = await promptProjectConfig();
 
 		if (cliArgs.custom.generateJson)
-			safeSaveJson(cliArgs.custom.generateJson ?? ".", config);
+			safeSaveJson(cliArgs.custom.generateJson || ".", config);
 		if (cliArgs.custom.savePreset) {
 			consola.log(
 				pc.red(
@@ -38,7 +38,7 @@ async function main() {
 			);
 		}
 	} else if (!config || Object.keys(config).length === 0) {
-		await handleDirConflict(cliArgs.name);
+		await handleDirConflict(cliArgs.name || ".");
 		config = await promptPresetSelection();
 	}
 

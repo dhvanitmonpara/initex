@@ -12,7 +12,7 @@
     {{else}}
     "dev": "{{runtimeCommand}} --watch src/server.js",
     {{/if}}
-{{#if git}}    "prepare": "{{runtimeExecCommand}} husky install",{{/if}}
+{{#if git}}    "prepare": "{{runtimeExecCommand}} husky",{{/if}}
 {{#if noGit}}    "predev": "{{runtimeCommand}} run lint-format",{{/if}}
 {{#if ts}}    "prebuild": "{{runtimeCommand}} run lint-format && {{#if usePrisma}}{{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}}{{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}}{{runtimeCommand}} run db:migrate{{/if}}",{{/if}}
 {{#if js}}    "prestart": "{{#if usePrisma}}{{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}}{{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}}{{runtimeCommand}} run db:migrate{{/if}}",{{/if}}

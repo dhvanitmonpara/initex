@@ -62,11 +62,11 @@ const mailTemplates{{#if ts}}: Record<
   OTP: async (d) => {
     const otp = d?.otp ?? "000000";
     const html = await render(
-      <OtpVerificationEmail
-        projectName={d?.projectName}
-        otp={otp}
-        username={d?.username}
-      />
+      OtpVerificationEmail({
+        username: d?.username as string,
+        projectName: d?.projectName as string,
+        otp: otp as string,
+      })
     );
     return {
       subject: "Your OTP Code",
@@ -76,7 +76,10 @@ const mailTemplates{{#if ts}}: Record<
   },
   WELCOME: async (d) => {
     const html = await render(
-      <WelcomeEmail username={d?.username ?? "User"} projectName="MyApp" />
+      WelcomeEmail({
+        username: d?.username as string,
+        projectName: d?.projectName as string,
+      })
     );
     return {
       subject: "Welcome to MyApp!",
@@ -85,7 +88,11 @@ const mailTemplates{{#if ts}}: Record<
     };
   },
   "FEEDBACK-RECEIVED": async (_d) => {
-    const html = await render(<FeedbackReceivedEmail projectName="MyApp" />);
+    const html = await render(
+      FeedbackReceivedEmail({
+        projectName: "MyApp",
+      })
+    );
     return {
       subject: "Feedback Received",
       html,
@@ -94,12 +101,12 @@ const mailTemplates{{#if ts}}: Record<
   },
   "FEEDBACK-SENT": async (d) => {
     const html = await render(
-      <FeedbackSentEmail
-        title={d?.title}
-        description={d?.description}
-        sendBy={d?.sendBy}
-        projectName="MyApp"
-      />
+      FeedbackSentEmail({
+        title: d?.title as string,
+        description: d?.description as string,
+        sendBy: d?.sendBy as string,
+        projectName: "MyApp",
+      })
     );
     return {
       subject: `Feedback from ${d?.sendBy}`,
@@ -109,11 +116,11 @@ const mailTemplates{{#if ts}}: Record<
   },
   "NEW-DEVICE-LOGIN": async (d) => {
     const html = await render(
-      <NewDeviceLoginEmail
-        deviceName={d?.deviceName}
-        location={d?.location}
-        projectName="MyApp"
-      />
+      NewDeviceLoginEmail({
+        deviceName: d?.deviceName as string,
+        location: d?.location as string,
+        projectName: "MyApp",
+      })
     );
     return {
       subject: "New Device Login Detected",

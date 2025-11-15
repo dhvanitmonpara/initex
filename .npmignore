@@ -6,6 +6,9 @@ node_modules/
 .npmignore
 *.log
 
+# === source files ===
+src/
+
 # === testing ===
 __tests__/
 tests/
