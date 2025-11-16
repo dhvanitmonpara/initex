@@ -2,20 +2,25 @@
 
 🚀 **A simple and interactive CLI tool to quickly set up an Express.js project with best practices.**
 
-### 🔥 Features
-
-- **Interactive Setup** – Choose your project configuration step by step.
-- **Database Support** – MongoDB, MySQL, or other databases with ORM options.
-- **Socket.io Integration** – Easily add real-time communication.
-- **TypeScript or JavaScript** – Your choice!
-- **Clean Folder Structure** – Auto-generates `routes/`, `controllers/`, `models/`, etc.
-- **Custom Presets** – Save or load your setup preferences for future projects.
+Initex lets you scaffold a fully structured Express backend in minutes — with optional database, Socket.io, TypeScript, presets, and more.
 
 ---
 
-### 📦 Installation
+## 🔥 Features
 
-Run the CLI using **npx**:
+- **Interactive Setup** – Answer a few prompts and generate a full project.
+- **Database Support** – MongoDB, MySQL, PostgreSQL, and ORM options.
+- **Socket.io Integration** – Add real-time features instantly.
+- **TS or JS** – Choose between TypeScript and JavaScript.
+- **Clean Folder Structure** – Auto-generated `routes/`, `controllers/`, `models/`, etc.
+- **Presets** – Reuse your config for future projects.
+- **Generate Preset JSON** – Export your interactive answers automatically.
+
+---
+
+## 📦 Installation
+
+Run with **npx**:
 
 ```bash
 npx initex
@@ -29,15 +34,15 @@ npm install -g initex
 
 ---
 
-### 🛠 Usage
+## 🛠 Usage
 
-Run the CLI interactively:
+### Run interactively (default)
 
 ```bash
 initex
 ```
 
-Or specify a project name directly:
+### Specify a project name
 
 ```bash
 initex myapp
@@ -45,38 +50,97 @@ initex myapp
 
 ---
 
-### ⚙️ CLI Arguments
+## ⚙️ CLI Arguments
 
-| Flag                 | Type    | Description                                       |
-| -------------------- | ------- | ------------------------------------------------- |
-| `-c, --custom`       | boolean | Run custom setup instead of preset                |
-| `-p, --preset`       | boolean | Use preset setup (default: true)                  |
-| `-g, --generateJson` | boolean | Generate a JSON config file for your custom setup |
-| `-s, --savePreset`   | boolean | Save the current custom setup as a preset         |
-| `-n, --name`         | string  | Specify your project name                         |
+|Flag|Type|Description|
+|---|---|---|
+| `-n, --name`         | string  | Project name (optional). Can also be positional.                |
+| `-p, --preset`       | boolean | string                                                          | Use preset mode. Path optional. If missing → presetPath = null.    |
+| `-g, --generateJson` | boolean | string                                                          | Generate preset JSON. Path optional; defaults to a `.initex` file. |
+| `-m, --mode`         | string  | Execution mode: `start`, `test`, `test:bin` (default: `start`). |
 
-#### Examples
+---
 
-**Run custom setup with JSON generation and save as preset:**
+## 🧪 Examples
 
-```bash
-initex myapp -c -g -s
-```
-
-**Run in test mode:**
+### **1. Default interactive setup**
 
 ```bash
-initex -m test
+initex
 ```
 
-**Run with a preset setup:**
+### **2. Interactive with name**
+
+```bash
+initex myapp
+```
+
+### **3. Use preset mode (no file required)**
+
+```bash
+initex -p
+```
+
+With a name:
 
 ```bash
 initex myapp -p
 ```
 
+### **4. Use preset with specific file**
+
+```bash
+initex -p ./presets
+```
+
+Or:
+
+```bash
+initex myapp -p ./config
+```
+
+### **5. Generate preset JSON automatically**
+
+Default location:
+
+```bash
+initex -g
+```
+
+Custom output path:
+
+```bash
+initex myapp -g ./output
+```
+
+### **6. Test modes**
+
+```bash
+initex -m test
+```
+
+```bash
+initex myapp -m test:bin
+```
+
 ---
 
-🎯 **Save time and focus on building features, not boilerplate!**
+## 🎯 Summary
 
-👉 GitHub Repo: [https://github.com/Dhvanitmonpara/initex](https://github.com/Dhvanitmonpara/initex)
+Initex now supports:
+
+- Optional project names
+- Optional preset paths
+- Optional generateJson paths
+- No conflicts between flags
+- No hard errors for missing preset files
+- Clean, deterministic config generation
+- Fully lifecycle-safe outputs
+
+Initex gives you a structured config object — and your engine handles the rest.
+
+---
+
+## 📂 GitHub
+
+👉 **[https://github.com/Dhvanitmonpara/initex](https://github.com/Dhvanitmonpara/initex)**

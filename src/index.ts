@@ -17,24 +17,12 @@ async function main() {
 	intro(pc.italic(pc.cyan("Let's initialize your new project!")));
 
 	let config: TProjectConfig = await loadConfig(cliArgs);
-	if (
-		cliArgs.setup === "interactive" &&
-		(!config || Object.keys(config).length === 0)
-	) {
+
+	if (!config || Object.keys(config).length === 0) {
 		config = await promptProjectConfig();
 
-		if (cliArgs.interactive.generateJson)
-			safeSaveJson(cliArgs.interactive.generateJson || ".", config);
-		if (cliArgs.interactive.savePreset) {
-			consola.log(
-				pc.red(
-					"flag -s will save this preset into global package. you could lose that if you update or uninstall the package",
-				),
-			);
-			consola.log(
-				pc.blue("So it is recommended to use a file generator (-g) instead"),
-			);
-		}
+		if (cliArgs.generatePreset)
+			safeSaveJson(cliArgs.generatePreset || ".", config);
 	}
 
 	await generateProject(config);

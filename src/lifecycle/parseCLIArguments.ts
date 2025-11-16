@@ -4,88 +4,85 @@ import fs from "fs-extra";
 import minimist from "minimist";
 
 export type CLIConfig = {
-	mode: "start" | "test" | "test:bin";
-	name?: string;
-	setup: "interactive" | "preset";
-	interactive?: {
-		generateJson?: string | null;
-		savePreset?: boolean;
-	};
-	presetPath?: string | null;
+  mode: "start" | "test" | "test:bin";
+  name?: string;
+  setup: "interactive" | "preset";
+  generatePreset: string | null;
+  loadPreset: string | null;
 };
 
 export async function parseCLIArgs(): Promise<CLIConfig> {
-	const argv = process.argv.slice(2);
+  const argv = process.argv.slice(2);
 
-	const args = minimist(argv, {
-		string: ["mode", "name", "interactive"],
-		boolean: ["test", "i", "p", "g", "s"],
-		alias: {
-			m: "mode",
-			i: "interactive",
-			p: "preset",
-			g: "generateJson",
-			s: "savePreset",
-			n: "name",
-		},
-		default: {
-			mode: "start",
-			i: true,
-		},
-	});
+  const args = minimist(argv, {
+    alias: {
+      m: "mode",
+      n: "name",
+      p: "preset",
+      g: "generatePreset",
+      d: "debug",
+    },
+    string: ["mode", "name", "preset", "generatePreset"],
+    boolean: ["debug"],
+    default: {
+      mode: "start",
+    },
+  });
 
-	// --- Determine mode ---
-	let mode: CLIConfig["mode"] = "start";
-	if (args.test) mode = "test";
-	else if (args.mode === "test" || args.mode === "test:bin")
-		mode = args.mode as CLIConfig["mode"];
+  const hasFlag = (flag: string) =>
+    argv.includes(flag) || argv.includes(flag.replace("--", "-"));
 
-	const name = args.n || args.name || args._[0];
+  const validModes = ["start", "test", "test:bin"] as const;
+  const mode = validModes.includes(args.mode)
+    ? (args.mode as (typeof validModes)[number])
+    : "start";
 
-	// --- Determine setup priority ---
-	// Priority: preset > interactive
-	let setup: CLIConfig["setup"] = "interactive";
-	if (args.p || args.preset) setup = "preset";
+  const name = args.name || args._[0] || undefined;
 
-	// --- Handle interactive setup ---
-	let generateJson: string | null = null;
-	const gIndex = argv.findIndex((a) => a === "-g" || a === "--generateJson");
-	if (gIndex !== -1) {
-		const next = argv[gIndex + 1];
-		if (next && !next.startsWith("-")) {
-			generateJson = path.resolve(next);
-		} else {
-			generateJson = path.resolve(
-				process.cwd(),
-				mode.startsWith("test") ? "tests" : "",
-				name || "",
-				"./.initex",
-			);
-		}
-	}
+  let loadPreset: string | null = null;
+  let presetMode = false;
 
-	let interactive: CLIConfig["interactive"] | undefined;
-	if (setup === "interactive") {
-		interactive = {
-			generateJson,
-			savePreset: args.s || false,
-		};
-	}
+  if (hasFlag("-p") || hasFlag("--preset")) {
+    presetMode = true;
 
-	// --- Handle preset file setup ---
-	let presetPath: string | null = null;
-	if (setup === "preset") {
-		if (!args.preset || typeof args.preset !== "string") {
-			log.error(`--preset flag provided but no path specified`);
-		}
+    // If a path was given
+    if (typeof args.preset === "string" && args.preset.trim() !== "") {
+      const resolved = path.resolve(args.preset);
+      if (fs.existsSync(resolved)) {
+        loadPreset = resolved;
+      } else {
+        log.error(
+          `Preset file not found: ${resolved.replace(process.cwd(), ".")}`
+        );
+      }
+    }
+  }
 
-		presetPath = path.resolve(args.preset);
-		if (!fs.existsSync(presetPath)) {
-			log.error(
-				`Preset file not found: ${presetPath.replace(process.cwd(), ".")}`,
-			);
-		}
-	}
+  let generatePreset: string | null = null;
 
-	return { mode, name, setup, interactive, presetPath };
+  if (hasFlag("-g") || hasFlag("--generatePreset")) {
+    if (
+      typeof args.generatePreset === "string" &&
+      args.generatePreset.trim() !== ""
+    ) {
+      generatePreset = path.resolve(args.generatePreset);
+    } else {
+      generatePreset = path.resolve(
+        mode.startsWith("test") ? "tests" : "",
+        name ?? "",
+        ".initex"
+      );
+    }
+  }
+
+  const setup = presetMode ? "preset" : "interactive";
+
+  const config: CLIConfig = { mode, name, setup, generatePreset, loadPreset };
+  if (args.debug) {
+    console.log("---");
+    console.log(config);
+    console.log("---");
+  }
+
+  return config;
 }

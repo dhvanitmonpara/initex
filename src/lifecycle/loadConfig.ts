@@ -11,7 +11,7 @@ import type { CLIConfig } from "./parseCLIArguments.js";
 export async function loadConfig(config: CLIConfig) {
 	try {
 		const candidates = [
-			config.presetPath || null,
+			config.loadPreset || null,
 			"initex.preset.json",
 			"initex.preset.yaml",
 			"initex.preset.yml",
@@ -30,7 +30,13 @@ export async function loadConfig(config: CLIConfig) {
 			}
 		}
 
-		if (!foundPath) return null;
+		if (!foundPath) {
+			if (config.setup === "interactive") {
+				return null;
+			}
+			log.error("Preset file not found.");
+			return null;
+		}
 		log.step(mind(`✨ Found ${foundPath.replace(process.cwd(), ".")}`));
 
 		const ext = path.extname(foundPath);
@@ -42,19 +48,22 @@ export async function loadConfig(config: CLIConfig) {
 			const content = await fs.readFile(foundPath, "utf-8");
 			rawConfig = yaml.load(content, { schema: yaml.JSON_SCHEMA });
 		} else {
-			throw new Error(`Unsupported config file type: ${ext}`);
+			log.error(
+				pc.red(`Unsupported config file type${ext ? `: ${pc.bold(ext)}` : ""}`),
+			);
+			return null;
 		}
 
 		if (!rawConfig || typeof rawConfig !== "object") {
-			throw new Error("Config file is empty or invalid.");
+			log.error(pc.red("Config file is empty or invalid."));
+			return null;
 		}
 
 		const validated = ProjectConfigSchema.parse(rawConfig);
 		await handleDirConflict(validated.name);
 		return validated;
 	} catch (err) {
-		console.error(pc.red(`\n💥 Config load error:`));
-		console.error(pc.red((err as Error).message));
+		log.error(pc.red(`Config load error: ${(err as Error).message}`));
 		return null;
 	}
 }
