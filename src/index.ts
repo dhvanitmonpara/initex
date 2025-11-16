@@ -4,11 +4,9 @@ import { teen } from "gradient-string";
 import pc from "picocolors";
 import { InitexArt } from "./constants/initexArt";
 import { generateProject } from "./lifecycle/generator/index";
-import { handleDirConflict } from "./lifecycle/handleDirConflict";
 import { loadConfig } from "./lifecycle/loadConfig";
 import { parseCLIArgs } from "./lifecycle/parseCLIArguments";
-import { promptProjectConfig } from "./lifecycle/prompts/customPrompts";
-import { promptPresetSelection } from "./lifecycle/prompts/presetPrompts";
+import { promptProjectConfig } from "./lifecycle/prompts/interactivePrompts";
 import { safeSaveJson } from "./lifecycle/saveConfig";
 import type { TProjectConfig } from "./schemas/ProjectConfigSchema";
 
@@ -20,14 +18,14 @@ async function main() {
 
 	let config: TProjectConfig = await loadConfig(cliArgs);
 	if (
-		cliArgs.setup === "custom" &&
+		cliArgs.setup === "interactive" &&
 		(!config || Object.keys(config).length === 0)
 	) {
 		config = await promptProjectConfig();
 
-		if (cliArgs.custom.generateJson)
-			safeSaveJson(cliArgs.custom.generateJson || ".", config);
-		if (cliArgs.custom.savePreset) {
+		if (cliArgs.interactive.generateJson)
+			safeSaveJson(cliArgs.interactive.generateJson || ".", config);
+		if (cliArgs.interactive.savePreset) {
 			consola.log(
 				pc.red(
 					"flag -s will save this preset into global package. you could lose that if you update or uninstall the package",
@@ -37,9 +35,6 @@ async function main() {
 				pc.blue("So it is recommended to use a file generator (-g) instead"),
 			);
 		}
-	} else if (!config || Object.keys(config).length === 0) {
-		await handleDirConflict(cliArgs.name || ".");
-		config = await promptPresetSelection();
 	}
 
 	await generateProject(config);

@@ -1,6 +1,6 @@
 {
   "name": "initex",
-  "version": "1.6.31",
+  "version": "1.6.34",
   "bin": {
     "initex": "./bin/cli.js"
   },
@@ -18,7 +18,17 @@
   "homepage": "https://github.com/dhvanitmonpara/initex",
   "main": "./bin/cli.js",
   "keywords": [
-    "initex"
+    "initex",
+    "create express app",
+    "express",
+    "nodejs",
+    "cli",
+    "typescript",
+    "javascript",
+    "scaffold",
+    "template",
+    "boilerplate",
+    "init"
   ],
   "files": [
     "dist",

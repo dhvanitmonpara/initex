@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
 {{#if ts}}
-import db  from "@/common/config/db/index";
-import { users } from "@/features/user/user.schema";
+import db from "@/common/config/db/index";
+import { UserTable } from "@/features/user/user.schema";
 import { hashPassword } from "@/utils/password";
 {{else}}
 import db from "../common/config/db/index.js";
-import { users } from "../features/user/user.schema.js";
+import { UserTable } from "../features/user/user.schema";
 import { hashPassword } from "../utils/password.js";
 {{/if}}
 

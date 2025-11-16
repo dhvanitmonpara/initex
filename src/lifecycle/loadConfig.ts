@@ -11,13 +11,13 @@ import type { CLIConfig } from "./parseCLIArguments.js";
 export async function loadConfig(config: CLIConfig) {
 	try {
 		const candidates = [
-			config.configPath || null,
-			"initex.config.json",
-			"initex.config.yaml",
-			"initex.config.yml",
-			"./initex/initex.config.json",
-			"./initex/initex.config.yaml",
-			"./initex/initex.config.yml",
+			config.presetPath || null,
+			"initex.preset.json",
+			"initex.preset.yaml",
+			"initex.preset.yml",
+			"./initex/initex.preset.json",
+			"./initex/initex.preset.yaml",
+			"./initex/initex.preset.yml",
 		]
 			.filter((f): f is string => typeof f === "string" && f.trim().length > 0)
 			.map((f) => path.resolve(process.cwd(), f));

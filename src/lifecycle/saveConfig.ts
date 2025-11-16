@@ -20,7 +20,7 @@ export async function saveJson(
 	const isFile = path.extname(resolved) === ".json";
 	const filePath = isFile
 		? resolved
-		: path.join(resolved, "initex.config.json");
+		: path.join(resolved, "initex.preset.json");
 
 	await fs.ensureDir(path.dirname(filePath));
 

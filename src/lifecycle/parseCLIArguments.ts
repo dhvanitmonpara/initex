@@ -6,32 +6,31 @@ import minimist from "minimist";
 export type CLIConfig = {
 	mode: "start" | "test" | "test:bin";
 	name?: string;
-	setup: "custom" | "preset" | "config";
-	custom?: {
+	setup: "interactive" | "preset";
+	interactive?: {
 		generateJson?: string | null;
 		savePreset?: boolean;
 	};
-	configPath?: string | null;
+	presetPath?: string | null;
 };
 
 export async function parseCLIArgs(): Promise<CLIConfig> {
 	const argv = process.argv.slice(2);
 
 	const args = minimist(argv, {
-		string: ["mode", "name", "config"],
-		boolean: ["test", "c", "p", "g", "s"],
+		string: ["mode", "name", "interactive"],
+		boolean: ["test", "i", "p", "g", "s"],
 		alias: {
 			m: "mode",
-			c: "custom",
+			i: "interactive",
 			p: "preset",
 			g: "generateJson",
 			s: "savePreset",
 			n: "name",
-			C: "config",
 		},
 		default: {
 			mode: "start",
-			p: true,
+			i: true,
 		},
 	});
 
@@ -44,12 +43,11 @@ export async function parseCLIArgs(): Promise<CLIConfig> {
 	const name = args.n || args.name || args._[0];
 
 	// --- Determine setup priority ---
-	// Priority: config > custom > preset
-	let setup: CLIConfig["setup"] = "preset";
-	if (args.c) setup = "custom";
-	if (args.config) setup = "config"; // config always wins
+	// Priority: preset > interactive
+	let setup: CLIConfig["setup"] = "interactive";
+	if (args.p || args.preset) setup = "preset";
 
-	// --- Handle custom setup ---
+	// --- Handle interactive setup ---
 	let generateJson: string | null = null;
 	const gIndex = argv.findIndex((a) => a === "-g" || a === "--generateJson");
 	if (gIndex !== -1) {
@@ -66,28 +64,28 @@ export async function parseCLIArgs(): Promise<CLIConfig> {
 		}
 	}
 
-	let custom: CLIConfig["custom"] | undefined;
-	if (setup === "custom") {
-		custom = {
+	let interactive: CLIConfig["interactive"] | undefined;
+	if (setup === "interactive") {
+		interactive = {
 			generateJson,
 			savePreset: args.s || false,
 		};
 	}
 
-	// --- Handle config file setup ---
-	let configPath: string | null = null;
-	if (setup === "config") {
-		if (!args.config || typeof args.config !== "string") {
-			log.error(`--config flag provided but no path specified`);
+	// --- Handle preset file setup ---
+	let presetPath: string | null = null;
+	if (setup === "preset") {
+		if (!args.preset || typeof args.preset !== "string") {
+			log.error(`--preset flag provided but no path specified`);
 		}
 
-		configPath = path.resolve(args.config);
-		if (!fs.existsSync(configPath)) {
+		presetPath = path.resolve(args.preset);
+		if (!fs.existsSync(presetPath)) {
 			log.error(
-				`Config file not found: ${configPath.replace(process.cwd(), ".")}`,
+				`Preset file not found: ${presetPath.replace(process.cwd(), ".")}`,
 			);
 		}
 	}
 
-	return { mode, name, setup, custom, configPath };
+	return { mode, name, setup, interactive, presetPath };
 }
