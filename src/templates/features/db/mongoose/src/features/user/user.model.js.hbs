@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   authType: {
     type: String,
     enum: ['oauth', 'manual'],
-    required: true
+    default: "manual",
   },
   refreshToken: {
     type: String,

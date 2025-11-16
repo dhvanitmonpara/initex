@@ -12,6 +12,7 @@
     {{else}}
     "dev": "{{runtimeCommand}} --watch src/server.js",
     {{/if}}
+    "seed": "{{#if isBunRuntime}}bun{{else}}tsx{{/if}} src/seed{{#if ts}}.ts{{else}}.js{{/if}}",
 {{#if git}}    "prepare": "{{runtimeExecCommand}} husky",{{/if}}
 {{#if noGit}}    "predev": "{{runtimeCommand}} run lint-format",{{/if}}
 {{#if ts}}    "prebuild": "{{runtimeCommand}} run lint-format && {{#if usePrisma}}{{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}}{{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}}{{runtimeCommand}} run db:migrate{{/if}}",{{/if}}

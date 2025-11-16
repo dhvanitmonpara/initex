@@ -11,6 +11,7 @@ import nodeCache from "@/services/nodecache.service";
 import { hashOTP } from "@/common/utils/cryptographer";
 import * as authRepo from "@/features/auth/auth.repository";
 import mailService from "@/services/mail.service";
+import { hashPassword, verifyPassword } from "@/utils/password";
 {{else}}import { env } from "../../common/config/env.js";
 import ApiError from "../../common/utils/ApiError.js";
 import generateDeviceFingerprint from "../../common/utils/generateDeviceFingerprint.js";
@@ -18,7 +19,8 @@ import prisma from "../../common/config/db.js";
 import nodeCache from "./nodecache.service.js";
 import { hashOTP } from "../../common/utils/cryptographer.js";
 import * as authRepo from "./auth.repository.js";
-import mailService from "../../services/mail.service.js";{{/if}}
+import mailService from "../../services/mail.service.js";
+import { hashPassword, verifyPassword } from "../../utils/password.js";{{/if}}
 
 class AuthService {
   options{{#if ts}}: null | {
@@ -288,7 +290,7 @@ class AuthService {
       username: string;
     }{{/if}};
 
-    const encryptedPassword = await bcrypt.hash(password, 12);
+    const encryptedPassword = await hashPassword(password);
 
     const createdUser = await authRepo.create({
       email,
@@ -330,7 +332,7 @@ class AuthService {
         data: { service: "authService.loginAuthService" },
       });
 
-    const passwordValid = await bcrypt.compare(password, user.password);
+    const passwordValid = await verifyPassword(password, user.password);
     if (!passwordValid)
       throw new ApiError({
         statusCode: 400,

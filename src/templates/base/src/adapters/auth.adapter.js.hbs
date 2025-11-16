@@ -6,7 +6,7 @@ import prisma from "@/common/config/db";
 {{#if useDrizzle}}
 import { eq, or, sql } from "drizzle-orm";
 import db from "@/common/config/db/index";
-import { UserTable } from "@/common/config/db/schema";
+import { UserTable } from "@/features/user/user.schema";
 {{/if}}
 {{#if useMongodb}}
 import { toObjectId } from "@/common/utils/toObject";

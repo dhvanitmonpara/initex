@@ -1,0 +1,47 @@
+{{#if ts}}
+import { sequelize } from "@/common/config/db";
+import User from "@/features/auth/auth.model";
+import { hashPassword } from "@/utils/password";
+{{else}}
+import { sequelize } from "../common/config/db";
+import User from "../features/auth/auth.model";
+import { hashPassword } from "../utils/password.js";
+{{/if}}
+
+async function run() {
+  const globalPassword = "ChangeMeNow!123";
+  const userEmail = "user@app.local";
+
+  // Make sure DB is connected
+  await sequelize.authenticate();
+
+  const existingUser = await User.findOne({
+    where: { email: userEmail },
+  });
+
+  if (!existingUser) {
+    const passwordHash = await hashPassword(globalPassword);
+
+    await User.create({
+      email: userEmail,
+      password: passwordHash,
+      username: "defaultuser",
+    });
+
+    console.log("Seeded USER:", userEmail, "password:", globalPassword);
+  } else {
+    console.log(
+      "USER already exists with credentials:",
+      userEmail,
+      "password:",
+      globalPassword
+    );
+  }
+
+  await sequelize.close();
+}
+
+run().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
