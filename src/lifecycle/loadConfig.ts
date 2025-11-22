@@ -4,7 +4,10 @@ import fs from "fs-extra";
 import { mind } from "gradient-string";
 import yaml from "js-yaml";
 import pc from "picocolors";
-import { ProjectConfigSchema } from "../schemas/ProjectConfigSchema.js";
+import {
+	ProjectConfigSchema,
+	type TProjectConfig,
+} from "../schemas/ProjectConfigSchema.js";
 import { handleDirConflict } from "./handleDirConflict.js";
 import type { CLIConfig } from "./parseCLIArguments.js";
 
@@ -58,6 +61,8 @@ export async function loadConfig(config: CLIConfig) {
 			log.error(pc.red("Config file is empty or invalid."));
 			return null;
 		}
+
+		(rawConfig as TProjectConfig).name = config.name ?? null;
 
 		const validated = ProjectConfigSchema.parse(rawConfig);
 		await handleDirConflict(validated.name);

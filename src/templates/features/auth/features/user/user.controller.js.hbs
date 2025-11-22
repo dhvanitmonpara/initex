@@ -1,0 +1,30 @@
+{{#if ts}}
+import ApiResponse from "@/common/utils/ApiResponse";
+import asyncHandler from "@/common/utils/asyncHandler";
+import userService from "@/features/user/user.service";
+{{else}}
+import ApiResponse from "../../common/utils/ApiResponse";
+import asyncHandler from "../../common/utils/asyncHandler";
+import userService from "./user.service";
+{{/if}}
+import { Request, Response } from "express";
+
+export const getUserById = asyncHandler(
+  async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
+    const { userId } = req.params;
+
+    const user = await userService.getUserByIdService(userId);
+
+    return ApiResponse.ok(user, "User fetched successfully");
+  }
+);
+
+export const searchUsers = asyncHandler(
+  async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
+    const { query } = req.params;
+
+    const users = await userService.searchUsersService(query);
+
+    return ApiResponse.ok(users, "Users fetched successfully");
+  }
+);

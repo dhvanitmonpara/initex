@@ -1,14 +1,16 @@
 import { Router } from "express";
 {{#if ts}}
-import * as UserController from "@/features/auth/auth.controller";
+import * as AuthController from "@/features/auth/core/auth.controller";
+import * as UserController from "@/features/user/user.controller";
 import { verifyUserJWT } from "@/common/middlewares/auth.middleware";
 import { validate } from "@/common/middlewares/validate.middleware";
-import * as authSchemas from "@/features/auth/auth.schema";
+import * as authSchemas from "@/features/auth/core/auth.schema";
 {{else}}
-import * as UserController from "../auth/auth.controller.js";
+import * as AuthController from "../auth/core.auth.controller.js";
+import * as UserController from "./user.controller.js";
 import { verifyUserJWT } from "../../common/middlewares/auth.middleware.js";
 import { validate } from "../../common/middlewares/validate.middleware.js";
-import * as authSchemas from "../auth/auth.schema.js";
+import * as authSchemas from "../auth/core/auth.schema.js";
 {{/if}}
 
 const router = Router();
@@ -45,7 +47,7 @@ const router = Router();
 router.post(
   "/register",
   validate(authSchemas.registrationSchema),
-  UserController.registerUser
+  AuthController.registerUser
 );
 
 /**
@@ -69,7 +71,7 @@ router.post(
 router.post(
   "/initialize",
   validate(authSchemas.initializeUserSchema),
-  UserController.initializeUser
+  AuthController.initializeUser
 );
 
 /**
@@ -112,7 +114,7 @@ router.post(
 router.post(
   "/login",
   validate(authSchemas.loginSchema),
-  UserController.loginUser
+  AuthController.loginUser
 );
 
 /**
@@ -149,7 +151,7 @@ router.post(
 router.post(
   "/auth/finalize",
   validate(authSchemas.tempTokenSchema),
-  UserController.handleTempToken
+  AuthController.handleTempToken
 );
 
 /**
@@ -174,7 +176,7 @@ router.post(
 router.get(
   "/google/callback",
   validate(authSchemas.googleCallbackSchema, "query"),
-  UserController.googleCallback
+  AuthController.googleCallback
 );
 
 /**
@@ -198,7 +200,7 @@ router.get(
 router.post(
   "/oauth",
   validate(authSchemas.userOAuthSchema),
-  UserController.handleUserOAuth
+  AuthController.handleUserOAuth
 );
 
 /**
@@ -219,11 +221,11 @@ router.post(
  *       400:
  *         description: Invalid input
  */
-router.post("/refresh", UserController.refreshAccessToken);
+router.post("/refresh", AuthController.refreshAccessToken);
 router.post(
   "/otp/send",
   validate(authSchemas.registrationSchema),
-  UserController.sendOtp
+  AuthController.sendOtp
 );
 
 /**
@@ -247,7 +249,7 @@ router.post(
 router.post(
   "/otp/verify",
   validate(authSchemas.verifyOtpSchema),
-  UserController.verifyOtp
+  AuthController.verifyOtp
 );
 
 // Protected routes
@@ -274,7 +276,7 @@ router.use(verifyUserJWT);
 router.post(
   "/oauth",
   validate(authSchemas.userOAuthSchema),
-  UserController.handleUserOAuth
+  AuthController.handleUserOAuth
 );
 
 /**
@@ -295,7 +297,7 @@ router.post(
  *       404:
  *         description: User not found
  */
-router.get("/me", UserController.getUserData);
+router.get("/me", AuthController.getUserData);
 
 /**
  * @openapi
@@ -336,7 +338,7 @@ router.get(
  *       404:
  *         description: User doesn't exists
  */
-router.post("/logout", UserController.logoutUser);
+router.post("/logout", AuthController.logoutUser);
 
 /**
  * @openapi

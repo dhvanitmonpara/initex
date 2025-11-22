@@ -1,0 +1,49 @@
+import jwt from "jsonwebtoken";
+import { Request } from "express";
+import { env } from "@/common/config/env";
+import { randomUUID } from "node:crypto";
+{{#if ts}}import * as authRepo from "@/features/auth/core/auth.repository";
+{{else}}
+import * as authRepo from "../core/auth.repository";{{/if}}
+
+class TokenService {
+  accessTokenExpiryMs = 1000 * 60 * parseInt(env.ACCESS_TOKEN_LIFE || "0", 10);
+  refreshTokenExpiryMs =
+    1000 * 60 * 60 * 24 * parseInt(env.REFRESH_TOKEN_LIFE || "0", 10);
+
+  generateAccessToken({{#if ts}}id: string, username: string{{else}}id, username{{/if}}) {
+    return jwt.sign({ id, username }, env.ACCESS_TOKEN_SECRET, {
+      expiresIn: `${env.ACCESS_TOKEN_LIFE}m` as jwt.SignOptions["expiresIn"],
+    });
+  }
+
+  generateRefreshToken({{#if ts}}id: string, username: string{{else}}id, username{{/if}}) {
+    return jwt.sign({ id, username }, env.REFRESH_TOKEN_SECRET, {
+      expiresIn: `${env.REFRESH_TOKEN_LIFE}d` as jwt.SignOptions["expiresIn"],
+    });
+  }
+
+  async generateAndPersistTokens(
+    {{#if ts}}id: string,
+    username: string,
+    _req: Request,
+    dbTx?: any{{else}}id, username, _req, dbTx{{/if}}
+  ) {
+    const accessToken = this.generateAccessToken(id, username);
+    const refreshToken = this.generateRefreshToken(id, username);
+
+    await authRepo.updateRefreshToken(id, refreshToken, dbTx);
+
+    return { accessToken, refreshToken };
+  }
+
+  createTempTokenPair({{#if ts}}accessToken: string, refreshToken: string{{else}}accessToken, refreshToken{{/if}}) {
+    const tempToken = randomUUID();
+    return {
+      tempToken,
+      payload: { accessToken, refreshToken, createdAt: Date.now() },
+    };
+  }
+}
+
+export default new TokenService();

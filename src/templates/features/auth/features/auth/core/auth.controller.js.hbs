@@ -1,14 +1,16 @@
 import { Request, Response } from "express";
 {{#if ts}}
 import ApiError from "@/common/utils/ApiError";
-import authService from "@/features/auth/auth.service";
+import authService from "@/features/auth/core/auth.service";
 import asyncHandler from "@/common/utils/asyncHandler";
 import ApiResponse from "@/common/utils/ApiResponse";
+import { AuthenticatedRequest } from "@/common/middlewares/auth.middleware.js";
 {{else}}
 import authService from "./auth.service";
-import ApiError from "../../common/utils/ApiError.js";
-import asyncHandler from "../../common/utils/asyncHandler.js";
-import ApiResponse from "../../common/utils/ApiResponse.js";
+import ApiError from "../../../common/utils/ApiError.js";
+import asyncHandler from "../../../common/utils/asyncHandler.js";
+import ApiResponse from "../../../common/utils/ApiResponse.js";
+import { AuthenticatedRequest } from "../../../common/middlewares/auth.middleware.js";
 {{/if}}
 
 export const googleCallback = asyncHandler(
@@ -121,8 +123,8 @@ export const loginUser = asyncHandler(async ({{#if ts}}req: Request, res: Respon
   );
 });
 
-export const getUserData = asyncHandler(async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
-  if (!req.body.user || !req.body.user.id) {
+export const getUserData = asyncHandler(async ({{#if ts}}req: AuthenticatedRequest, _res: Response{{else}}req, _res{{/if}}) => {
+  if (!req.user || !req.user.id) {
     throw new ApiError({
       statusCode: 404,
       message: "User not found",
@@ -131,7 +133,7 @@ export const getUserData = asyncHandler(async ({{#if ts}}req: Request, _res: Res
   }
 
   const user = {
-    ...req.body.user,
+    ...req.user,
     password: null,
     refreshToken: null,
   };
@@ -139,23 +141,15 @@ export const getUserData = asyncHandler(async ({{#if ts}}req: Request, _res: Res
   return ApiResponse.ok(user, "User fetched successfully!");
 });
 
-export const getUserById = asyncHandler(async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
-  const { userId } = req.params;
-
-  const user = await authService.getUserByIdService(userId);
-
-  return ApiResponse.ok(user, "User feteched successfully");
-});
-
-export const logoutUser = asyncHandler(async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
-  if (!req.body.user?.id)
+export const logoutUser = asyncHandler(async ({{#if ts}}req: AuthenticatedRequest, res: Response{{else}}req, res{{/if}}) => {
+  if (!req.user?.id)
     throw new ApiError({
       statusCode: 404,
       message: "User doesn't exists",
       data: { service: "authService.logoutAuthService" },
     });
 
-  await authService.logoutAuthService(req.body.user.id);
+  await authService.logoutAuthService(req.user.id);
 
   authService.clearAuthCookies(res);
 
@@ -163,7 +157,7 @@ export const logoutUser = asyncHandler(async ({{#if ts}}req: Request, res: Respo
 });
 
 export const refreshAccessToken = asyncHandler(
-  async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
+  async ({{#if ts}}req: AuthenticatedRequest, res: Response{{else}}req, res{{/if}}) => {
     const incomingRefreshToken =
       req.cookies.refreshToken || req.body.refreshToken;
 
@@ -210,12 +204,4 @@ export const verifyOtp = asyncHandler(async ({{#if ts}}req: Request, _res: Respo
     },
     isVerified ? "OTP verified successfully" : "Invalid OTP"
   );
-});
-
-export const searchUsers = asyncHandler(async ({{#if ts}}req: Request, _res: Response{{else}}req, _res{{/if}}) => {
-  const { query } = req.params;
-
-  const users = await authService.searchUsersService(query);
-
-  return ApiResponse.ok(users, "Users fetched successfully");
 });

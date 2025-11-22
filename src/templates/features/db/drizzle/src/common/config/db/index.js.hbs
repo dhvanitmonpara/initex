@@ -1,9 +1,9 @@
 {{#if ts}}
 import { env } from "@/common/config/env";
-import { UserTable } from "@/common/config/db/schema";
+import { UserTable } from "@/features/user/user.schema";
 {{else}}
-import { env } from "../../config/env.js";
-import { UserTable } from "./schema";
+import { env } from "../env.js";
+import { UserTable } from "../../../features/user/user.schema.js";
 {{/if}}
 import { drizzle } from 'drizzle-orm/node-postgres';
 

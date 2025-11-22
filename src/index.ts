@@ -9,6 +9,7 @@ import { parseCLIArgs } from "./lifecycle/parseCLIArguments";
 import { promptProjectConfig } from "./lifecycle/prompts/interactivePrompts";
 import { safeSaveJson } from "./lifecycle/saveConfig";
 import type { TProjectConfig } from "./schemas/ProjectConfigSchema";
+import { promptConfirm, promptText } from "./utils/promptUtils";
 
 async function main() {
 	const cliArgs = await parseCLIArgs();
@@ -23,12 +24,35 @@ async function main() {
 
 		if (cliArgs.generatePreset)
 			safeSaveJson(cliArgs.generatePreset || ".", config);
+	} else {
+		const continuePrompt = await promptConfirm(
+			`Project config loaded with name ${pc.bold(
+				config.name,
+			)}. Do you want to continue?`,
+			true,
+		);
+
+		if (!continuePrompt) {
+			log.error("Project initialization cancelled.");
+			process.exit(0);
+		}
+
+		if (!config.name) {
+			const newProjectName = await promptText("Enter a new project name:");
+			if (newProjectName) config.name = newProjectName;
+		}
 	}
 
 	await generateProject(config);
 
 	log.success(`${pc.bold(pc.cyan("Project ready:"))} ${config.name}`);
-	log.info(`Next steps:\n${pc.gray(`cd ${config.name} && npm install`)}`);
+
+	const nextStepMessage = `${pc.gray(
+		(config.name !== "." && `cd ${config.name} && `) +
+			`${config.packageManager} run dev`,
+	)}`;
+
+	log.info(`Next steps:\n${nextStepMessage}`);
 
 	outro(`Project ${pc.bold(pc.cyan(config.name))} created successfully!`);
 

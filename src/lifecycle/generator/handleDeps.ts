@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { log } from "@clack/prompts";
+import { log, spinner } from "@clack/prompts";
 import { execa } from "execa";
 import fs from "fs-extra";
 import pc from "picocolors";
@@ -83,7 +83,8 @@ const handleDeps = async (
 		}
 	}
 
-	log.info(
+	const depSpinner = spinner();
+	depSpinner.start(
 		pc.cyan(
 			`Installing ${allDependencies.length} dependencies and ${allDevDependencies.length} dev dependencies`,
 		),
@@ -121,6 +122,12 @@ const handleDeps = async (
 			log.info(pc.red(`Dev dependencies: ${allDevDependencies.join(", ")}`));
 		}
 	}
+
+	depSpinner.stop(
+		pc.cyan(
+			`${allDependencies.length} Dependencies and ${allDevDependencies.length} Dev Dependencies installed successfully`,
+		),
+	);
 
 	if (commands.length > 0) {
 		for (const { cmd, args } of commands) {
