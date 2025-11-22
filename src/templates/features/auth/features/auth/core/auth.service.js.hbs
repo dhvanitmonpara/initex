@@ -1,6 +1,7 @@
 import { {{#if ts}}CookieOptions, {{/if}}Request, Response } from "express";
 import jwt from "jsonwebtoken";{{#if useMongodb}}
-import { Types } from "mongoose";{{/if}}
+import { Types } from "mongoose";{{/if}}{{#if useDrizzle}}
+import db from "@/common/config/db";{{/if}}
 {{#if ts}}import { env } from "@/common/config/env";
 import ApiError from "@/common/utils/ApiError";
 import cache from "@/services/cache/index";
@@ -13,7 +14,8 @@ import otpService from "@/features/auth/otp/otp.service";
 import ApiError from "../../common/utils/ApiError.js";
 import prisma from "../../common/config/db.js";
 import cache from "./cache/index.js";
-import * as authRepo from "./auth.repository.js";
+import * as authRepo from "./auth.repository.js";{{#if useDrizzle}}
+import db from "../../../common/config/db/index.js";{{/if}}
 import { hashPassword, verifyPassword } from "../../utils/password.js";
 import oauthService from "../oauth/oauth.service";
 import tokenService from "../tokens/token.service";
@@ -51,13 +53,13 @@ class AuthService {
       .clearCookie("refreshToken", { ...this.options });
   }
 
-  redeemTempToken = (tempToken{{#if ts}}: string{{/if}}) => {
+  redeemTempToken = async (tempToken{{#if ts}}: string{{/if}}) => {
     const stored{{#if ts}}: { accessToken: string; refreshToken: string } | undefined{{/if}} =
-      cache.get(tempToken);
+      await cache.get(tempToken);
 
     if (!stored) return null;
 
-    cache.del(tempToken);
+    await cache.del(tempToken);
 
     return stored;
   };
@@ -88,7 +90,7 @@ class AuthService {
 
     const user = { email: email.toLowerCase(), username, password };
 
-    const cacheSuccess = cache.set(`pending:${email}`, user, 300);
+    const cacheSuccess = await cache.set(`pending:${email}`, user, 300);
     if (!cacheSuccess)
       throw new ApiError({
         statusCode: 500,
@@ -100,7 +102,7 @@ class AuthService {
   };
 
   registerAuthService = async ({{#if ts}}email: string, req: Request{{else}}email, req{{/if}}) => {
-    const user = cache.get(`pending:${email}`);
+    const user = await cache.get(`pending:${email}`);
     if (!user)
       throw new ApiError({
         statusCode: 404,
@@ -115,30 +117,40 @@ class AuthService {
 
     const encryptedPassword = await hashPassword(password);
 
-    const createdUser = await authRepo.create({
-      email,
-      password: encryptedPassword,
-      username,
-      authType: "manual",
-    });
+    const { createdUser, accessToken, refreshToken } = await db.transaction(
+      async (tx) => {
+        const createdUser = await authRepo.create(
+          {
+            email,
+            password: encryptedPassword,
+            username,
+            authType: "manual",
+          },
+          tx
+        );
 
-    const { accessToken, refreshToken } =
-    await tokenService.generateAndPersistTokens(
-      createdUser.{{#if useMongodb}}_id{{else}}id{{/if}},
-      createdUser.username,
-      req
+        const { accessToken, refreshToken } =
+          await tokenService.generateAndPersistTokens(
+            createdUser.id,
+            createdUser.username,
+            req,
+            tx
+          );
+
+        if (!accessToken || !refreshToken)
+          throw new ApiError({
+            statusCode: 500,
+            message: "Failed to generate access and refresh token",
+            data: { service: "authService.registerAuthService" },
+          });
+          
+        // Cleanup cache
+        await cache.del(`pending:${email}`);
+        await cache.del(`otp:${email}`);
+
+        return { createdUser, accessToken, refreshToken };
+      }
     );
-
-    if (!accessToken || !refreshToken)
-      throw new ApiError({
-        statusCode: 500,
-        message: "Failed to generate access and refresh token",
-        data: { service: "authService.registerAuthService" },
-      });
-
-    // Cleanup cache
-    cache.del(`pending:${email}`);
-    cache.del(`otp:${email}`);
 
     return { createdUser, accessToken, refreshToken };
   };

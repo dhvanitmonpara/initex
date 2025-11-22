@@ -47,7 +47,7 @@ export const handleTempToken = asyncHandler(
   async ({{#if ts}}req: Request, res: Response{{else}}req, res{{/if}}) => {
     const { tempToken } = req.body;
 
-    const tokens = authService.redeemTempToken(tempToken);
+    const tokens = await authService.redeemTempToken(tempToken);
 
     if (!tokens)
       throw new ApiError({

@@ -5,6 +5,7 @@ import type {
 	TProjectConfig,
 	TProjectContext,
 } from "../../schemas/ProjectConfigSchema";
+import generateRandomString from "../../utils/generateRandomString";
 import { parseConnectionString } from "../../utils/parseConnectionString";
 import { copyAndRenderTemplate } from "./copyAndRender";
 import handleDeps from "./handleDeps";
@@ -63,6 +64,8 @@ const createContext = (config: TProjectConfig) => {
 		...config,
 		ts: config.language === "ts",
 		js: config.language === "js",
+		accessTokenSecret: generateRandomString(),
+		refreshTokenSecret: generateRandomString(),
 		noGit: !config.git,
 		useMultiCache: config.cache.service === "multi",
 		useMongodb: config.db.provider === "mongodb",

@@ -3,8 +3,11 @@ import { Request } from "express";
 import { env } from "@/common/config/env";
 import { randomUUID } from "node:crypto";
 {{#if ts}}import * as authRepo from "@/features/auth/core/auth.repository";
-{{else}}
-import * as authRepo from "../core/auth.repository.js";{{/if}}
+{{#if useDrizzle}}import db from "@/common/config/db";
+import { DB } from "@/common/config/db/types";{{/if}}{{else}}
+import * as authRepo from "../core/auth.repository.js";
+{{#if useDrizzle}}import db from "../../common/config/db/index.js";
+import { DB } from "../../common/config/db/types.js";{{/if}}{{/if}}
 
 class TokenService {
   accessTokenExpiryMs = 1000 * 60 * parseInt(env.ACCESS_TOKEN_TTL || "0", 10);
@@ -27,14 +30,17 @@ class TokenService {
     {{#if ts}}id: string,
     username: string,
     _req: Request,
-    dbTx?: any{{else}}id, username, _req, dbTx{{/if}}
+    dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}id, username, _req, dbTx{{/if}}
   ) {
-    const accessToken = this.generateAccessToken(id, username);
-    const refreshToken = this.generateRefreshToken(id, username);
+    const client = dbTx ?? db;
+    return await client.transaction(async (tx) => {
+      const accessToken = this.generateAccessToken(id, username);
+      const refreshToken = this.generateRefreshToken(id, username);
 
-    await authRepo.updateRefreshToken(id, refreshToken, dbTx);
+      await authRepo.updateRefreshToken(id, refreshToken, tx);
 
-    return { accessToken, refreshToken };
+      return { accessToken, refreshToken };
+    });
   }
 
   createTempTokenPair({{#if ts}}accessToken: string, refreshToken: string{{else}}accessToken, refreshToken{{/if}}) {

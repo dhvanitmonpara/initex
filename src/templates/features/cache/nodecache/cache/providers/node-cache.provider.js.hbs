@@ -16,10 +16,10 @@ export class NodeCacheProvider {{#if ts}} implements CacheProvider {{/if}} {
   }
 
   async set{{#if ts}}<T>(key: string, value: T, ttl?: number){{else}}(key, value, ttl){{/if}} {
-    this.cache.set(key, value, ttl);
+    return this.cache.set(key, value, ttl);
   }
 
   async del{{#if ts}}(key: string){{else}}(key){{/if}} {
-    this.cache.del(key);
+    return this.cache.del(key) > 0;
   }
 }

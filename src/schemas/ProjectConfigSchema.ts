@@ -59,6 +59,8 @@ export type TProjectConfig = z.infer<typeof ProjectConfigSchema>;
 export type TProjectContext = TProjectConfig & {
 	ts: boolean;
 	js: boolean;
+	accessTokenSecret: string;
+	refreshTokenSecret: string;
 	noGit: boolean;
 	useMultiCache: boolean;
 	useMongodb: boolean;

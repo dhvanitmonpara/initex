@@ -24,13 +24,13 @@ export class RedisCacheProvider {{#if ts}} implements CacheProvider {{/if}} {
     const str = JSON.stringify(value);
 
     if (ttl) {
-      await this.client.set(key, str, "EX", ttl);
+      return (await this.client.set(key, str, "EX", ttl)) === "OK";
     } else {
-      await this.client.set(key, str);
+      return (await this.client.set(key, str)) === "OK";
     }
   }
 
   async del{{#if ts}}(key: string){{else}}(key){{/if}} {
-    await this.client.del(key);
+    return (await this.client.del(key)) > 0;
   }
 }

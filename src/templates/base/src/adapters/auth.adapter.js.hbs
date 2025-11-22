@@ -5,7 +5,8 @@ import prisma, { Prisma } from "@/common/config/db";
 {{/if}}
 {{#if useDrizzle}}
 import { eq, or, sql } from "drizzle-orm";
-import db from "@/common/config/db/index";
+import { DB } from "@/common/config/db/types";
+import db from "@/common/config/db";
 import { UserTable } from "@/features/user/user.table";
 {{/if}}
 {{#if useMongodb}}
@@ -24,6 +25,7 @@ import prisma from "../common/db/index.js";
 {{/if}}
 {{#if useDrizzle}}
 import { eq, or, sql } from "drizzle-orm";
+import { DB } from "../common/db/types.js";
 import db from "../common/db/index.js";
 import { UserTable } from "../common/db/schema.js";
 {{/if}}
@@ -32,14 +34,14 @@ import { toObjectId } from "../common/utils/toObject.js";
 import UserModel from "../features/user/user.model.js";
 {{/if}}
 {{#if useSequelize}}
-import User from "../features/auth/auth.model";
+import User from "../features/auth/auth.model.js";
 import { Op } from "sequelize";
 {{/if}}
 {{/if}}
 
 export const findById = async (
   {{#if ts}}userId: string{{else}}userId{{/if}}, 
-  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient |{{/if}}{{#if useDrizzle}}typeof db |{{/if}}{{#if useMongodb}}ClientSession |{{/if}}{{#if useSequelize}}Transaction |{{/if}}undefined{{else}}dbTx{{/if}}
+  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}
 ) => {
   {{#if usePrisma}}
   const client = dbTx ?? prisma;
@@ -70,7 +72,7 @@ export const updateRefreshToken = async (
   {{#if ts}}id: string, 
   refreshToken: string{{else}}user, 
   refreshToken{{/if}}, 
-  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient |{{/if}}{{#if useDrizzle}}typeof db |{{/if}}{{#if useMongodb}}ClientSession |{{/if}}{{#if useSequelize}}Transaction |{{/if}} undefined{{else}}dbTx{{/if}}
+  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}
 ) => {
   {{#if usePrisma}}
   const client = dbTx ?? prisma;
@@ -104,7 +106,7 @@ export const updateRefreshToken = async (
 
 export const findByEmail = async (
   {{#if ts}}email: string{{else}}email{{/if}}, 
-  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient |{{/if}}{{#if useDrizzle}}typeof db |{{/if}}{{#if useMongodb}}ClientSession |{{/if}}{{#if useSequelize}}Transaction |{{/if}} undefined{{else}}dbTx{{/if}}
+  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}
 ) => {
   {{#if usePrisma}}
   const client = dbTx ?? prisma;
@@ -137,7 +139,7 @@ export const findByEmail = async (
 
 export const create = async (
   {{#if ts}}user: IUser{{else}}user{{/if}}, 
-  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient |{{/if}}{{#if useDrizzle}}typeof db |{{/if}}{{#if useMongodb}}ClientSession |{{/if}}{{#if useSequelize}}Transaction |{{/if}} undefined{{else}}dbTx{{/if}}
+  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}
 ) => {
   {{#if usePrisma}}
   const client = dbTx ?? prisma;
@@ -165,7 +167,7 @@ export const create = async (
 
 export const findByUsername = async (
   {{#if ts}}username: string{{else}}username{{/if}}, 
-  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient |{{/if}}{{#if useDrizzle}}typeof db |{{/if}}{{#if useMongodb}}ClientSession |{{/if}}{{#if useSequelize}}Transaction |{{/if}} undefined{{else}}dbTx{{/if}}
+  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}
 ) => {
   {{#if usePrisma}}
   const client = dbTx ?? prisma;
@@ -194,7 +196,7 @@ export const findByUsername = async (
 
 export const searchUsers = async (
   {{#if ts}}query: string{{else}}query{{/if}}, 
-  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient |{{/if}}{{#if useDrizzle}}typeof db |{{/if}}{{#if useMongodb}}ClientSession |{{/if}}{{#if useSequelize}}Transaction |{{/if}} undefined{{else}}dbTx{{/if}}
+  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}
 ) => {
   {{#if usePrisma}}
   const client = dbTx ?? prisma;

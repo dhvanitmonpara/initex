@@ -21,12 +21,14 @@ export class MultiTierCacheProvider{{#if ts}} implements CacheProvider {{/if}} {
   }
 
   async set{{#if ts}}<T>(key: string, value: T, ttl?: number){{else}}(key, value, ttl){{/if}} {
-    await this.l1.set(key, value, ttl ?? this.ttl);
-    await this.l2.set(key, value, ttl ?? this.ttl);
+    const l1Success = await this.l1.set(key, value, ttl ?? this.ttl);
+    const l2Success = await this.l2.set(key, value, ttl ?? this.ttl);
+    return l1Success && l2Success;
   }
 
   async del{{#if ts}}(key: string){{else}}(key){{/if}} {
-    await this.l1.del(key);
-    await this.l2.del(key);
+    const l1Success = await this.l1.del(key);
+    const l2Success = await this.l2.del(key);
+    return l1Success && l2Success;
   }
 }

@@ -53,7 +53,7 @@ class OAuthService {
         );
 
       const tempToken = crypto.randomUUID();
-      cache.set(tempToken, {
+      await cache.set(tempToken, {
         accessToken,
         refreshToken,
         createdAt: Date.now(),
