@@ -1,0 +1,32 @@
+{{#if ts}}import { CacheProvider } from "../cache.interface";
+{{/if}}
+export class MultiTierCacheProvider{{#if ts}} implements CacheProvider {{/if}} {
+  constructor(
+    private l1: CacheProvider,
+    private l2: CacheProvider,
+    private ttl?: number
+  ) {}
+
+  async get{{#if ts}}<T>(key: string){{else}}(key){{/if}} {
+    const l1Val = await this.l1.get{{#if ts}}<T>{{/if}}(key);
+    if (l1Val) return l1Val;
+
+    const l2Val = await this.l2.get{{#if ts}}<T>{{/if}}(key);
+    if (l2Val) {
+      await this.l1.set(key, l2Val, this.ttl);
+      return l2Val;
+    }
+
+    return null;
+  }
+
+  async set{{#if ts}}<T>(key: string, value: T, ttl?: number){{else}}(key, value, ttl){{/if}} {
+    await this.l1.set(key, value, ttl ?? this.ttl);
+    await this.l2.set(key, value, ttl ?? this.ttl);
+  }
+
+  async del{{#if ts}}(key: string){{else}}(key){{/if}} {
+    await this.l1.del(key);
+    await this.l2.del(key);
+  }
+}

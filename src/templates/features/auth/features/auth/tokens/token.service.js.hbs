@@ -4,22 +4,22 @@ import { env } from "@/common/config/env";
 import { randomUUID } from "node:crypto";
 {{#if ts}}import * as authRepo from "@/features/auth/core/auth.repository";
 {{else}}
-import * as authRepo from "../core/auth.repository";{{/if}}
+import * as authRepo from "../core/auth.repository.js";{{/if}}
 
 class TokenService {
-  accessTokenExpiryMs = 1000 * 60 * parseInt(env.ACCESS_TOKEN_LIFE || "0", 10);
+  accessTokenExpiryMs = 1000 * 60 * parseInt(env.ACCESS_TOKEN_TTL || "0", 10);
   refreshTokenExpiryMs =
-    1000 * 60 * 60 * 24 * parseInt(env.REFRESH_TOKEN_LIFE || "0", 10);
+    1000 * 60 * 60 * 24 * parseInt(env.REFRESH_TOKEN_TTL || "0", 10);
 
   generateAccessToken({{#if ts}}id: string, username: string{{else}}id, username{{/if}}) {
     return jwt.sign({ id, username }, env.ACCESS_TOKEN_SECRET, {
-      expiresIn: `${env.ACCESS_TOKEN_LIFE}m` as jwt.SignOptions["expiresIn"],
+      expiresIn: `${env.ACCESS_TOKEN_TTL}m` as jwt.SignOptions["expiresIn"],
     });
   }
 
   generateRefreshToken({{#if ts}}id: string, username: string{{else}}id, username{{/if}}) {
     return jwt.sign({ id, username }, env.REFRESH_TOKEN_SECRET, {
-      expiresIn: `${env.REFRESH_TOKEN_LIFE}d` as jwt.SignOptions["expiresIn"],
+      expiresIn: `${env.REFRESH_TOKEN_TTL}d` as jwt.SignOptions["expiresIn"],
     });
   }
 

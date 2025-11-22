@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";{{#if useMongodb}}
 import { Types } from "mongoose";{{/if}}
 {{#if ts}}import { env } from "@/common/config/env";
 import ApiError from "@/common/utils/ApiError";
-import cache from "@/services/cache.service";
+import cache from "@/services/cache/index";
 import * as authRepo from "@/features/auth/core/auth.repository";
 import { hashPassword, verifyPassword } from "@/utils/password";
 import oauthService from "@/features/auth/oauth/oauth.service";
@@ -12,7 +12,7 @@ import otpService from "@/features/auth/otp/otp.service";
 {{else}}import { env } from "../../common/config/env.js";
 import ApiError from "../../common/utils/ApiError.js";
 import prisma from "../../common/config/db.js";
-import cache from "./cache.service.js";
+import cache from "./cache/index.js";
 import * as authRepo from "./auth.repository.js";
 import { hashPassword, verifyPassword } from "../../utils/password.js";
 import oauthService from "../oauth/oauth.service";

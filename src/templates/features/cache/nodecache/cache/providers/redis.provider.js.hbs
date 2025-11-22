@@ -1,0 +1,27 @@
+import { createClient, RedisClientType } from "redis";
+{{#if ts}}import { CacheProvider } from "../cache.interface";{{/if}}
+
+export class RedisCacheProvider {{#if ts}} implements CacheProvider {{/if}} {
+  private client: RedisClientType;
+
+  constructor(url: string) {
+    this.client = createClient({ url });
+    this.client.connect();
+  }
+
+  async get{{#if ts}}<T>(key: string){{else}}(key){{/if}} {
+    const val = await this.client.get(key);
+    return val ? JSON.parse(val) : null;
+  }
+
+  async set{{#if ts}}<T>(key: string, value: T, ttl?: number){{else}}(key, value, ttl){{/if}} {
+    const str = JSON.stringify(value);
+    ttl
+      ? await this.client.setEx(key, ttl, str)
+      : await this.client.set(key, str);
+  }
+
+  async del{{#if ts}}(key: string){{else}}(key){{/if}} {
+    await this.client.del(key);
+  }
+}

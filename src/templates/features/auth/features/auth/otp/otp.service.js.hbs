@@ -1,13 +1,13 @@
 {{#if ts}}
-import cache from "@/services/cache.service";
+import cache from "@/services/cache/index";
 import mailService from "@/services/mail.service";
 import { hashOTP } from "@/common/utils/cryptographer";
 import ApiError from "@/common/utils/ApiError";
 {{else}}
-import cache from "../../../services/cache.service";
-import mailService from "../../../services/mail.service";
-import { hashOTP } from "../../../common/utils/cryptographer";
-import ApiError from "../../../common/utils/ApiError";
+import cache from "../../../services/cache/index.js";
+import mailService from "../../../services/mail.service.js";
+import { hashOTP } from "../../../common/utils/cryptographer.js";
+import ApiError from "../../../common/utils/ApiError.js";
 {{/if}}
 
 class OtpService {

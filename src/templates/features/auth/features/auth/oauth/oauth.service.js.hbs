@@ -1,15 +1,15 @@
 import axios from "axios";
 import { Request } from "express";
 {{#if ts}}import { env } from "@/common/config/env";
-import cache from "@/services/cache.service";
+import cache from "@/services/cache/index";
 import * as authRepo from "@/features/auth/core/auth.repository";
 import tokenService from "@/features/auth/tokens/token.service";
 import ApiError from "@/common/utils/ApiError";
-{{else}}import { env } from "../../../common/config/env";
-import cache from "../../../services/cache.service";
-import * as authRepo from "../core/auth.repository";
-import tokenService from "../tokens/token.service";
-import ApiError from "../../../common/utils/ApiError";{{/if}}
+{{else}}import { env } from "../../../common/config/env.js";
+import cache from "../../../services/cache/index.js";
+import * as authRepo from "../core/auth.repository.js";
+import tokenService from "../tokens/token.service.js";
+import ApiError from "../../../common/utils/ApiError.js";{{/if}}
 
 class OAuthService {
   handleGoogleOAuth = async ({{#if ts}}code: string, req: Request{{else}}code, req{{/if}}) => {

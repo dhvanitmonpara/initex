@@ -1,7 +1,0 @@
-{
-	"name": "redis",
-	"label": "Redis Cache",
-	"description": "Redis Cache setup",
-	"destination": "src/services",
-	"dependencies": ["ioredis"]
-}

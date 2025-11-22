@@ -156,10 +156,14 @@ export async function promptProjectConfig(): Promise<TProjectConfig> {
 		: ((await promptConfirm("Do you want to use caching?", true)) as boolean);
 
 	const cacheService = cacheEnable
-		? ((await promptSelect<"redis" | "nodecache">("Select a cache:", [
-				{ value: "redis", label: "Redis Cache" },
+		? ((await promptSelect<"multi" | "nodecache">("Select a cache:", [
+				{
+					value: "multi",
+					label: "Multi Level Cache (Node Cache + Redis)",
+					hint: "Node Cache as L1 and Redis as L2",
+				},
 				{ value: "nodecache", label: "Node Cache" },
-			])) as "redis" | "nodecache")
+			])) as "multi" | "nodecache")
 		: undefined;
 
 	const socket = (await promptConfirm(

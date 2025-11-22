@@ -12,7 +12,7 @@ export const ProjectConfigSchema = z
 		}),
 		cache: z.object({
 			enable: z.boolean().default(false),
-			service: z.enum(["nodecache", "redis"]).optional(),
+			service: z.enum(["nodecache", "multi"]).optional(),
 		}),
 		auth: z.object({
 			enable: z.boolean().default(false),
@@ -60,7 +60,7 @@ export type TProjectContext = TProjectConfig & {
 	ts: boolean;
 	js: boolean;
 	noGit: boolean;
-	useRedis: boolean;
+	useMultiCache: boolean;
 	useMongodb: boolean;
 	usePrisma: boolean;
 	useSequelize: boolean;

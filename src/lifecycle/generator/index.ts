@@ -64,7 +64,7 @@ const createContext = (config: TProjectConfig) => {
 		ts: config.language === "ts",
 		js: config.language === "js",
 		noGit: !config.git,
-		useRedis: config.cache.service === "redis",
+		useMultiCache: config.cache.service === "multi",
 		useMongodb: config.db.provider === "mongodb",
 		usePrisma: config.db.orm === "prisma",
 		useSequelize: config.db.orm === "sequelize",

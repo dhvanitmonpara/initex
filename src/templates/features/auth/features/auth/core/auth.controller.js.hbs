@@ -6,7 +6,7 @@ import asyncHandler from "@/common/utils/asyncHandler";
 import ApiResponse from "@/common/utils/ApiResponse";
 import { AuthenticatedRequest } from "@/common/middlewares/auth.middleware.js";
 {{else}}
-import authService from "./auth.service";
+import authService from "./auth.service.js";
 import ApiError from "../../../common/utils/ApiError.js";
 import asyncHandler from "../../../common/utils/asyncHandler.js";
 import ApiResponse from "../../../common/utils/ApiResponse.js";

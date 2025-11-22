@@ -3,15 +3,13 @@ import * as authAdapter from "@/adapters/auth.adapter";
 import { IUser } from "@/common/types/IUser";
 import logger from "@/common/utils/logger";
 import { cached } from "@/utils/cached";
-import { AuthenticatedRequest } from "@/common/middlewares/auth.middleware.js";
 {{else}}
 import * as authAdapter from "../../../adapters/auth.adapter.js";
-import logger from "../../../common/utils/logger";
-import { cached } from "../../../utils/cached";
-import { AuthenticatedRequest } from "../../../common/middlewares/auth.middleware.js";
-{{/if}}
-{{#if useMongodb}}import { Types } from "mongoose";{{/if}}
-{{#if useDrizzle}}import db from {{#if ts}}"@/common/config/db"{{else}}"../../../common/config/db"{{/if}};{{/if}}
+import logger from "../../../common/utils/logger.js";
+import { cached } from "../../../utils/cached.js";
+{{/if}}{{#if useMongodb}}
+import { Types } from "mongoose";{{/if}}{{#if useDrizzle}}
+import db from {{#if ts}}"@/common/config/db"{{else}}"../../../common/config/db.js"{{/if}};{{/if}}
 
 const keys = {
   id: (id{{#if ts}}: string{{/if}}) => `user:id:${id}`,
