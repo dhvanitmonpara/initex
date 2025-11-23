@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 {{#if ts}}
 import { DB_NAME } from "@/common/constants/db";
 {{else}}
-import { DB_NAME } from "../common/constants/db.js";
+import { DB_NAME } from "../constants/db.js";
 {{/if}}
 
 const connectDB = async () => {

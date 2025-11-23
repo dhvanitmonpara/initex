@@ -2,7 +2,7 @@ import { Sequelize } from 'sequelize';
 {{#if ts}}
 import { env } from '@/common/config/env';
 {{else}}
-import { env } from './env.js';
+import { env } from '../env.js';
 {{/if}}
 
 const connectionString = env.DATABASE_URL;

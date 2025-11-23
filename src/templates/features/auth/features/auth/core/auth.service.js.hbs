@@ -1,7 +1,6 @@
 import { {{#if ts}}CookieOptions, {{/if}}Request, Response } from "express";
 import jwt from "jsonwebtoken";{{#if useMongodb}}
-import { Types } from "mongoose";{{/if}}{{#if useDrizzle}}
-import db from "@/common/config/db";{{/if}}
+import { Types } from "mongoose";{{/if}}
 {{#if ts}}import { env } from "@/common/config/env";
 import ApiError from "@/common/utils/ApiError";
 import cache from "@/services/cache/index";
@@ -10,12 +9,13 @@ import { hashPassword, verifyPassword } from "@/utils/password";
 import oauthService from "@/features/auth/oauth/oauth.service";
 import tokenService from "@/features/auth/tokens/token.service";
 import otpService from "@/features/auth/otp/otp.service";
+import { runTransaction } from "@/common/config/db/transactions";
 {{else}}import { env } from "../../common/config/env.js";
 import ApiError from "../../common/utils/ApiError.js";
 import prisma from "../../common/config/db.js";
 import cache from "./cache/index.js";
-import * as authRepo from "./auth.repository.js";{{#if useDrizzle}}
-import db from "../../../common/config/db/index.js";{{/if}}
+import * as authRepo from "./auth.repository.js";
+import { runTransaction } from "../../common/config/db/transactions";
 import { hashPassword, verifyPassword } from "../../utils/password.js";
 import oauthService from "../oauth/oauth.service";
 import tokenService from "../tokens/token.service";
@@ -117,7 +117,7 @@ class AuthService {
 
     const encryptedPassword = await hashPassword(password);
 
-    const { createdUser, accessToken, refreshToken } = await db.transaction(
+    const { createdUser, accessToken, refreshToken } = await runTransaction(
       async (tx) => {
         const createdUser = await authRepo.create(
           {

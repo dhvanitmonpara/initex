@@ -8,8 +8,8 @@ import * as authAdapter from "../../../adapters/auth.adapter.js";
 import logger from "../../../common/utils/logger.js";
 import { cached } from "../../../utils/cached.js";
 {{/if}}{{#if useMongodb}}
-import { Types } from "mongoose";{{/if}}{{#if useDrizzle}}
-import { DB } from {{#if ts}}"@/common/config/db/types"{{else}}"../../../common/config/db/types.js"{{/if}};{{/if}}
+import { Types } from "mongoose";{{/if}}
+import { DB } from {{#if ts}}"@/common/config/db/types"{{else}}"../../../common/config/db/types.js";{{/if}}
 
 const keys = {
   id: (id{{#if ts}}: string{{/if}}) => `user:id:${id}`,
@@ -18,33 +18,33 @@ const keys = {
   search: (q{{#if ts}}: string{{/if}}) => `user:search:${q}`,
 };
 
-export const findById = (userId{{#if ts}}: string{{/if}}, {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}) =>
+export const findById = (userId{{#if ts}}: string{{/if}}, {{#if ts}}dbTx?: DB{{else}}dbTx{{/if}}) =>
   cached(keys.id(userId), () => authAdapter.findById(userId, dbTx));
 
-export const findByEmail = (email{{#if ts}}: string{{/if}}, {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}) =>
+export const findByEmail = (email{{#if ts}}: string{{/if}}, {{#if ts}}dbTx?: DB{{else}}dbTx{{/if}}) =>
   cached(keys.email(email), () => authAdapter.findByEmail(email, dbTx));
 
 export const findByUsername = (
   username{{#if ts}}: string{{/if}}, 
-  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}
+  {{#if ts}}dbTx?: DB{{else}}dbTx{{/if}}
 ) =>
   cached(keys.username(username), () => 
     authAdapter.findByUsername(username, dbTx)
   );
 
-export const searchUsers = (query{{#if ts}}: string{{/if}}, {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}) =>
+export const searchUsers = (query{{#if ts}}: string{{/if}}, {{#if ts}}dbTx?: DB{{else}}dbTx{{/if}}) =>
   cached(keys.search(query), () => authAdapter.searchUsers(query, dbTx));
 
 export const updateRefreshToken = async (
   id{{#if ts}}: string{{/if}}, 
   refreshToken{{#if ts}}: string{{/if}}, 
-  {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}
+  {{#if ts}}dbTx?: DB{{else}}dbTx{{/if}}
 ) => {
   logger.info(`Updating refresh token for user ${id}`);
   return authAdapter.updateRefreshToken(id, refreshToken, dbTx);
 };
 
-export const create = async (user{{#if ts}}: IUser{{/if}}, {{#if ts}}dbTx?: {{#if usePrisma}}Prisma.TransactionClient{{/if}}{{#if useDrizzle}}DB{{/if}}{{#if useMongodb}}ClientSession{{/if}}{{#if useSequelize}}Transaction{{/if}}{{else}}dbTx{{/if}}) => {
+export const create = async (user{{#if ts}}: IUser{{/if}}, {{#if ts}}dbTx?: DB{{else}}dbTx{{/if}}) => {
   logger.info(`Creating new user ${user.email}`);
   return authAdapter.create(user, dbTx);
 };

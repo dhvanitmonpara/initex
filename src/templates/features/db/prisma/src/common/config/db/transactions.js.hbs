@@ -1,0 +1,23 @@
+import prisma from ".";
+{{#if ts}}import type { PrismaClient } from "@prisma/client";{{/if}}
+
+{{#if ts}}
+export async function runTransaction<T>(
+  callback: (tx: PrismaClient) => Promise<T>,
+  tx?: PrismaClient
+): Promise<T> {
+{{else}}
+export async function runTransaction(callback, tx) {
+{{/if}}
+  const hasParent = !!tx;
+
+  if (hasParent) {
+    // Reuse existing transaction
+    return callback(tx);
+  }
+
+  // Create and manage our own transaction
+  return prisma.$transaction(async (innerTx) => {
+    return callback(innerTx);
+  });
+}
