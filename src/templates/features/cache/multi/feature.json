@@ -1,8 +1,0 @@
-{
-	"name": "node-cache",
-	"label": "Node Cache",
-	"description": "Node Cache setup",
-	"destination": "src/services",
-	"dependencies": ["node-cache", "ioredis"],
-	"devDependencies": ["@types/node-cache", "@types/ioredis"]
-}

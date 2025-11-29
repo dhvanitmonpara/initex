@@ -1,0 +1,220 @@
+import type { User } from "@/shared/types/User";
+{{#if usePrisma}}
+import prisma from "@/infra/db";
+import type { DB } from "@/infra/db/types";
+{{/if}}
+{{#if useDrizzle}}
+import { eq, or, sql } from "drizzle-orm";
+import db from "@/infra/db/index";
+import { UserTable } from "@/infra/db/tables/user.table";
+import type { DB } from "@/infra/db/types";
+{{/if}}
+{{#if useMongodb}}
+import UserModel from "@/infra/db/models/user.model";
+import { toObjectId } from "@/shared/utils/toObject";
+import { getValidSession, type DB } from "../types";
+{{/if}}
+{{#if useSequelize}}
+import UserModel from "@/infra/db/models/user.model";
+import { Op } from "sequelize";
+import type { DB } from "@/infra/db/types";
+{{/if}}
+
+export const findById = async (userId: string, dbTx?: DB) => {
+  {{#if usePrisma}}
+  const client = dbTx ?? prisma;
+  const user = await client.user.findUnique({ where: { id: userId } });
+  {{/if}}
+  {{#if useMongodb}}
+  const session = getValidSession(dbTx);
+  const user = await UserModel.findById(toObjectId(userId)).session(session);
+  {{/if}}
+  {{#if useDrizzle}}
+  const client = dbTx ?? db;
+  const user = await client.query.users.findFirst({
+    where: eq(UserTable.id, userId),
+  });
+  {{/if}}
+  {{#if useSequelize}}
+  const record = await UserModel.findOne({
+    where: { id: userId },
+    transaction: dbTx ?? undefined,
+  });
+  const user = record?.dataValues ?? null;
+  {{/if}}
+
+  return user;
+};
+
+export const updateRefreshToken = async (
+  id: string, 
+  refreshToken: string, 
+  dbTx?: DB
+) => {
+  {{#if usePrisma}}
+  const client = dbTx ?? prisma;
+  await client.user.update({
+    where: { id },
+    data: { refreshToken },
+  });
+  {{/if}}
+  {{#if useMongodb}}
+  const session = getValidSession(dbTx);
+  await UserModel.findByIdAndUpdate(
+    toObjectId(id),
+    { $set: { refreshToken } },
+    { new: true, runValidators: true, session }
+  );
+  {{/if}}
+  {{#if useDrizzle}}
+  const client = dbTx ?? db;
+  await client
+    .update(UserTable)
+    .set({ refreshToken })
+    .where(eq(UserTable.id, id))
+  {{/if}}
+  {{#if useSequelize}}
+  await UserModel.update(
+    { refreshToken },
+    { where: { id }, transaction: dbTx ?? undefined }
+  );
+  {{/if}}
+};
+
+export const findByEmail = async (email: string, dbTx?: DB) => {
+  {{#if usePrisma}}
+  const client = dbTx ?? prisma;
+  const user = await client.user.findFirst({
+    where: { email: email.toLowerCase() },
+  });
+  {{/if}}
+  {{#if useMongodb}}
+  const session = getValidSession(dbTx);
+  const user = await UserModel.findOne({
+    email: email.toLowerCase(),
+  }).session(session);
+  {{/if}}
+  {{#if useDrizzle}}
+  const client = dbTx ?? db;
+  const user = await client.query.users.findFirst({
+    where: eq(UserTable.email, email.toLowerCase()),
+  });
+  {{/if}}
+  {{#if useSequelize}}
+  const record = await UserModel.findOne({
+    where: { email: email.toLowerCase() },
+    transaction: dbTx ?? undefined,
+  });
+  const user = record?.dataValues ?? null;
+  {{/if}}
+
+  return user;
+};
+
+export const create = async (user: User, dbTx?: DB) => {
+  {{#if usePrisma}}
+  const client = dbTx ?? prisma;
+  const createdUser = await client.user.create({ data: user });
+  {{/if}}
+  {{#if useMongodb}}
+  const session = getValidSession(dbTx);
+  const createdUser = await UserModel.create([user], { session }).then(
+    (r) => r && r[0] ?? null
+  );
+  {{/if}}
+  {{#if useDrizzle}}
+  const client = dbTx ?? db;
+  const createdUser = await client
+    .insert(UserTable)
+    .values(user)
+    .returning()
+    .then(r => r?.[0] ?? null);
+  {{/if}}
+  {{#if useSequelize}}
+  const created = await UserModel.create({ ...user }, { transaction: dbTx ?? undefined });
+  const createdUser = created?.dataValues ?? null;
+  {{/if}}
+
+  return createdUser;
+};
+
+export const findByUsername = async (username: string, dbTx?: DB) => {
+  {{#if usePrisma}}
+  const client = dbTx ?? prisma;
+  const user = await client.user.findFirst({ where: { username } });
+  {{/if}}
+  {{#if useMongodb}}
+  const session = getValidSession(dbTx);
+  const user = await UserModel.findOne({ username }).session(session);
+  {{/if}}
+  {{#if useDrizzle}}
+  const client = dbTx ?? db;
+  const user = await client.query.users.findFirst({
+    where: eq(UserTable.username, username),
+  });
+  {{/if}}
+  {{#if useSequelize}}
+  const record = await UserModel.findOne({
+    where: { username },
+    transaction: dbTx ?? undefined,
+  });
+  const user = record?.dataValues ?? null;
+  {{/if}}
+
+  return user;
+};
+
+export const searchUsers = async (query: string, dbTx?: DB) => {
+  {{#if usePrisma}}
+  const client = dbTx ?? prisma;
+  const users = await client.user.findMany({
+    where: {
+      OR: [
+        { username: { contains: query, mode: "insensitive" } },
+        { email: { contains: query, mode: "insensitive" } },
+      ],
+    },
+    select: { id: true, username: true, email: true },
+  });
+  {{/if}}
+  {{#if useMongodb}}
+  const session = getValidSession(dbTx);
+  const users = await UserModel.find(
+    {
+      $or: [
+        { username: { $regex: query, $options: "i" } },
+        { email: { $regex: query, $options: "i" } },
+      ],
+    },
+    { _id: 1, username: 1, email: 1 }
+  ).session(session).lean();
+  {{/if}}
+  {{#if useDrizzle}}
+  const client = dbTx ?? db;
+  const users = await client.query.users.findMany({
+    where: or(
+      sql`LOWER(${UserTable.username}) LIKE LOWER(${`%${query}%`})`,
+      sql`LOWER(${UserTable.email}) LIKE LOWER(${`%${query}%`})`
+    ),
+    columns: {
+      id: true,
+      username: true,
+      email: true,
+    },
+  });
+  {{/if}}
+  {{#if useSequelize}}
+  const users = await UserModel.findAll({
+    where: {
+      [Op.or]: [
+        { username: { {{#if useMysql}}[Op.like]{{else}}[Op.iLike]{{/if}}: `%${query}%` } },
+        { email: { {{#if useMysql}}[Op.like]{{else}}[Op.iLike]{{/if}}: `%${query}%` } },
+      ],
+    },
+    attributes: ["id", "username", "email"],
+    transaction: dbTx ?? undefined,
+  }).then(records => records.map(r => r.dataValues));
+  {{/if}}
+
+  return users;
+};

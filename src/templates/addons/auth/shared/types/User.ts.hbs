@@ -1,0 +1,20 @@
+import { Role } from "@/config/roles";
+{{#if useMongodb}}
+import { Types } from "mongoose";
+
+{{/if}}
+export interface User {
+  {{#if useMongodb}}
+  _id?: string | Types.ObjectId;
+  {{else}}
+  id?: string;
+  {{/if}}
+  username: string;
+  email: string;
+  password: string;
+  authType: "manual" | "oauth";
+  refreshToken?: string;
+  roles: Role[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}

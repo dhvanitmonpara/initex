@@ -1,0 +1,56 @@
+services:
+  mongo:
+    image: mongo
+    restart: always
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: {{dbUser}}
+      MONGO_INITDB_ROOT_PASSWORD: {{dbPassword}}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--username={{dbUser}}", "--password={{dbPassword}}", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  {{#if useRedis}}redis:
+    image: redis:7-alpine        # latest major 7.x, Alpine version for size
+    container_name: redis
+    restart: unless-stopped       # more appropriate than always for many setups
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes", "--save", "60 10000"]
+    volumes:
+      - redis-data:/data          # persistent data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf  # optional if you have custom config
+    healthcheck:                  # ensure it’s healthy before other services rely on it
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      # Example: protect with password if you need
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
+    # If you set requirepass via config file or environment, use it in clients
+    # networks: can define a custom network if you have multiple services
+  {{/if}}
+  {{#if useValkey}}valkey:
+    image: valkey/valkey:latest
+    container_name: valkey
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    command: ["valkey-server", "/etc/valkey.conf"]
+  {{/if}}
+
+volumes:
+  {{#if useRedis}}redis-data:
+    driver: local{{/if}}
+  mongo_data:
+    driver: local
+  {{#if useValkey}}valkey_data:
+    driver: local{{/if}}

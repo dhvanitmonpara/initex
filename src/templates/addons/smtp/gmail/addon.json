@@ -1,0 +1,8 @@
+{
+  "name": "gmail",
+  "label": "Gmail",
+  "description": "Gmail mail setup",
+  "destination": "src/infra/services/mail/providers",
+  "dependencies": ["nodemailer"],
+  "devDependencies": ["@types/nodemailer"]
+}

@@ -1,0 +1,18 @@
+{{#if auth.enable}}import { verifyUserJWT, AuthenticatedRequest } from "./auth.middleware";
+import { requirePermission } from "./requirePermission.middleware";
+import { requireRole } from "./requireRoles.middleware";{{/if}}
+import errorMiddleware from "./error.middleware";
+import rateLimitMiddleware from "./rate-limit.middleware";
+import { upload } from "./upload.middleware";
+import { validate } from "./validate.middleware";
+
+export {
+{{#if auth.enable}}  verifyUserJWT,
+  AuthenticatedRequest,
+  rateLimitMiddleware,
+  requirePermission,
+  requireRole,{{/if}}
+  errorMiddleware,
+  upload,
+  validate,
+};

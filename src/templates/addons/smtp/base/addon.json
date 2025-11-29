@@ -1,0 +1,8 @@
+{
+  "name": "mail-base",
+  "label": "Mail Base",
+  "description": "Mail base setup",
+  "destination": "src",
+  "dependencies": ["@react-email/components", "mailtrap"],
+  "devDependencies": ["react-email", "@types/react"]
+}

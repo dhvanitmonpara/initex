@@ -1,7 +1,0 @@
-import sequelize, { Transaction } from "@/common/config/db";
-
-export type DBClient = typeof sequelize;
-
-export type DBTx = Transaction;
-
-export type DB = DBClient | DBTx;

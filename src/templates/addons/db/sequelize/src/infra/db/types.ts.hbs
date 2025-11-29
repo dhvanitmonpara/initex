@@ -1,0 +1,8 @@
+import { sequelize } from "@/infra/db";
+import { Transaction } from "sequelize";
+
+export type DBClient = typeof sequelize;
+
+export type DBTx = Transaction;
+
+export type DB = DBClient | DBTx;

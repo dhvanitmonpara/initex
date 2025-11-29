@@ -1,206 +1,203 @@
 import { consola } from "consola";
 import { vice } from "gradient-string";
+import { handleDirConflict } from "@/lifecycle/handleDirConflict";
+import { parseCLIArgs } from "@/lifecycle/parseCLIArguments";
 import {
-	ProjectConfigSchema,
-	type TProjectConfig,
-} from "../../schemas/ProjectConfigSchema";
+  type ProjectConfig,
+  ProjectConfigSchema,
+} from "@/schemas/ProjectConfigSchema";
 import {
-	promptConfirm,
-	promptSelect,
-	promptText,
-} from "../../utils/promptUtils";
-import { handleDirConflict } from "../handleDirConflict";
-import { parseCLIArgs } from "../parseCLIArguments";
+  getAvailablePackageManagers,
+  getAvailableRuntimes,
+} from "@/utils/environment";
+import { normalizeProjectName } from "@/utils/normalizeProjectName";
+import { promptConfirm, promptSelect, promptText } from "@/utils/promptUtils";
 
-export async function promptProjectConfig(): Promise<TProjectConfig> {
-	const cliArgs = await parseCLIArgs();
-	const isTesting = (cliArgs.mode === "test" ||
-		cliArgs.mode === "test:bin") as boolean;
+export async function promptProjectConfig(): Promise<ProjectConfig> {
+  const cliArgs = await parseCLIArgs();
+  const isTesting = cliArgs.mode === "test" || cliArgs.mode === "test:bin";
 
-	let projectName =
-		cliArgs.name ||
-		(await promptText("Enter your project name:", "my-app", "my-app", (v) =>
-			!v ? vice("Project name cannot be empty!") : undefined,
-		));
+  // PROJECT NAME
+  let projectName =
+    cliArgs.name ||
+    (await promptText("Enter your project name:", "my-app", "my-app", (v) =>
+      !v ? vice("Project name cannot be empty!") : undefined
+    ));
 
-	projectName = (isTesting ? `tests/${projectName}` : projectName) as string;
-	await handleDirConflict(projectName);
+  projectName = isTesting ? `tests/${projectName}` : projectName;
+  await handleDirConflict(projectName);
+  const normalizedProjectName = normalizeProjectName(projectName);
 
-	const language = await promptSelect<"js" | "ts">("Choose language:", [
-		{ value: "ts", label: "TypeScript" },
-		{ value: "js", label: "JavaScript" },
-	]);
+  const runtimeOptions = await getAvailableRuntimes();
 
-	const runtime = await promptSelect<"node" | "deno" | "bun">(
-		"Choose runtime:",
-		[
-			{ value: "bun", label: "Bun" },
-			{ value: "node", label: "Node.js" },
-			{ value: "deno", label: "Deno" },
-		],
-	);
+  if (runtimeOptions.length === 0) {
+    consola.error("❌ No supported runtime installed on this machine.");
+    process.exit(1);
+  }
 
-	let packageManager: "npm" | "yarn" | "pnpm" | "bun" | "deno" = "npm";
-	if (runtime === "bun") {
-		packageManager = "bun";
-	} else if (runtime === "deno") {
-		packageManager = "deno";
-	} else {
-		packageManager = await promptSelect<
-			"npm" | "yarn" | "pnpm" | "bun" | "deno"
-		>("Choose package manager:", [
-			{ value: "bun", label: "bun" },
-			{ value: "npm", label: "npm" },
-			{ value: "yarn", label: "yarn" },
-			{ value: "pnpm", label: "pnpm" },
-			{ value: "deno", label: "deno" },
-		]);
-	}
+  const runtime = await promptSelect<"node" | "bun" | "deno">(
+    "Choose runtime:",
+    runtimeOptions
+  );
 
-	const dbEnable = (await promptConfirm(
-		"Do you want to use a database?",
-		true,
-	)) as boolean;
+  const pmOptions = await getAvailablePackageManagers(runtime);
 
-	let db: TProjectConfig["db"] = {
-		enable: dbEnable,
-		provider: undefined,
-		connectionString: undefined,
-		name: undefined,
-		orm: undefined,
-	} as TProjectConfig["db"];
+  if (pmOptions.length === 0) {
+    consola.error(`No package managers installed for runtime "${runtime}".`);
+    process.exit(1);
+  }
 
-	if (dbEnable) {
-		const provider = await promptSelect<"mongodb" | "postgresql" | "mysql">(
-			"Select a database:",
-			[
-				{ value: "postgresql", label: "PostgreSQL" },
-				{ value: "mongodb", label: "MongoDB" },
-				{ value: "mysql", label: "MySQL" },
-			],
-		);
+  const packageManager = await selectOrAutoPick<
+    ProjectConfig["packageManager"]
+  >("Choose package manager:", pmOptions);
 
-		const defaults = {
-			postgresql: `postgres://postgres:password@localhost:5432/${projectName}`,
-			mongodb: `mongodb://localhost:27017/${projectName}`,
-			mysql: `mysql://root:password@localhost:3306/${projectName}`,
-		} as const;
+  // DATABASE
+  const dbProvider = await promptSelect<
+    "none" | "postgresql" | "mongodb" | "mysql"
+  >("Select a database:", [
+    { value: "none", label: "None" },
+    { value: "postgresql", label: "PostgreSQL" },
+    { value: "mongodb", label: "MongoDB" },
+    { value: "mysql", label: "MySQL" },
+  ]);
 
-		const connectionString = (await promptText(
-			"Enter the database connection string:",
-			defaults[provider],
-			defaults[provider],
-		)) as string;
+  let db: ProjectConfig["db"] = {
+    enable: dbProvider !== "none",
+    provider: undefined,
+    connectionString: undefined,
+    name: undefined,
+    orm: undefined,
+  };
 
-		const name = (await promptText(
-			"Enter the database name:",
-			"my_database",
-			"my_database",
-		)) as string;
+  if (dbProvider !== "none") {
+    const defaults = {
+      postgresql: `postgres://postgres:password@localhost:5432/${normalizedProjectName}`,
+      mongodb: `mongodb://localhost:27017/${normalizedProjectName}`,
+      mysql: `mysql://root:password@localhost:3306/${normalizedProjectName}`,
+    } as const;
 
-		let orm: "mongoose" | "prisma" | "drizzle" | "sequelize";
+    const connectionString = await promptText(
+      "Enter the database connection string:",
+      defaults[dbProvider],
+      defaults[dbProvider]
+    );
 
-		if (provider === "mongodb") {
-			orm = "mongoose";
-		} else {
-			const options =
-				provider === "postgresql"
-					? [
-							{ value: "drizzle", label: "Drizzle" },
-							{ value: "prisma", label: "Prisma" },
-							{ value: "sequelize", label: "Sequelize" },
-						]
-					: [
-							{ value: "prisma", label: "Prisma" },
-							{ value: "sequelize", label: "Sequelize" },
-						];
+    const name = await promptText(
+      "Enter the database name:",
+      "my_database",
+      normalizedProjectName
+    );
 
-			orm = (await promptSelect<(typeof options)[number]["value"]>(
-				"Select ORM:",
-				options,
-			)) as typeof orm;
-		}
+    let orm: "mongoose" | "prisma" | "drizzle" | "sequelize";
 
-		db = {
-			enable: true,
-			provider,
-			connectionString,
-			name,
-			orm,
-		} as TProjectConfig["db"];
-	}
+    if (dbProvider === "mongodb") {
+      orm = "mongoose";
+    } else {
+      orm = await promptSelect<"drizzle" | "prisma" | "sequelize">(
+        "Select ORM:",
+        [
+          ...(dbProvider === "postgresql"
+            ? [{ value: "drizzle", label: "Drizzle" } as const]
+            : []),
+          { value: "prisma", label: "Prisma" },
+          { value: "sequelize", label: "Sequelize" },
+        ]
+      );
+    }
 
-	const authEnable = dbEnable
-		? ((await promptConfirm(
-				"Do you want to use pre-built auth?",
-				true,
-			)) as boolean)
-		: false;
+    db = {
+      enable: true,
+      provider: dbProvider,
+      connectionString,
+      name,
+      orm,
+    };
+  }
 
-	const smtpEnable = authEnable
-		? true
-		: ((await promptConfirm(
-				"Do you want to use SMTP service?",
-				true,
-			)) as boolean);
+  // AUTH
+  const authEnable =
+    db.enable &&
+    (await promptSelect<"yes" | "no">("Use pre-built auth?", [
+      { value: "yes", label: "Yes" },
+      { value: "no", label: "No" },
+    ])) === "yes";
 
-	const smtpService = smtpEnable
-		? await promptSelect<"nodemailer" | "resend">("Select an SMTP service:", [
-				{ value: "nodemailer", label: "Nodemailer" },
-				{ value: "resend", label: "Resend" },
-			])
-		: undefined;
+  // SMTP
+  const smtpService = await promptSelect<"none" | "resend" | "gmail">(
+    "Select SMTP service:",
+    [
+      ...(authEnable ? [] : [{ value: "none", label: "None" } as const]),
+      { value: "resend", label: "Resend", hint: "Built-in templates support" },
+      { value: "gmail", label: "Gmail", hint: "Nodemailer SMTP" },
+    ]
+  );
 
-	const cacheEnable = authEnable
-		? true
-		: ((await promptConfirm("Do you want to use caching?", true)) as boolean);
+  // CACHE
+  const cacheEnable = true;
+  let cacheService: "multi" | "nodecache" | undefined;
 
-	const cacheService = cacheEnable
-		? ((await promptSelect<"multi" | "nodecache">("Select a cache:", [
-				{
-					value: "multi",
-					label: "Multi Level Cache (Node Cache + Redis)",
-					hint: "Node Cache as L1 and Redis as L2",
-				},
-				{ value: "nodecache", label: "Node Cache" },
-			])) as "multi" | "nodecache")
-		: undefined;
+  if (authEnable) {
+    cacheService = "multi"; // forced
+  } else {
+    const cacheChoice = await promptSelect<"none" | "nodecache" | "multi">(
+      "Select a cache:",
+      [
+        { value: "none", label: "None" },
+        { value: "nodecache", label: "Node Cache" },
+        {
+          value: "multi",
+          label: "Multi Level (NodeCache + Redis)",
+        },
+      ]
+    );
 
-	const socket = (await promptConfirm(
-		"Do you want to use Socket.io?",
-	)) as boolean;
-	const git = (await promptConfirm(
-		"Do you want to initialize git repo with husky?",
-		true,
-	)) as boolean;
+    cacheService = cacheChoice !== "none" ? cacheChoice : undefined;
+  }
 
-	const rawConfig: TProjectConfig = {
-		name: projectName as string,
-		language: language as "js" | "ts",
-		runtime,
-		packageManager,
-		db: db as TProjectConfig["db"],
-		auth: { enable: authEnable } as TProjectConfig["auth"],
-		cache: {
-			enable: cacheEnable,
-			service: cacheService,
-		} as TProjectConfig["cache"],
-		socket: socket as boolean,
-		git: git as boolean,
-		smtp: {
-			enable: smtpEnable,
-			service: smtpService,
-		},
-	} as TProjectConfig;
+  // SOCKET & GIT
+  const socket = await promptConfirm("Use Socket.io?");
+  const git = await promptConfirm("Initialize git repo with husky?", true);
 
-	const result = ProjectConfigSchema.safeParse(rawConfig);
-	if (!result.success) {
-		consola.error("❌ Invalid configuration:");
-		for (const issue of result.error.issues) {
-			consola.error(`→ ${issue.path.join(".")}: ${issue.message}`);
-		}
-		process.exit(1);
-	}
+  // BUILD CONFIG
+  const rawConfig: ProjectConfig = {
+    name: projectName,
+    runtime,
+    packageManager,
+    db,
+    auth: { enable: authEnable },
+    cache: {
+      enable: cacheEnable,
+      service: cacheService,
+    },
+    socket,
+    git,
+    smtp: {
+      enable: smtpService !== "none",
+      service: smtpService === "none" ? undefined : smtpService,
+    },
+  };
 
-	return result.data;
+  const result = ProjectConfigSchema.safeParse(rawConfig);
+  if (!result.success) {
+    consola.error("❌ Invalid configuration:");
+    for (const issue of result.error.issues) {
+      consola.error(`→ ${issue.path.join(".")}: ${issue.message}`);
+    }
+    process.exit(1);
+  }
+
+  return result.data;
+}
+
+export async function selectOrAutoPick<T>(
+  message: string,
+  options: { value: string; label: string }[]
+): Promise<T> {
+  if (options.length === 0) {
+    throw new Error("No options available");
+  }
+  if (options.length === 1) {
+    return options[0].value as T;
+  }
+  return promptSelect(message, options) as Promise<T>;
 }

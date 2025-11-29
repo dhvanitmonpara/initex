@@ -1,0 +1,19 @@
+import { Sequelize } from "sequelize";
+import { env } from "@/config/env";
+
+const connectionString = env.DATABASE_URL;
+
+export const sequelize = new Sequelize(connectionString, {
+  dialect: "{{sequelizeDialect}}",
+  logging: false,
+});
+
+export const connectDB = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connected.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    process.exit(1);
+  }
+};

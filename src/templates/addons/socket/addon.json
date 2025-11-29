@@ -1,0 +1,7 @@
+{
+  "name": "socket",
+  "label": "Socket.io",
+  "description": "Socket.io setup",
+  "destination": "src/infra/services",
+  "dependencies": ["socket.io"]
+}

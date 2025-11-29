@@ -1,0 +1,27 @@
+import { sequelize } from ".";
+import type { Transaction } from "sequelize";
+
+export async function runTransaction<T>(
+  callback: (tx: Transaction) => Promise<T>,
+  tx?: Transaction
+): Promise<T> {
+  const hasParent = !!tx;
+  const activeTx = tx ?? await sequelize.transaction();
+
+  try {
+    const result = await callback(activeTx);
+
+    // Only commit if we created the transaction
+    if (!hasParent) {
+      await activeTx.commit();
+    }
+
+    return result;
+  } catch (err) {
+    // Only rollback if we created the transaction
+    if (!hasParent) {
+      await activeTx.rollback();
+    }
+    throw err;
+  }
+}

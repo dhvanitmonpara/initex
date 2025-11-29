@@ -1,0 +1,18 @@
+import { MailtrapProvider } from "./providers/mailtrap.provider";
+{{#if useGmail}}import { GmailProvider } from "./providers/gmail.provider";{{/if}}
+{{#if useResend}}import { ResendProvider } from "./providers/resend.provider";{{/if}}
+import { EmailProvider } from "./mail.interface";
+import { env } from "@/config/env";
+
+export const createEmailProvider = (): EmailProvider => {
+  switch (env.MAIL_PROVIDER) {
+    case "mailtrap":
+      return new MailtrapProvider();
+
+    {{#if useResend}}case "resend":
+      return new ResendProvider();{{/if}}
+
+    {{#if useGmail}}case "gmail":
+      return new GmailProvider();{{/if}}
+  }
+};
