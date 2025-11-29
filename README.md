@@ -8,13 +8,19 @@ Initex lets you scaffold a fully structured Express backend in minutes — with 
 
 ## 🔥 Features
 
-- **Interactive Setup** – Answer a few prompts and generate a full project.
-- **Database Support** – MongoDB, MySQL, PostgreSQL, and ORM options.
-- **Socket.io Integration** – Add real-time features instantly.
-- **TS or JS** – Choose between TypeScript and JavaScript.
-- **Clean Folder Structure** – Auto-generated `routes/`, `controllers/`, `models/`, etc.
-- **Presets** – Reuse your config for future projects.
-- **Generate Preset JSON** – Export your interactive answers automatically.
+🔥 Features
+
+- Runtime-aware — Supports Node, Bun, and Deno.
+- Package managers support — npm / pnpm / bun / deno.
+- Database integration — PostgreSQL, MongoDB, MySQL + Prisma / Drizzle / Sequelize / Mongoose.
+- Auth templates — Optional production-ready prebuilt authentication flow.
+- SMTP support — Gmail, Resend, etc.
+- Caching system — NodeCache or Multi-level (Redis included).
+- Socket.io — One-click enablement.
+- Git setup — Initialize repo with husky hooks.
+- Presets — Store your answers as reusable config JSON.
+- Docker compose support — Default Docker Compose file for all DBs and Cache services.
+- Scalable architecture — Folder-based Modular Structure.
 
 ---
 
@@ -52,8 +58,8 @@ initex myapp
 
 ## ⚙️ CLI Arguments
 
-|Flag|Type|Description|
-|---|---|---|
+| Flag                 | Type    | Description                                                     |
+| -------------------- | ------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `-n, --name`         | string  | Project name (optional). Can also be positional.                |
 | `-p, --preset`       | boolean | string                                                          | Use preset mode. Path optional. If missing → presetPath = null.    |
 | `-g, --generateJson` | boolean | string                                                          | Generate preset JSON. Path optional; defaults to a `.initex` file. |
