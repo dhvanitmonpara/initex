@@ -5,5 +5,5 @@ export interface EmailProvider {
     subject: string;
     html: string;
     text?: string;
-  }): Promise<{ id?: string; error?: any }>;
+  }): Promise<{ id?: string; error?: unknown }>;
 }

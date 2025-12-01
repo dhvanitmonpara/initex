@@ -1,7 +1,7 @@
 import type { Application } from "express";
 import { ApiResponse, asyncHandlerCb as asyncHandler } from "@/core/http";
 
-const registerHealthRoutes = (app: Application) => {
+export const registerHealthRoutes = (app: Application) => {
   app.get(
     "/healthz",
     asyncHandler(async () =>

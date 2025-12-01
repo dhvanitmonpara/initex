@@ -1,7 +1,7 @@
 import NodeCache from "node-cache";
 import { CacheProvider } from "../cache.interface";
 
-export class NodeCacheProvider  implements CacheProvider  {
+export class NodeCacheProvider implements CacheProvider {
   private cache: NodeCache;
 
   constructor(ttlSeconds?: number) {
@@ -21,5 +21,17 @@ export class NodeCacheProvider  implements CacheProvider  {
 
   async del(key: string) {
     return this.cache.del(key) > 0;
+  }
+
+  async flush() {
+    this.cache.flushAll();
+  }
+
+  async keys() {
+    return this.cache.keys();
+  }
+
+  async has(key: string) {
+    return this.cache.has(key);
   }
 }

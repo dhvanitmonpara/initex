@@ -12,12 +12,12 @@ async function run() {
   if (!existingUser) {
     const passwordHash = await hashPassword(globalPassword);
 
-    await prisma.user.create({
-      data: {
-        email: userEmail,
-        password: passwordHash,
-        username: "defaultuser",
-      },
+    await UserModel.create({
+      email: userEmail,
+      password: passwordHash,
+      username: "defaultuser",
+      authType:"manual",
+      roles: ["superadmin"],
     });
 
     console.log("Seeded USER:", userEmail, "password:", globalPassword);

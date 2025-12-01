@@ -119,7 +119,7 @@ export const create = async (user: User, dbTx?: DB) => {
   {{#if useMongodb}}
   const session = getValidSession(dbTx);
   const createdUser = await UserModel.create([user], { session }).then(
-    (r) => r && r[0] ?? null
+    (r) => r?.[0] || null,
   );
   {{/if}}
   {{#if useDrizzle}}
@@ -128,7 +128,7 @@ export const create = async (user: User, dbTx?: DB) => {
     .insert(UserTable)
     .values(user)
     .returning()
-    .then(r => r?.[0] ?? null);
+    .then((r) => r?.[0] || null);
   {{/if}}
   {{#if useSequelize}}
   const created = await UserModel.create({ ...user }, { transaction: dbTx ?? undefined });

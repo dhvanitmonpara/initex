@@ -15,29 +15,18 @@
 			"args": ["init"]
 		},
 		{
-			"cmd": "npm",
-			"args": ["install", "husky"]
-		},
-		{
-			"cmd": "npm",
-			"args": [
-				"install",
-				"@commitlint/cli",
-				"@commitlint/config-conventional",
-				"--save-dev"
-			]
-		},
-		{
 			"cmd": "npx",
 			"args": ["husky"]
 		},
 		{
 			"cmd": "chmod",
-			"args": ["+x", ".husky/commit-msg"]
+			"args": ["+x", ".husky/commit-msg"],
+			"silent": true
 		},
 		{
 			"cmd": "chmod",
-			"args": ["+x", ".husky/pre-commit"]
+			"args": ["+x", ".husky/pre-commit"],
+			"silent": true
 		}
 	]
 }

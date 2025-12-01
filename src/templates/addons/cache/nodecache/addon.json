@@ -1,8 +1,8 @@
 {
-  "name": "node-cache",
-  "label": "Node Cache",
-  "description": "Node Cache setup",
-  "destination": "src/infra/services",
-  "dependencies": ["node-cache"],
-  "devDependencies": ["@types/node-cache"]
+	"name": "node-cache",
+	"label": "Node Cache",
+	"description": "Node Cache setup",
+	"destination": "src/infra/services",
+	"dependencies": ["node-cache"],
+	"devDependencies": ["@types/node-cache"]
 }

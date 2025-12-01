@@ -1,13 +1,14 @@
-import Redis from "ioredis";
+import Redis, { RedisOptions } from "ioredis";
 import { CacheProvider } from "../cache.interface";
 
-export class RedisCacheProvider  implements CacheProvider  {
+export class RedisCacheProvider implements CacheProvider {
   private client: Redis;
 
-  constructor(url: string) {
+  constructor(url: string, options?: RedisOptions) {
     this.client = new Redis(url, {
       enableReadyCheck: true,
-      maxRetriesPerRequest: null
+      maxRetriesPerRequest: null,
+      ...options,
     });
 
     this.client.on("error", (err) => {
@@ -32,5 +33,17 @@ export class RedisCacheProvider  implements CacheProvider  {
 
   async del(key: string) {
     return (await this.client.del(key)) > 0;
+  }
+
+  async flush() {
+    await this.client.flushall();
+  }
+
+  async keys() {
+    return this.client.keys("*");
+  }
+
+  async has(key: string) {
+    return (await this.client.exists(key)) === 1;
   }
 }
