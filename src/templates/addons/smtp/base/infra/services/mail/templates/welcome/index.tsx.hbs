@@ -1,6 +1,6 @@
 import React from "react";
 import { Section, Text } from "@react-email/components";
-import BaseLayout from "./components/BaseLayout.js";
+import BaseLayout from "../components/BaseLayout.js";
 
 void React;
 

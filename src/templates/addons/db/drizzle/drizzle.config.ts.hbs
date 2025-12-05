@@ -1,13 +1,9 @@
 import { defineConfig } from 'drizzle-kit';
-{{#if ts}}
-import { env } from "./src/common/config/env"
-{{else}}
-import { env } from "./src/common/config/env.js"
-{{/if}}
+import { env } from "./src/config/env"
 
 export default defineConfig({
   out: './drizzle',
-  schema: './src/common/config/db/schema.ts',
+  schema: './src/infra/db/tables/user.table.ts',
   dialect: '{{db.provider}}',
   dbCredentials: {
     url: env.DATABASE_URL,

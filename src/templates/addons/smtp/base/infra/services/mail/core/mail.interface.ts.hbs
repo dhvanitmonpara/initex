@@ -1,3 +1,5 @@
+import { SendResult } from "../types/mail.types";
+
 export interface EmailProvider {
   send(payload: {
     from: string;
@@ -5,5 +7,6 @@ export interface EmailProvider {
     subject: string;
     html: string;
     text?: string;
-  }): Promise<{ id?: string; error?: unknown }>;
+  }): Promise<SendResult>;
+  verify?(): Promise<SendResult>;
 }

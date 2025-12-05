@@ -1,5 +1,5 @@
 import { MailtrapClient } from "mailtrap";
-import { EmailProvider } from "../mail.interface";
+import { EmailProvider } from "../core/mail.interface";
 import { env } from "@/config/env";
 
 export class MailtrapProvider implements EmailProvider {
@@ -15,9 +15,9 @@ export class MailtrapProvider implements EmailProvider {
         text,
       });
 
-      return { id: response?.message_id };
+      return { id: response?.message_ids?.[0], status: "success" as const };
     } catch (error) {
-      return { error };
+      return { status: "error" as const, error: error instanceof Error ? error.message : String(error) };
     }
   }
 }
