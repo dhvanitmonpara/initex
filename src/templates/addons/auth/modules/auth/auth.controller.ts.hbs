@@ -64,9 +64,9 @@ class AuthController {
 
   @AsyncHandler()
   async sendOtp(req: Request, _res: Response) {
-    const { email } = req.body;
+    const { email, username } = req.body;
 
-    const { messageId } = await authService.sendOtpService(email);
+    const { messageId } = await authService.sendOtpService(email, username);
 
     return ApiResponse.ok(
       {

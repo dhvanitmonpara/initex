@@ -110,6 +110,7 @@ class AuthService {
             password: encryptedPassword,
             username,
             authType: "manual",
+            roles: ["user"],
           },
           tx
         );
@@ -226,8 +227,8 @@ class AuthService {
     return { accessToken, refreshToken };
   };
 
-  sendOtpService = async (email: string) => {
-    return otpService.sendOtp(email);
+  sendOtpService = async (email: string, username: string) => {
+    return otpService.sendOtp(email, username);
   };
 
   verifyOtpService = async (email: string, otp: string): Promise<boolean> => {

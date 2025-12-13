@@ -21,5 +21,5 @@ export interface MailTemplate {
 }
 
 export type SendResult =
-  | { status: "success"; id: string }
+  | { status: "success"; id: string, details?: Record<string, string> }
   | { status: "error"; error: string };

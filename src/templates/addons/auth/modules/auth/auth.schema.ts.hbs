@@ -14,4 +14,5 @@ export const verifyOtpSchema = z.object({
 
 export const otpSchema = z.object({
   email: EmailSchema,
+  username: z.string("Username is required"),
 });

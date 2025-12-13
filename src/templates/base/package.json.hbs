@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/server.js",
   "type": "module",
+  "private": true,
   "scripts": {
     "build": {{#if isBunRuntime}}"bun run build.ts"{{else}}"tsup"{{/if}},
     "start": "{{runtimeCommand}} dist/server.js",
