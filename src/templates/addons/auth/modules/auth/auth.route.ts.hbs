@@ -1,7 +1,6 @@
 import { Router } from "express";
 import AuthController from "@/modules/auth/auth.controller";
-import { verifyUserJWT, validate } from "@/core/middlewares";
-import * as authSchemas from "@/modules/auth/auth.schema";
+import { verifyUserJWT } from "@/core/middlewares";
 
 const router = Router();
 
@@ -51,11 +50,7 @@ const router = Router();
  *                 value:
  *                   message: Password incorrect
  */
-router.post(
-  "/login",
-  validate(authSchemas.loginSchema),
-  AuthController.loginUser
-);
+router.post("/login", AuthController.loginUser);
 
 /**
  * @openapi
@@ -95,11 +90,7 @@ router.post("/refresh", AuthController.refreshAccessToken);
  *       400:
  *         description: Invalid input
  */
-router.post(
-  "/otp/send",
-  validate(authSchemas.otpSchema),
-  AuthController.sendOtp
-);
+router.post("/otp/send", AuthController.sendOtp);
 
 /**
  * @openapi
@@ -119,11 +110,7 @@ router.post(
  *       400:
  *         description: Invalid input
  */
-router.post(
-  "/otp/verify",
-  validate(authSchemas.verifyOtpSchema),
-  AuthController.verifyOtp
-);
+router.post("/otp/verify", AuthController.verifyOtp);
 
 // Protected routes
 router.use(verifyUserJWT);

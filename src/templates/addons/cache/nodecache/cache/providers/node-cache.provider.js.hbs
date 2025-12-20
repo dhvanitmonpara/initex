@@ -1,25 +1,37 @@
 import NodeCache from "node-cache";
-{{#if ts}}import { CacheProvider } from "../cache.interface";{{/if}}
+import { CacheProvider } from "../cache.interface";
 
-export class NodeCacheProvider {{#if ts}} implements CacheProvider {{/if}} {
-  private cache{{#if ts}}: NodeCache{{/if}};
+export class NodeCacheProvider implements CacheProvider {
+  private cache: NodeCache;
 
-  constructor(ttlSeconds{{#if ts}}?: number{{/if}}) {
+  constructor(ttlSeconds?: number) {
     this.cache = new NodeCache({
       stdTTL: ttlSeconds,
       checkperiod: ttlSeconds ? ttlSeconds * 0.2 : 60,
     });
   }
 
-  async get{{#if ts}}<T>(key: string){{else}}(key){{/if}} {
+  async get<T>(key: string) {
     return this.cache.get<T>(key) ?? null;
   }
 
-  async set{{#if ts}}<T>(key: string, value: T, ttl?: number){{else}}(key, value, ttl){{/if}} {
+  async set<T>(key: string, value: T, ttl?: number) {
     return this.cache.set(key, value, ttl);
   }
 
-  async del{{#if ts}}(key: string){{else}}(key){{/if}} {
-    return this.cache.del(key) > 0;
+  async del(...keys: string[]) {
+    return this.cache.del(keys) > 0;
+  }
+
+  async flush() {
+    this.cache.flushAll();
+  }
+
+  async keys() {
+    return this.cache.keys();
+  }
+
+  async has(key: string) {
+    return this.cache.has(key);
   }
 }

@@ -1,94 +1,82 @@
-import { AsyncHandler, ApiResponse, ApiError } from "@/core/http";
+import { UseController, HttpError, HttpResponse } from "@/core/http";
 import { Request, Response } from "express";
-import authService from "./auth.service";
+import AuthService from "./auth.service";
 import { AuthenticatedRequest } from "@/core/middlewares";
+import * as authSchemas from "@/modules/auth/auth.schema";
+import { withBodyValidation } from "@/lib/validation";
+import { toInternalUser } from "../user/user.dto";
 
 class AuthController {
-  @AsyncHandler()
-  async loginUser(req: Request, res: Response) {
+  static loginUser = withBodyValidation(authSchemas.loginSchema, this.loginUserHandler)
+
+  @UseController()
+  static async loginUserHandler(req: Request, res: Response) {
     const { email, password } = req.body;
 
     const { user, accessToken, refreshToken } =
-      await authService.loginAuthService(email, password, req);
+      await AuthService.loginAuthService(email, password, req);
 
-    authService.setAuthCookies(res, accessToken, refreshToken);
+    AuthService.setAuthCookies(res, accessToken, refreshToken);
 
-    return ApiResponse.ok(
-      {
-        ...user,
-        password: null,
-        refreshToken: null,
-      },
-      "User logged in successfully!"
+    return HttpResponse.ok(
+      "User logged in successfully!",
+      toInternalUser(user),
     );
   }
 
-  @AsyncHandler()
-  async logoutUser(req: AuthenticatedRequest, res: Response) {
-    if (!req.user?.id)
-      throw new ApiError({
-        statusCode: 404,
-        message: "User doesn't exists",
-        data: { service: "authService.logoutAuthService" },
-      });
+  @UseController()
+  static async logoutUser(req: AuthenticatedRequest, res: Response) {
 
-    await authService.logoutAuthService(req.user.id);
+    await AuthService.logoutAuthService(req.user.id);
 
-    authService.clearAuthCookies(res);
+    AuthService.clearAuthCookies(res);
 
-    return ApiResponse.ok({ success: true }, "User logged out successfully");
+    return HttpResponse.ok("User logged out successfully")
   }
 
-  @AsyncHandler()
-  async refreshAccessToken(req: AuthenticatedRequest, res: Response) {
+  @UseController()
+  static async refreshAccessToken(req: AuthenticatedRequest, res: Response) {
     const incomingRefreshToken =
       req.cookies.refreshToken || req.body.refreshToken;
 
     if (!incomingRefreshToken)
-      throw new ApiError({
-        statusCode: 401,
-        message: "Unauthorized request",
-        data: { service: "authService.refreshAccessTokenService" },
-      });
+      throw HttpError.unauthorized("Unauthorized request", "AUTH_TOKEN_MISSING", { service: "authService.refreshAccessTokenService", });
 
     const { accessToken, refreshToken } =
-      await authService.refreshAccessTokenService(incomingRefreshToken, req);
+      await AuthService.refreshAccessTokenService(incomingRefreshToken, req);
 
-    authService.setAuthCookies(res, accessToken, refreshToken);
+    AuthService.setAuthCookies(res, accessToken, refreshToken);
 
-    return ApiResponse.ok(
-      { success: true },
-      "Access token refreshed successfully"
-    );
+    return HttpResponse.ok("Access token refreshed successfully");
   }
 
-  @AsyncHandler()
-  async sendOtp(req: Request, _res: Response) {
+  static sendOtp = withBodyValidation(authSchemas.otpSchema, this.sendOtpHandler)
+
+  @UseController()
+  static async sendOtpHandler(req: Request) {
     const { email, username } = req.body;
 
-    const { messageId } = await authService.sendOtpService(email, username);
+    const { messageId } = await AuthService.sendOtpService(email, username);
 
-    return ApiResponse.ok(
-      {
-        messageId,
-      },
-      "OTP sent successfully"
+    return HttpResponse.ok(
+      "OTP sent successfully",
+      { messageId },
     );
   }
 
-  @AsyncHandler()
-  async verifyOtp(req: Request, _res: Response) {
+  static verifyOtp = withBodyValidation(authSchemas.verifyOtpSchema, this.verifyOtpHandler)
+
+  @UseController()
+  static async verifyOtpHandler(req: Request) {
     const { email, otp } = req.body;
 
-    const isVerified = await authService.verifyOtpService(email, otp);
+    const isVerified = await AuthService.verifyOtpService(email, otp);
 
-    return ApiResponse.ok(
-      {
-        isVerified,
-      },
-      isVerified ? "OTP verified successfully" : "Invalid OTP"
+    return HttpResponse.ok(
+      isVerified ? "OTP verified successfully" : "Invalid OTP",
+      { isVerified },
     );
   }
 }
 
-export default new AuthController();
+export default AuthController;

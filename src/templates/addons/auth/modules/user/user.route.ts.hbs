@@ -1,7 +1,6 @@
 import { Router } from "express";
 import UserController from "@/modules/user/user.controller";
-import { verifyUserJWT, validate } from "@/core/middlewares";
-import * as authSchemas from "@/modules/user/user.schema";
+import { verifyUserJWT } from "@/core/middlewares";
 
 const router = Router();
 
@@ -34,11 +33,7 @@ const router = Router();
  *       404:
  *         description: User doesn't exists
  */
-router.post(
-  "/register",
-  validate(authSchemas.registrationSchema),
-  UserController.registerUser
-);
+router.post("/register", UserController.registerUser);
 
 /**
  * @openapi
@@ -58,11 +53,7 @@ router.post(
  *       400:
  *         description: Invalid input
  */
-router.post(
-  "/initialize",
-  validate(authSchemas.initializeUserSchema),
-  UserController.initializeUser
-);
+router.post("/initialize", UserController.initializeUser);
 
 /**
  * @openapi
@@ -95,11 +86,7 @@ router.post(
  *                value:
  *                  message: Token is invalid or has expired
  */
-router.post(
-  "/auth/finalize",
-  validate(authSchemas.tempTokenSchema),
-  UserController.handleTempToken
-);
+router.post("/auth/finalize", UserController.handleTempToken);
 
 /**
  * @openapi
@@ -120,11 +107,7 @@ router.post(
  *       400:
  *         description: Invalid input
  */
-router.get(
-  "/google/callback",
-  validate(authSchemas.googleCallbackSchema, "query"),
-  UserController.googleCallback
-);
+router.get("/google/callback", UserController.googleCallback);
 
 /**
  * @openapi
@@ -144,38 +127,10 @@ router.get(
  *       400:
  *         description: Invalid input
  */
-router.post(
-  "/oauth",
-  validate(authSchemas.userOAuthSchema),
-  UserController.handleUserOAuth
-);
+router.post("/oauth", UserController.handleUserOAuth);
 
 // Protected routes
 router.use(verifyUserJWT);
-
-/**
- * @openapi
- * /api/v1/auth/oauth:
- *   post:
- *     summary: Handle user OAuth
- *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/userOAuthSchema'
- *     responses:
- *       200:
- *         description: User OAuth handled successfully
- *       400:
- *         description: Invalid input
- */
-router.post(
-  "/oauth",
-  validate(authSchemas.userOAuthSchema),
-  UserController.handleUserOAuth
-);
 
 /**
  * @openapi
@@ -218,11 +173,7 @@ router.get("/me", UserController.getUserData);
  *       404:
  *         description: User doesn't exists
  */
-router.get(
-  "/id/:userId",
-  validate(authSchemas.userIdSchema, "params"),
-  UserController.getUserById
-);
+router.get("/id/:userId", UserController.getUserById);
 
 /**
  * @openapi
@@ -243,10 +194,6 @@ router.get(
  *       400:
  *         description: Query is required
  */
-router.get(
-  "/search/:query",
-  validate(authSchemas.searchQuerySchema, "params"),
-  UserController.searchUsers
-);
+router.get("/search/:query", UserController.searchUsers);
 
 export default router;

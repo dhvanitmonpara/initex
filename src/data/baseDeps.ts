@@ -9,6 +9,7 @@ const baseDevDeps = [
 	"@types/swagger-jsdoc",
 	"@types/swagger-ui-express",
 	"@types/multer",
+	"esbuild-plugin-alias",
 ];
 const baseDeps = [
 	"cookie-parser",

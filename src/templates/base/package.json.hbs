@@ -10,9 +10,10 @@
     "start": "{{runtimeCommand}} dist/server.js",
     "dev": "{{#if isBunRuntime}}bun --watch{{else}}tsx{{/if}} src/server.ts",
     "seed": "{{#if isBunRuntime}}bun{{else}}tsx{{/if}} scripts/seed.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
 {{#if git}}    "prepare": "{{runtimeExecCommand}} husky",{{/if}}
-{{#if noGit}}    "predev": "{{runtimeCommand}} run lint-format",{{/if}}
-    "prebuild": "{{runtimeCommand}} run lint-format && {{#if usePrisma}}{{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}}{{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}}{{runtimeCommand}} run db:migrate{{/if}}",
+{{#if noGit}}    "predev": "{{runtimeCommand}} run lint:fix",{{/if}}
+    "prebuild": "{{runtimeCommand}} run lint:fix && {{#if usePrisma}}{{runtimeCommand}} run db:sync{{/if}}{{#if useSequelize}}{{runtimeCommand}} run db:migrate{{/if}}{{#if useDrizzle}}{{runtimeCommand}} run db:migrate{{/if}}",
 {{#if db.enable}}
     "db:up": "docker compose -f infra/docker-compose.yml up -d",
     "db:down": "docker compose -f infra/docker-compose.yml down",
@@ -21,7 +22,7 @@
 {{#if useDrizzle}}    "db:migrate": "{{runtimeExecCommand}} drizzle-kit migrate",{{/if}}
 {{/if}}
     "lint": "{{runtimeExecCommand}} biome check",
-    "lint-format": "{{runtimeExecCommand}} biome check --write"
+    "lint:fix": "{{runtimeExecCommand}} biome check --write"
   },
 {{#if git}}
   "lint-staged": {

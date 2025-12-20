@@ -1,6 +1,7 @@
 import { User } from "@/shared/types/User";
 
-export const toUserSafe = (user: User) => ({
+// what the client is allowed to see
+export const toPublicUser = (user: User) => ({
   id: user.id,
   username: user.username,
   email: user.email,
@@ -9,4 +10,11 @@ export const toUserSafe = (user: User) => ({
   updatedAt: user.updatedAt,
 });
 
-export type UserSafe = ReturnType<typeof toUserSafe>;
+// what internal services / server can see
+export const toInternalUser = (user: User) => ({
+  ...toPublicUser(user),
+  authType: user.authType,
+});
+
+export type PublicUser = ReturnType<typeof toPublicUser>;
+export type InternalUser = ReturnType<typeof toInternalUser>;

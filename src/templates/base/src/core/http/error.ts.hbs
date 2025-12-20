@@ -1,0 +1,111 @@
+class HttpError extends Error {
+  statusCode: number;
+  code: string;
+  success: false;
+  errors?: Record<string, unknown>[];
+  meta?: unknown;
+  isOperational: boolean;
+
+  constructor({
+    statusCode = 500,
+    message = "Something went wrong",
+    code = "GENERIC_ERROR",
+    errors,
+    meta,
+  }: {
+    statusCode?: number;
+    message?: string;
+    code?: string;
+    errors?: Record<string, unknown>[];
+    meta?: unknown;
+  }) {
+    super(message);
+    Object.setPrototypeOf(this, new.target.prototype);
+
+    this.statusCode = statusCode;
+    this.code = code;
+    this.success = false;
+    this.errors = errors;
+    this.meta = meta;
+    this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+
+  // TYPE CHECKER
+
+  static isHttpError(err: unknown): err is HttpError {
+    return err instanceof HttpError;
+  }
+
+  // FACTORIES
+
+  static badRequest(
+    message = "Bad request",
+    meta?: unknown,
+    code = "BAD_REQUEST",
+    errors?: Record<string, unknown>[]
+  ) {
+    return new HttpError({
+      statusCode: 400,
+      code,
+      message,
+      meta,
+      errors,
+    });
+  }
+
+  static unauthorized(
+    message = "Unauthorized",
+    meta?: unknown,
+    code = "UNAUTHORIZED",
+  ) {
+    return new HttpError({
+      statusCode: 401,
+      code,
+      message,
+      meta,
+    });
+  }
+
+  static forbidden(
+    message = "Forbidden",
+    meta?: unknown,
+    code = "FORBIDDEN",
+  ) {
+    return new HttpError({
+      statusCode: 403,
+      code,
+      message,
+      meta,
+    });
+  }
+
+  static notFound(
+    message = "Resource not found",
+    meta?: unknown,
+    code = "NOT_FOUND",
+  ) {
+    return new HttpError({
+      statusCode: 404,
+      code,
+      message,
+      meta,
+    });
+  }
+
+  static internal(
+    message = "Internal server error",
+    meta?: unknown,
+    code = "INTERNAL_ERROR",
+  ) {
+    return new HttpError({
+      statusCode: 500,
+      code,
+      message,
+      meta,
+    });
+  }
+}
+
+export default HttpError;
