@@ -1,7 +1,7 @@
 {
 	"name": "node",
 	"label": "Node",
-	"description": "Node + Tsup setup",
+	"description": "Node + esbuild setup",
 	"destination": ".",
-	"dependencies": ["tsup", "tsx"]
+	"dependencies": ["esbuild", "tsx"]
 }

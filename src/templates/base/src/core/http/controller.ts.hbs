@@ -1,9 +1,9 @@
 import type { RequestHandler } from "express";
-import ApiError from "./error";
-import { HttpController } from "./types";
+import { HttpController, HttpMiddleware } from "./types";
 import HttpResponse from "./response";
+import HttpError from "./error";
 
-function executeController(fn: HttpController): RequestHandler {
+export function controllerHandler(fn: HttpController): RequestHandler {
   return async (req, res, next) => {
     try {
       const result = await fn(req, res, next);
@@ -19,9 +19,15 @@ function executeController(fn: HttpController): RequestHandler {
   };
 }
 
-export const controllerHandler = (
-  fn: HttpController
-): RequestHandler => executeController(fn);
+export function middlewareHandler(fn: HttpMiddleware): RequestHandler {
+  return async (req, res, next) => {
+    try {
+      await fn(req, res, next);
+    } catch (err) {
+      next(err);
+    }
+  };
+}
 
 export function UseController() {
   return (
@@ -31,12 +37,14 @@ export function UseController() {
   ) => {
     const original = descriptor.value as HttpController;
 
-    descriptor.value = executeController(async (req, res, next) => {
+    descriptor.value = controllerHandler(async (req, res, next) => {
       if ("user" in req && req.user === undefined) {
-        throw ApiError.unauthorized(
+        throw HttpError.unauthorized(
           "Unauthorized request",
-          "AUTH_TOKEN_MISSING",
-          { service: propertyKey }
+          {
+            code: "AUTH_TOKEN_MISSING",
+            meta: { service: propertyKey }
+          }
         );
       }
 

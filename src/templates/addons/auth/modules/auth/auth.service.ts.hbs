@@ -60,17 +60,17 @@ class AuthService {
     const existingUser = await authRepo.findByEmail(email);
 
     if (existingUser)
-      throw HttpError.badRequest("User with this email already exists", { service: "authService.initializeAuthService" })
+      throw HttpError.badRequest("User with this email already exists", { code: "USER_ALREADY_EXISTS", meta: { service: "authService.initializeAuthService" } })
 
     const usernameTaken = await authRepo.findByUsername(username);
     if (usernameTaken)
-      throw HttpError.badRequest("Username is already taken", { service: "authService.initializeAuthService" });
+      throw HttpError.badRequest("Username is already taken", { code: "USERNAME_TAKEN", meta: { service: "authService.initializeAuthService" } });
 
     const user = { email: email.toLowerCase(), username, password };
 
     const cacheSuccess = await cache.set(`pending:${email}`, user, 300);
     if (!cacheSuccess)
-      throw HttpError.internal("Failed to set user in cache", "CACHE_ERROR", { service: "authService.initializeAuthService" })
+      throw HttpError.internal("Failed to set user in cache", { code: "CACHE_ERROR", meta: { service: "authService.initializeAuthService" } })
 
     return email;
   };
@@ -78,7 +78,7 @@ class AuthService {
   static registerAuthService = async (email: string, req: Request) => {
     const user = await cache.get(`pending:${email}`);
     if (!user)
-      throw HttpError.notFound("User doesn't exists", "USER_NOT_FOUND", { service: "authService.registerAuthService" })
+      throw HttpError.notFound("User doesn't exists", { code: "USER_NOT_FOUND", meta: { service: "authService.registerAuthService" } })
 
     const { password, username } = user as {
       password: string;
@@ -109,7 +109,7 @@ class AuthService {
           );
 
         if (!accessToken || !refreshToken)
-          throw HttpError.internal("Failed to generate access and refresh token", "TOKEN_GENERATION_ERROR", { service: "authService.registerAuthService" });
+          throw HttpError.internal("Failed to generate access and refresh token", { code: "TOKEN_GENERATION_ERROR", meta: { service: "authService.registerAuthService" } });
 
         await cache.del(
           `pending:${email}`,
@@ -133,13 +133,13 @@ class AuthService {
     const user = await authRepo.findByEmail(email);
 
     if (!user)
-      throw HttpError.notFound("User doesn't exists", "USER_NOT_FOUND", { service: "authService.loginAuthService" });
+      throw HttpError.notFound("User doesn't exists", { code: "USER_NOT_FOUND", meta: { service: "authService.loginAuthService" } });
     if (!user.password)
-      throw HttpError.badRequest("Password not set", { service: "authService.loginAuthService" });
+      throw HttpError.badRequest("Password not set", { code: "PASSWORD_NOT_SET", meta: { service: "authService.loginAuthService" } });
 
     const passwordValid = await verifyPassword(password, user.password);
     if (!passwordValid)
-      throw HttpError.badRequest("Invalid password", { service: "authService.loginAuthService" });
+      throw HttpError.badRequest("Invalid password", { code: "INVALID_PASSWORD", meta: { service: "authService.loginAuthService" } });
 
     const { accessToken, refreshToken } =
       await TokenService.generateAndPersistTokens(user.id, user.username, req);
@@ -150,7 +150,7 @@ class AuthService {
   static logoutAuthService = async (userId: string) => {
     const user = await authRepo.findByIdForAuth(userId);
     if (!user)
-      throw HttpError.notFound("User doesn't exists", "USER_NOT_FOUND", { service: "authService.logoutAuthService" });
+      throw HttpError.notFound("User doesn't exists", { code: "USER_NOT_FOUND", meta: { service: "authService.logoutAuthService" } });
 
     await authRepo.updateRefreshToken(user.id, "");
 
@@ -162,22 +162,22 @@ class AuthService {
     req: Request
   ) => {
     if (!incomingRefreshToken)
-      throw HttpError.unauthorized("Unauthorized request", "AUTH_TOKEN_MISSING", { service: "authService.refreshAccessTokenService" });
+      throw HttpError.unauthorized("Unauthorized request", { code: "AUTH_TOKEN_MISSING", meta: { service: "authService.refreshAccessTokenService" } });
 
     const decodedToken = jwt.verify(
       incomingRefreshToken,
       env.REFRESH_TOKEN_SECRET
     );
     if (!decodedToken || typeof decodedToken === "string")
-      throw HttpError.unauthorized("Invalid Access Token", "AUTH_TOKEN_INVALID", { service: "authService.refreshAccessTokenService" });
+      throw HttpError.unauthorized("Invalid Access Token", { code: "AUTH_TOKEN_INVALID", meta: { service: "authService.refreshAccessTokenService" } });
 
     const user = await authRepo.findByIdForAuth(decodedToken.id);
 
     if (!user || !user.refreshToken)
-      throw HttpError.unauthorized("Invalid Refresh Token", "AUTH_TOKEN_INVALID", { service: "authService.refreshAccessTokenService" });
+      throw HttpError.unauthorized("Invalid Refresh Token", { code: "AUTH_TOKEN_INVALID", meta: { service: "authService.refreshAccessTokenService" } });
 
     if (!user.refreshToken.includes(incomingRefreshToken))
-      throw HttpError.unauthorized("Refresh token is invalid or not recognized", "AUTH_TOKEN_INVALID", { service: "authService.refreshAccessTokenService" });
+      throw HttpError.unauthorized("Refresh token is invalid or not recognized", { code: "AUTH_TOKEN_INVALID", meta: { service: "authService.refreshAccessTokenService" } });
 
     const { accessToken, refreshToken } =
       await TokenService.generateAndPersistTokens(user.id, user.username, req);

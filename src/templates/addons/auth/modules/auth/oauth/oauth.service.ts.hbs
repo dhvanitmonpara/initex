@@ -76,7 +76,7 @@ class OAuthService {
     });
 
     if (!createdUser)
-      throw HttpError.internal("Failed to create user", "USER_CREATION_FAILED", { service: "authService.handleUserOAuth" });
+      throw HttpError.internal("Failed to create user", { code: "USER_CREATION_FAILED", meta: { service: "authService.handleUserOAuth" } });
 
     const { accessToken, refreshToken } =
       await tokenService.generateAndPersistTokens(
@@ -86,7 +86,7 @@ class OAuthService {
       );
 
     if (!accessToken || !refreshToken) {
-      throw HttpError.internal("Failed to generate access and refresh token", "TOKEN_GENERATION_FAILED", { service: "authService.handleUserOAuth" });
+      throw HttpError.internal("Failed to generate access and refresh token", { code: "TOKEN_GENERATION_FAILED", meta: { service: "authService.handleUserOAuth" } });
     }
 
     return {

@@ -34,12 +34,15 @@ class ErrorMiddlewares {
         : fallbackMessage;
 
     HttpResponse.error(
-      error.statusCode,
-      message,
-      error.code,
-      error.errors,
-      isDev ? error.stack : undefined,
-      error.meta as Record<string, unknown> | undefined
+      {
+        message,
+        statusCode: error.statusCode,
+        errors: error.errors,
+        code: error.code,
+        meta: isDev
+          ? { ...error.meta, stack: (error as Error).stack }
+          : error.meta as Record<string, unknown> | undefined,
+      }
     ).send(res);
   };
 
@@ -58,7 +61,7 @@ class ErrorMiddlewares {
     next(
       HttpError.notFound(
         message,
-        "NOT_FOUND"
+        { code: "NOT_FOUND" }
       )
     );
   };

@@ -21,7 +21,10 @@ const verifyUserJWT = middlewareHandler(
     const hasRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (!token) {
-      throw HttpError.unauthorized("Unauthorized request", "UNAUTHORIZED_REQUEST", { service: "authMiddleware.verifyUserJWT", hasRefreshToken: Boolean(hasRefreshToken) });
+      throw HttpError.unauthorized("Unauthorized request", {
+        code: "UNAUTHORIZED_REQUEST",
+        meta: { service: "authMiddleware.verifyUserJWT", hasRefreshToken: Boolean(hasRefreshToken) }
+      });
     }
 
     const decodedToken = jwt.verify(
@@ -30,16 +33,25 @@ const verifyUserJWT = middlewareHandler(
     ) as JwtPayload;
 
     if (!decodedToken || typeof decodedToken === "string") {
-      throw HttpError.unauthorized("Invalid Access Token", "UNAUTHORIZED_REQUEST", { service: "authMiddleware.verifyUserJWT", hasRefreshToken: Boolean(hasRefreshToken) });
+      throw HttpError.unauthorized("Invalid Access Token", {
+        code: "UNAUTHORIZED_REQUEST",
+        meta: { service: "authMiddleware.verifyUserJWT", hasRefreshToken: Boolean(hasRefreshToken) }
+      });
     }
 
     const parsed = jwtPayloadSchema.parse(decodedToken);
 
     const user = await authRepo.findById(parsed.id);
 
-    if (!user) throw HttpError.unauthorized("User not found", "UNAUTHORIZED_REQUEST", { service: "authMiddleware.verifyUserJWT" });
+    if (!user) throw HttpError.unauthorized("User not found", {
+      code: "UNAUTHORIZED_REQUEST",
+      meta: { service: "authMiddleware.verifyUserJWT" }
+    });
 
-    if (!user.refreshToken) throw HttpError.unauthorized("Refresh token session is not valid", "UNAUTHORIZED_REQUEST", { service: "authMiddleware.verifyUserJWT" });
+    if (!user.refreshToken) throw HttpError.unauthorized("Refresh token session is not valid", {
+      code: "UNAUTHORIZED_REQUEST",
+      meta: { service: "authMiddleware.verifyUserJWT" }
+    });
 
     req.user = toInternalUser(user);
     next();

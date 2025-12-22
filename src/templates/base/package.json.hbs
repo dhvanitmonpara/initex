@@ -6,7 +6,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": {{#if isBunRuntime}}"bun run build.ts"{{else}}"tsup"{{/if}},
+    "build": {{#if isBunRuntime}}"bun run build.ts"{{else}}"node esbuild.config.js"{{/if}},
     "start": "{{runtimeCommand}} dist/server.js",
     "dev": "{{#if isBunRuntime}}bun --watch{{else}}tsx{{/if}} src/server.ts",
     "seed": "{{#if isBunRuntime}}bun{{else}}tsx{{/if}} scripts/seed.ts",

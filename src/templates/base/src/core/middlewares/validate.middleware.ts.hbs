@@ -22,8 +22,9 @@ export const validate =
 
         throw HttpError.badRequest(
           formattedErrors.map((error) => error.message).join(", ") || "Validation Error",
-          {},
-          formattedErrors
+          {
+            errors: formattedErrors,
+          },
         );
       }
 
