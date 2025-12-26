@@ -1,13 +1,14 @@
 {
   "name": "initex",
-  "version": "2.0.31",
+  "version": "2.0.33",
   "bin": {
     "initex": "./bin/cli.js"
   },
   "scripts": {
     "build": "tsup",
     "test": "tsx src/index.ts --mode test",
-    "test:bin": "npm run build && bin/cli.js --mode test:bin",
+    "test:build": "npm run build && bin/cli.js --mode test:bin",
+    "test:cli": "node bin/cli.js --mode test:bin",
     "prepare": "husky",
     "lint-format": "biome check --write",
     "lint": "biome check"
@@ -46,11 +47,11 @@
     "@types/fs-extra": "^11.0.4",
     "@types/js-yaml": "^4.0.9",
     "@types/minimist": "^1.2.5",
-    "@types/node": "^24.7.2",
+    "@types/node": "^24.10.4",
     "husky": "^9.1.7",
-    "tsup": "^8.5.0",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "tsup": "^8.5.1"
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0",

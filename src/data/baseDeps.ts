@@ -10,6 +10,7 @@ const baseDevDeps = [
 	"@types/swagger-ui-express",
 	"@types/multer",
 	"esbuild-plugin-alias",
+	"@asteasolutions/zod-to-openapi",
 ];
 const baseDeps = [
 	"cookie-parser",
