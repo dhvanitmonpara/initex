@@ -1,18 +1,9 @@
-{{#if auth.enable}}import { verifyUserJWT, AuthenticatedRequest } from "./auth.middleware";
-import { requirePermission } from "./requirePermission.middleware";
-import { requireRole } from "./requireRoles.middleware";{{/if}}
-import errorMiddleware from "./error.middleware";
-import rateLimitMiddleware from "./rate-limit.middleware";
-import { upload } from "./upload.middleware";
-import { validate } from "./validate.middleware";
+{{#if auth.enable}}export { authenticate } from "./auth.middleware";
+export { requirePermission } from "./requirePermission.middleware";
+export { requireRole } from "./requireRoles.middleware";{{/if}}
+export { default as errorHandlers } from "./error.middleware";
+export { default as rateLimit } from "./rate-limit.middleware";
+export { multipartUpload } from "./upload.middleware";
+export { validateRequest } from "./validate.middleware";
 
-export {
-{{#if auth.enable}}  verifyUserJWT,
-  AuthenticatedRequest,
-  rateLimitMiddleware,
-  requirePermission,
-  requireRole,{{/if}}
-  errorMiddleware,
-  upload,
-  validate,
-};
+export * as pipelines from "./pipelines";

@@ -10,36 +10,11 @@ import TokenService from "@/modules/auth/tokens/token.service";
 import OtpService from "@/modules/auth/otp/otp.service";
 import { runTransaction } from "@/infra/db/transactions";
 import { invalidateUserCache } from "./auth.cache-keys";
+import CookieService from "./cookies/cookie.service";
 
 class AuthService {
-  static options: CookieOptions = {
-    httpOnly: true,
-    secure: env.NODE_ENV === "production",
-    sameSite: env.NODE_ENV === "production" ? "none" : "lax",
-    ...(env.NODE_ENV === "production" ? {} : { domain: "localhost" }),
-  };
-
-  static setAuthCookies = (
-    res: Response,
-    accessToken: string,
-    refreshToken: string
-  ) => {
-    res
-      .cookie("accessToken", accessToken, {
-        ...this.options,
-        maxAge: TokenService.accessTokenExpiryMs,
-      })
-      .cookie("refreshToken", refreshToken, {
-        ...this.options,
-        maxAge: TokenService.refreshTokenExpiryMs,
-      });
-  };
-
-  static clearAuthCookies(res: Response) {
-    res
-      .clearCookie("accessToken", { ...this.options })
-      .clearCookie("refreshToken", { ...this.options });
-  }
+  static setAuthCookies = CookieService.setAuthCookies;
+  static clearAuthCookies = CookieService.clearAuthCookies;
 
   static redeemTempToken = async (tempToken: string) => {
     const stored: { accessToken: string; refreshToken: string } | undefined =
@@ -52,7 +27,7 @@ class AuthService {
     return stored;
   };
 
-  static initializeAuthService = async (
+  static initializeAuth = async (
     email: string,
     username: string,
     password: string
@@ -75,7 +50,7 @@ class AuthService {
     return email;
   };
 
-  static registerAuthService = async (email: string, req: Request) => {
+  static completeRegistration = async (email: string, req: Request) => {
     const user = await cache.get(`pending:${email}`);
     if (!user)
       throw HttpError.notFound("User doesn't exists", { code: "USER_NOT_FOUND", meta: { service: "authService.registerAuthService" } })
@@ -129,7 +104,7 @@ class AuthService {
     return { createdUser, accessToken, refreshToken };
   };
 
-  static loginAuthService = async (email: string, password: string, req: Request) => {
+  static authenticateUser = async (email: string, password: string, req: Request) => {
     const user = await AuthRepo.CachedRead.findByEmail(email);
 
     if (!user)
@@ -157,7 +132,7 @@ class AuthService {
     await invalidateUserCache({ id: user.id })
   };
 
-  static refreshAccessTokenService = async (
+  static refreshSession = async (
     incomingRefreshToken: string,
     req: Request
   ) => {
@@ -185,11 +160,11 @@ class AuthService {
     return { accessToken, refreshToken };
   };
 
-  static sendOtpService = async (email: string, username: string) => {
+  static sendOtp = async (email: string, username: string) => {
     return OtpService.sendOtp(email, username);
   };
 
-  static verifyOtpService = async (email: string, otp: string): Promise<boolean> => {
+  static verifyOtp = async (email: string, otp: string): Promise<boolean> => {
     return OtpService.verifyOtp(email, otp);
   };
 
@@ -197,7 +172,7 @@ class AuthService {
     return OAuthService.handleGoogleOAuth(code, req);
   }
 
-  static async handleUserOAuth(email: string, username: string, req: Request) {
+  static async createUserFromOAuth(email: string, username: string, req: Request) {
     return OAuthService.createUserFromOAuth(email, username, req);
   }
 }

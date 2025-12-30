@@ -1,19 +1,14 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "@/config/env";
 import { HttpError } from "@/core/http";
-import * as authRepo from "@/modules/auth/auth.repo";
-import { Role } from "@/config/roles";
+import AuthRepo from "@/modules/auth/auth.repo";
 import { jwtPayloadSchema } from "@/shared/validators/auth.schema";
 import { middlewareHandler } from "../http/controller";
 import { toInternalUser } from "@/modules/user/user.dto";
 
-interface AuthenticatedRequest extends Request {
-  user?: { id: string; email: string; roles: Role[] };
-}
-
-const verifyUserJWT = middlewareHandler(
-  async (req: AuthenticatedRequest, _, next: NextFunction) => {
+const authenticate = middlewareHandler(
+  async (req: Request, _, next: NextFunction) => {
     const token =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
@@ -41,7 +36,7 @@ const verifyUserJWT = middlewareHandler(
 
     const parsed = jwtPayloadSchema.parse(decodedToken);
 
-    const user = await authRepo.findById(parsed.id);
+    const user = await AuthRepo.CachedRead.findById(parsed.id);
 
     if (!user) throw HttpError.unauthorized("User not found", {
       code: "UNAUTHORIZED_REQUEST",
@@ -58,4 +53,4 @@ const verifyUserJWT = middlewareHandler(
   }
 );
 
-export { verifyUserJWT, AuthenticatedRequest };
+export { authenticate };
