@@ -1,11 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@/generated/prisma/client'
+import { env } from "@/config/env";
 
-declare global {
-  var prisma: PrismaClient | undefined;
-}
+const connectionString = `${env.DATABASE_URL}`
 
-// Prevent multiple instances in development (hot-reload)
-const prisma = global.prisma || new PrismaClient();
-global.prisma = prisma;
+const adapter = new PrismaPg({ connectionString })
+const prisma = new PrismaClient({ adapter })
 
-export default prisma;
+export default prisma

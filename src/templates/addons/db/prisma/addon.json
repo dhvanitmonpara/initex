@@ -3,5 +3,6 @@
 	"label": "Prisma ORM",
 	"description": "Prisma setup + schema + seed scripts",
 	"destination": ".",
-	"dependencies": ["prisma", "@prisma/client"]
+	"dependencies": ["@prisma/client", "@prisma/adapter-pg", "pg"],
+	"devDependencies": ["prisma", "@types/node", "@types/pg"]
 }
