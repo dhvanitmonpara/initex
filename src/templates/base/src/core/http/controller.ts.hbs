@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import { HttpController, HttpMiddleware } from "./types";
+import type { HttpController, HttpMiddleware } from "./types";
 import HttpResponse from "./response";
 
 export function controllerHandler(fn: HttpController): RequestHandler {

@@ -1,26 +1,4 @@
-type ErrorCode = Uppercase<string>;
-
-export interface ErrorDetail {
-  field?: string;
-  message: string;
-  code?: ErrorCode;
-}
-
-type Meta = { source: string } & Record<string, unknown>
-
-type HttpErrorParams = {
-  statusCode: number;
-  message: string;
-  code: ErrorCode;
-  errors?: ErrorDetail[];
-  meta?: Meta;
-  cause?: unknown;
-  isOperational?: boolean;
-};
-
-type HttpErrorOptions = Partial<
-  Omit<HttpErrorParams, "statusCode" | "message">
->;
+import type { ErrorCode, ErrorDetail, HttpErrorOptions, HttpErrorParams, Meta } from "./types";
 
 class HttpError extends Error {
   readonly statusCode: number;
