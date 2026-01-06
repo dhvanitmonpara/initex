@@ -1,152 +1,247 @@
 # Initex
 
-🚀 **A simple and interactive CLI tool to quickly set up an Express.js project with best practices.**
+**Initex** is a simple, interactive CLI tool to scaffold an opinionated Express-based backend project using either guided prompts or reusable preset files.
 
-Initex lets you scaffold a fully structured Express backend in minutes — with optional database, Socket.io, TypeScript, presets, and more.
-
----
-
-## 🔥 Features
-
-🔥 Features
-
-- Runtime-aware — Supports Node, Bun, and Deno.
-- Package managers support — npm / pnpm / bun / deno.
-- Database integration — PostgreSQL, MongoDB, MySQL + Prisma / Drizzle / Sequelize / Mongoose.
-- Auth templates — Optional production-ready prebuilt authentication flow.
-- SMTP support — Gmail, Resend, etc.
-- Caching system — NodeCache or Multi-level (Redis included).
-- Socket.io — One-click enablement.
-- Git setup — Initialize repo with husky hooks.
-- Presets — Store your answers as reusable config JSON.
-- Docker compose support — Default Docker Compose file for all DBs and Cache services.
-- Scalable architecture — Folder-based Modular Structure.
+It exists because backend setup is a boring loop of the same decisions every time. Runtime. Database. Auth. Cache. Tooling. Initex standardizes those choices, makes them explicit, and lets you reuse them without copy-pasting your soul between projects.
 
 ---
 
-## 📦 Installation
+## Why Initex Exists
 
-Run with **npx**:
+Setting up backend projects repeatedly involves answering the same questions:
 
-```bash
-npx initex
-```
+* Which runtime?
+* Which database and ORM?
+* Auth or no auth?
+* Cache?
+* SMTP?
+* Sockets?
+* Tooling?
 
-Or install globally:
+Initex solves this by:
+
+* Making those decisions **explicit**
+* Allowing them to be **saved and reused**
+* Cutting setup time without hiding configuration behind magic
+
+Minimal defaults. Everything else is opt-in.
+
+---
+
+## Features
+
+* Interactive and preset-based project generation
+* First-class preset file support
+* Database, cache, auth, SMTP, and socket configuration
+* Supports modern runtimes and package managers
+* Explicit configuration, no hidden behavior
+
+## Non-goals
+
+Initex does not:
+- Hide infrastructure decisions
+- Generate frontend code
+- Abstract away your business logic
+
+---
+
+## What It Generates
+
+- See [Generated Project Structure](./docs/generated-structure.md) for details.
+
+---
+
+## Requirements
+
+* Node.js
+* A supported runtime:
+
+  * Node.js
+  * Bun
+* A package manager:
+
+  * npm
+  * pnpm
+  * yarn
+  * bun
+
+(Your config decides which one actually matters.)
+
+---
+
+## Installation
+
+### Install globally
 
 ```bash
 npm install -g initex
 ```
 
----
-
-## 🛠 Usage
-
-### Run interactively (default)
+### Run without installing
 
 ```bash
-initex
-```
-
-### Specify a project name
-
-```bash
-initex myapp
+npx initex
 ```
 
 ---
 
-## ⚙️ CLI Arguments
+## Quick Start
 
-| Flag                 | Type    | Description                                                     |
-| -------------------- | ------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `-n, --name`         | string  | Project name (optional). Can also be positional.                |
-| `-p, --preset`       | boolean | string                                                          | Use preset mode. Path optional. If missing → presetPath = null.    |
-| `-g, --generateJson` | boolean | string                                                          | Generate preset JSON. Path optional; defaults to a `.initex` file. |
-| `-m, --mode`         | string  | Execution mode: `start`, `test`, `test:bin` (default: `start`). |
-
----
-
-## 🧪 Examples
-
-### **1. Default interactive setup**
+### Interactive setup
 
 ```bash
-initex
+initex my-app
 ```
 
-### **2. Interactive with name**
+If no options are provided, Initex runs in interactive mode.
+
+### Preset-based setup
 
 ```bash
-initex myapp
-```
-
-### **3. Use preset mode (no file required)**
-
-```bash
-initex -p
-```
-
-With a name:
-
-```bash
-initex myapp -p
-```
-
-### **4. Use preset with specific file**
-
-```bash
-initex -p ./presets
-```
-
-Or:
-
-```bash
-initex myapp -p ./config
-```
-
-### **5. Generate preset JSON automatically**
-
-Default location:
-
-```bash
-initex -g
-```
-
-Custom output path:
-
-```bash
-initex myapp -g ./output
-```
-
-### **6. Test modes**
-
-```bash
-initex -m test
-```
-
-```bash
-initex myapp -m test:bin
+initex --preset ./initex.preset.json
 ```
 
 ---
 
-## 🎯 Summary
+## Preset File Support
 
-Initex now supports:
+Initex supports preset files to fully automate project generation.
 
-- Optional project names
-- Optional preset paths
-- Optional generateJson paths
-- No conflicts between flags
-- No hard errors for missing preset files
-- Clean, deterministic config generation
-- Fully lifecycle-safe outputs
+Presets let you:
+- Reuse backend decisions across projects
+- Avoid interactive prompts
+- Make infrastructure choices explicit and versionable
+- Presets are supported in JSON and YAML formats
 
-Initex gives you a structured config object — and your engine handles the rest.
+### Example Preset
+
+```json
+{
+  "name": "myawesomeapp",
+  "runtime": "bun",
+  "packageManager": "bun",
+  "db": {
+    "enable": true,
+    "provider": "postgresql",
+    "connectionString": "postgres://postgres:password@localhost:5432/myawesomeapp",
+    "orm": "drizzle",
+    "name": "myawesomeapp"
+  },
+  "cache": {
+    "enable": true,
+    "service": "multi"
+  },
+  "auth": {
+    "enable": true
+  },
+  "smtp": {
+    "enable": true,
+    "service": "gmail"
+  },
+  "git": true,
+  "socket": true
+}
+```
+
+See [Preset File Schema](./docs/preset-schema.md) for the full list of supported options and validation rules.
 
 ---
 
-## 📂 GitHub
+## Generating a Preset
 
-👉 **[https://github.com/Dhvanitmonpara/initex](https://github.com/Dhvanitmonpara/initex)**
+Generate a preset from an interactive run:
+
+```bash
+initex --generatePreset
+```
+
+### Default output location
+
+```text
+./<project-name>/.initex
+```
+
+### Custom path
+
+```bash
+initex --generatePreset ./initex.preset.json
+```
+
+---
+
+## CLI Usage
+
+```bash
+initex [project-name] [options]
+```
+
+If no options are provided, Initex runs in interactive mode.
+
+---
+
+## Flags
+
+| Flag               | Alias | Description                                  |
+| ------------------ | ----- | -------------------------------------------- |
+| `--mode`           | `-m`  | Execution mode (`start`, `test`, `test:bin`) |
+| `--name`           | `-n`  | Project name                                 |
+| `--preset`         | `-p`  | Use a preset file                            |
+| `--generatePreset` | `-g`  | Generate a preset file                       |
+| `--debug`          | `-d`  | Print resolved CLI configuration             |
+
+---
+
+## Example Outputs
+
+> Add screenshots, CLI output snippets, or links to example repositories here.
+
+Future-you will thank present-you for doing this.
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a focused branch
+3. Make changes with clear commits
+4. Add tests where applicable
+5. Open a pull request
+
+---
+
+## Roadmap
+
+2.1
+* Improved OpenAPI documentation
+
+2.2
+* Idempotency support for critical APIs
+* SQLite database support
+
+2.3
+* Admin authentication
+* Updated RBAC model
+
+2.4
+* Valkey support for caching
+
+Later versions
+* BetterAuth integration
+* AuthJS integration
+* Clerk integration
+
+---
+
+## FAQ
+
+**Q: Can presets be reused across projects?**
+A: Yes. Presets are designed to be portable and reusable.
+
+**Q: Does Initex require Bun if runtime is set to `bun`?**
+A: Yes. The selected runtime must be installed locally.
+
+---
+
+## License
+
+MIT
