@@ -11,7 +11,6 @@ server/
 ├── README.md
 ├── biome.json
 ├── bunfig.toml
-├── CHANGE.md
 ├── CHANGELOG.md
 ├── package.json
 ├── prisma.config.ts
@@ -52,7 +51,10 @@ server/
     │   │   ├── error.ts
     │   │   ├── index.ts
     │   │   ├── response.ts
-    │   │   └── types.ts
+    │   │   └── types/
+    │   │       ├── error.types.ts
+    │   │       ├── controller.types.ts
+    │   │       └── index.ts
     │   │
     │   ├── logger/
     │   │   ├── context.ts

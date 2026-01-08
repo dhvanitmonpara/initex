@@ -12,6 +12,10 @@ Setting up backend projects repeatedly involves answering the same questions:
 
 * Which runtime?
 * Which database and ORM?
+* Rate limiting?
+* Linting and formatting?
+* Logging?
+* Security headers?
 * Auth or no auth?
 * Cache?
 * SMTP?
@@ -58,12 +62,14 @@ Initex does not:
 
   * Node.js
   * Bun
+  * Deno
 * A package manager:
 
   * npm
   * pnpm
   * yarn
   * bun
+  * deno
 
 (Your config decides which one actually matters.)
 
@@ -244,4 +250,4 @@ A: Yes. The selected runtime must be installed locally.
 
 ## License
 
-MIT
+[MIT License](./LICENSE)

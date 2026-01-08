@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [2.0.37]
 
+### Added
+
+* MIT License
+
+### Fixed
+
+* Import path in `src/lib/validation.ts`
+
+### Changed
+
+* README `Why Initex exists` and `Requirements` section
+* Inconsistency in `generated-structure.md`
+
+## [2.0.37]
+
 ### Fixed
 
 * Prisma transaction issues
