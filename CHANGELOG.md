@@ -2,7 +2,28 @@
 
 All notable changes to this project are documented in this file.
 
-## [2.0.37]
+## 2.1.0
+
+### Added
+
+- OpenAPI schemas are now defined using `defineSchema` utility
+
+### Fixed
+
+- OpenAPI schemas
+
+### Changed
+
+- Moved Request validation logic into controller level
+- Now Global Error handler (middleware) handles zod validation errors
+
+### Removed
+
+- `validate-request` middleware
+
+---
+
+## 2.0.39
 
 ### Added
 
@@ -17,7 +38,9 @@ All notable changes to this project are documented in this file.
 * README `Why Initex exists` and `Requirements` section
 * Inconsistency in `generated-structure.md`
 
-## [2.0.37]
+---
+
+## 2.0.37
 
 ### Fixed
 
@@ -26,7 +49,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.36]
+## 2.0.36
 
 ### Added
 
@@ -34,7 +57,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.35]
+## 2.0.35
 
 ### Added
 
@@ -42,7 +65,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.34]
+## 2.0.34
 
 ### Added
 
@@ -50,7 +73,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.33]
+## 2.0.33
 
 ### Fixed
 
@@ -58,7 +81,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.31]
+## 2.0.31
 
 ### Fixed
 
@@ -66,7 +89,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.30]
+## 2.0.30
 
 ### Fixed
 
@@ -75,7 +98,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.22]
+## 2.0.22
 
 ### Fixed
 
@@ -83,7 +106,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.21]
+## 2.0.21
 
 ### Fixed
 
@@ -95,7 +118,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.2]
+## 2.0.2
 
 ### Changed
 
@@ -103,7 +126,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.1]
+## 2.0.1
 
 ### Added
 
@@ -115,7 +138,7 @@ All notable changes to this project are documented in this file.
 
 ---
 
-## [2.0.0]
+## 2.0.0
 
 ### Added
 
