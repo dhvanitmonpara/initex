@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## 2.1.1
+
+### Fixed
+
+- `middlewares/index.ts` redundant exports
+- Redis authentication configuration
+- `mail/templates/index.ts` file imports
+
 ## 2.1.0
 
 ### Added

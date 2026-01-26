@@ -43,8 +43,6 @@ services:
   {{#if useMultiCache}}redis:
     image: redis:7-alpine
     restart: always
-    environment:
-      REDIS_PASSWORD: {{redisPassword}}
     ports:
       - "6379:6379"
     volumes:
@@ -52,7 +50,7 @@ services:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "{{redisPassword}}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
