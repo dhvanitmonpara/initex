@@ -201,9 +201,7 @@ If no options are provided, Initex runs in interactive mode.
 
 > Add screenshots, CLI output snippets, or links to example repositories here.
 
-<video controls width="600">
-  <source src="/public/demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
+<video controls src="./public/demo.mp4" width="600">
 </video>
 
 ---
