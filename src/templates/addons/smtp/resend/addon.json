@@ -2,6 +2,6 @@
 	"name": "resend",
 	"label": "Resend",
 	"description": "Resend mail setup",
-	"destination": "src/infra/services/mail/providers",
+	"destination": "src/infra/services/mail",
 	"dependencies": ["resend"]
 }

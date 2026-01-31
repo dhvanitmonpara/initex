@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { EmailProvider } from "../mail.interface";
+import { EmailProvider } from "../core/mail.interface";
 import { env } from "@/config/env";
 
 export class ResendProvider implements EmailProvider {
@@ -13,6 +13,8 @@ export class ResendProvider implements EmailProvider {
       html,
       text,
     });
-    return { id: data?.id, error };
+
+    if (error) return { status: "error" as const, error: error instanceof Error ? error.message : String(error) };
+    return { id: data?.id, status: "success" as const };
   }
 }

@@ -1,8 +1,8 @@
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
-import { loginSchema } from "@/modules/auth/auth.schema";
+import { LoginSchema } from "@/modules/auth/auth.schema";
 import { ErrorResponseSchema } from "@/shared/schemas/transports/error-response.schema";
-import { otpSchema, verifyOtpSchema } from "@/modules/auth/otp/otp.schema";
+import { OtpSchema, VerifyOtpSchema } from "@/modules/auth/otp/otp.schema";
 
 // Success response schemas
 const SuccessResponseSchema = z.object({
@@ -50,7 +50,7 @@ export const registerAuthPaths = (registry: OpenAPIRegistry) => {
         required: true,
         content: {
           "application/json": {
-            schema: loginSchema,
+            schema: LoginSchema,
           },
         },
       },
@@ -125,7 +125,7 @@ export const registerAuthPaths = (registry: OpenAPIRegistry) => {
         required: true,
         content: {
           "application/json": {
-            schema: otpSchema,
+            schema: OtpSchema,
           },
         },
       },
@@ -161,7 +161,7 @@ export const registerAuthPaths = (registry: OpenAPIRegistry) => {
         required: true,
         content: {
           "application/json": {
-            schema: verifyOtpSchema,
+            schema: VerifyOtpSchema,
           },
         },
       },

@@ -2,16 +2,16 @@ import { defineSchema } from "@/lib/define-zod-schema"
 import { EmailSchema } from "@/shared/schemas/primitives"
 import z from "zod"
 
-export const verifyOtpSchema = defineSchema("verifyOtpSchema", {
+export const VerifyOtpSchema = defineSchema("VerifyOtpSchema", {
   email: EmailSchema,
   otp: z.string("OTP is required"),
 })
 
-export type VerifyOtpSchema = z.infer<typeof verifyOtpSchema>
+export type VerifyOtpDto = z.infer<typeof VerifyOtpSchema>
 
-export const otpSchema = defineSchema("otpSchema", {
+export const OtpSchema = defineSchema("OtpSchema", {
   email: EmailSchema,
   username: z.string("Username is required"),
 })
 
-export type OtpSchema = z.infer<typeof otpSchema>
+export type OtpDto = z.infer<typeof OtpSchema>

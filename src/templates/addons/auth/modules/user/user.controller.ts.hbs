@@ -10,27 +10,27 @@ import { Controller } from "@/core/http/controller";
 @Controller()
 class UserController {
   static async getUserById(req: Request) {
-    const { userId } = userSchemas.userIdSchema.parse(req.params);
+    const { userId } = userSchemas.UserIdSchema.parse(req.params);
     const singleUserId = Array.isArray(userId) ? userId[0] : userId
     const user = await UserService.getUserByIdService(singleUserId);
     return HttpResponse.ok("User fetched successfully", toPublicUser(user));
   }
 
   static async searchUsers(req: Request) {
-    const { query } = userSchemas.searchQuerySchema.parse(req.params);
+    const { query } = userSchemas.UserSearchQuerySchema.parse(req.params);
     const singleQuery = Array.isArray(query) ? query[0] : query
     const users = await UserService.searchUsersService(singleQuery);
     return HttpResponse.ok("Users fetched successfully", users);
   }
 
   static async googleCallback(req: Request) {
-    const { code } = oauthSchemas.googleCallbackSchema.parse(req.query);
+    const { code } = oauthSchemas.GoogleCallbackSchema.parse(req.query);
     const { redirectUrl } = await AuthService.handleGoogleOAuth(code, req);
     return HttpResponse.redirect(redirectUrl)
   }
 
   static async handleUserOAuth(req: Request, res: Response) {
-    const { email, username } = oauthSchemas.userOAuthSchema.parse(req.body);
+    const { email, username } = oauthSchemas.UserOAuthSchema.parse(req.body);
 
     const { createdUser, accessToken, refreshToken } =
       await AuthService.createUserFromOAuth(email, username, req);
@@ -43,7 +43,7 @@ class UserController {
   }
 
   static async redeemTempToken(req: Request, res: Response) {
-    const { tempToken } = userSchemas.tempTokenSchema.parse(req.body);
+    const { tempToken } = userSchemas.TempTokenSchema.parse(req.body);
 
     const tokens = await AuthService.redeemTempToken(tempToken);
     if (!tokens)
@@ -56,7 +56,7 @@ class UserController {
   }
 
   static async initializeUser(req: Request) {
-    const { email, username, password } = userSchemas.initializeUserSchema.parse(req.body);
+    const { email, username, password } = userSchemas.InitializeUserSchema.parse(req.body);
 
     const savedEmail = await AuthService.initializeAuth(
       email,
@@ -71,7 +71,7 @@ class UserController {
   }
 
   static async registerUser(req: Request, res: Response) {
-    const { email } = userSchemas.registrationSchema.parse(req.body);
+    const { email } = userSchemas.RegistrationSchema.parse(req.body);
 
     const { createdUser, accessToken, refreshToken } =
       await AuthService.completeRegistration(email, req);

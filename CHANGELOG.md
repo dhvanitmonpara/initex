@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## 2.1.2
+
+### Fixed
+
+- `docs/openapi` schema inconsistencies
+- schema bloats in all over the template 
+
+### Changed
+
+- zod validation pattern for the controllers
+
 ## 2.1.1
 
 ### Fixed

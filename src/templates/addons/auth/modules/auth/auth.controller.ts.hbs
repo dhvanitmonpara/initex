@@ -9,7 +9,7 @@ import { Controller } from "@/core/http/controller";
 @Controller()
 class AuthController {
   static async loginUser(req: Request, res: Response) {
-    const { email, password } = authSchemas.loginSchema.parse(req.body);
+    const { email, password } = authSchemas.LoginSchema.parse(req.body);
 
     const { user, accessToken, refreshToken } =
       await AuthService.authenticateUser(email, password, req);
@@ -46,7 +46,7 @@ class AuthController {
   };
 
   static async sendOtp(req: Request) {
-    const { email, username } = otpSchemas.otpSchema.parse(req.body);
+    const { email, username } = otpSchemas.OtpSchema.parse(req.body);
 
     const { messageId } = await AuthService.sendOtp(email, username);
 
@@ -54,7 +54,7 @@ class AuthController {
   };
 
   static async verifyOtp(req: Request) {
-    const { email, otp } = otpSchemas.verifyOtpSchema.parse(req.body);
+    const { email, otp } = otpSchemas.VerifyOtpSchema.parse(req.body);
 
     const isVerified = await AuthService.verifyOtp(email, otp);
 
