@@ -2,10 +2,5 @@
 	"name": "auth",
 	"label": "Auth",
 	"description": "Auth setup",
-	"dependencies": [
-		"jsonwebtoken",
-		"bcryptjs",
-		"axios",
-		"ua-parser-js"
-	]
+	"dependencies": ["jsonwebtoken", "bcryptjs", "axios", "ua-parser-js"]
 }

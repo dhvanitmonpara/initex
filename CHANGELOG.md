@@ -11,7 +11,6 @@ All notable changes to this project are documented in this file.
 ### Changed
 
 - Separated Redis client instance creation in a single file
-- Per request logs are now supported by default with base template
 - Updated registration workflow in auth module
 - Improved cache keys handling in cache module
 - Temporarily downgraded TypeScript to v5.9.3 due to breaking changes in module resolution and path aliasing in v6
