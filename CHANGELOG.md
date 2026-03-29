@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## 2.1.31
+
+### Fixed
+
+- missing variables issue in `.env` file
+
 ## 2.1.3
 
 ### Added
@@ -23,7 +29,6 @@ All notable changes to this project are documented in this file.
 
 - Multiple context injecting functions in different files
 - Cache provider selection is not optional anymore
-
 
 ## 2.1.2
 
