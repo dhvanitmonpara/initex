@@ -199,7 +199,7 @@ If no options are provided, Initex runs in interactive mode.
 
 ## Example Outputs
 
-> Add screenshots, CLI output snippets, or links to example repositories here.
+<!-- Add screenshots, CLI output snippets, or links to example repositories here. -->
 
 <video controls src="https://github.com/user-attachments/assets/411f4475-3473-45bd-9f99-1799b7c2640f" width="600">
 </video>

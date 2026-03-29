@@ -4,7 +4,6 @@
 	"description": "Auth setup",
 	"dependencies": [
 		"jsonwebtoken",
-		"winston",
 		"bcryptjs",
 		"axios",
 		"ua-parser-js"

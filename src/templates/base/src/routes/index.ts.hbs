@@ -4,14 +4,9 @@ import authRouter from "@/modules/auth/auth.route";
 import userRouter from "@/modules/user/user.route";
 {{/if}}
 import { registerHealthRoutes } from "./health.routes";
-import { requestContext } from "@/core/middlewares/logger/request-context.middleware";
-import { loggerContextMiddleware } from "@/core/middlewares/logger/context.middleware";
 
 export const registerRoutes = (app: Application) => {
   registerHealthRoutes(app);
-
-  app.use(requestContext)
-  app.use(loggerContextMiddleware)
 
   {{#if auth.enable}}
   app.use("/api/v1/auth", authRouter)

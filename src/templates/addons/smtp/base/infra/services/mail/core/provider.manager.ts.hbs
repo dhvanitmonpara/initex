@@ -1,5 +1,5 @@
-import { EmailProvider } from "./mail.interface";
 import type { SendResult } from "../types/mail.types";
+import type { EmailProvider } from "./mail.interface";
 
 export class ProviderManager {
   constructor(private provider: EmailProvider) {
@@ -16,7 +16,7 @@ export class ProviderManager {
       text?: string;
       html: string;
     },
-    attempts: number = 1 // default = no retry
+    attempts: number = 1, // default = no retry
   ): Promise<SendResult> {
     let lastError: string | null = null;
 

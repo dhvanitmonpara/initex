@@ -1,8 +1,8 @@
-import { MailtrapProvider } from "../providers/mailtrap.provider";
-import { GmailProvider } from "../providers/gmail.provider";
-import type { EmailProvider } from "./mail.interface";
 import { env } from "@/config/env";
 import logger from "@/core/logger";
+import { GmailProvider } from "../providers/gmail.provider";
+import { MailtrapProvider } from "../providers/mailtrap.provider";
+import type { EmailProvider } from "./mail.interface";
 
 export const createEmailProvider = async (): Promise<EmailProvider> => {
   const provider = chooseProvider();
@@ -12,11 +12,9 @@ export const createEmailProvider = async (): Promise<EmailProvider> => {
 
     if (v.status !== "success") {
       throw new Error(
-        `Email provider verification failed for ${provider.constructor.name}: ${v.error}`
+        `Email provider verification failed for ${provider.constructor.name}: ${v.error}`,
       );
     }
-
-    console.info(`Email provider ${provider.constructor.name} verified`);
   }
 
   return provider;
@@ -34,7 +32,9 @@ const chooseProvider = (): EmailProvider => {
       throw new Error("Resend provider not implemented");
 
     default:
-      logger.warn(`Unknown MAIL_PROVIDER="${env.MAIL_PROVIDER}", falling back to mailtrap`);
+      logger.warn(
+        `Unknown MAIL_PROVIDER="${env.MAIL_PROVIDER}", falling back to mailtrap`,
+      );
       return new MailtrapProvider();
   }
 };

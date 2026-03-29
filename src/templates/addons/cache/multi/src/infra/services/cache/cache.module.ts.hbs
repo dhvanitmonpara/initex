@@ -3,6 +3,8 @@ import { NodeCacheProvider } from "./providers/node-cache.provider";
 import { RedisCacheProvider } from "./providers/redis.provider";
 import { MultiTierCacheProvider } from "./providers/multi-tier.provider";
 import { env } from "@/config/env";
+import { redisClient } from "./clients/redis.client";
+import { RedisSessionStore } from "./providers/redis-session.store";
 
 export function createCacheProvider(): CacheProvider {
   const driver = env.CACHE_DRIVER ?? "memory";
@@ -10,11 +12,11 @@ export function createCacheProvider(): CacheProvider {
 
   switch (driver) {
     case "redis":
-      return new RedisCacheProvider(env.REDIS_URL);
+      return new RedisCacheProvider(redisClient);
 
     case "multi":
       const l1 = new NodeCacheProvider(ttl);
-      const l2 = new RedisCacheProvider(env.REDIS_URL);
+      const l2 = new RedisCacheProvider(redisClient);
       return new MultiTierCacheProvider(l1, l2, ttl);
 
     case "memory":
@@ -22,4 +24,8 @@ export function createCacheProvider(): CacheProvider {
     default:
       return new NodeCacheProvider(ttl);
   }
+}
+
+export function createSessionStore() {
+  return new RedisSessionStore(redisClient);
 }

@@ -9,6 +9,11 @@ router.post("/login", AuthController.loginUser);
 router.post("/refresh", AuthController.refreshAccessToken);
 router.post("/otp/send", AuthController.sendOtp);
 router.post("/otp/verify", AuthController.verifyOtp);
+router.get("/google/callback", AuthController.googleCallback);
+router.post("/oauth", AuthController.handleUserOAuth);
+router.post("/register", AuthController.registerUser);
+router.post("/initialize", AuthController.initializeUser);
+router.post("/verify-user-otp", AuthController.verifyUserOtp);
 
 // Protected routes
 router.use(pipelines.requireAuthenticatedUser);

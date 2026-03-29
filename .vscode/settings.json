@@ -13,5 +13,9 @@
 	},
 	"[json]": {
 		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[handlebars]": {
+		"editor.defaultFormatter": "vscode.html-language-features",
+		"editor.formatOnSave": false
 	}
 }

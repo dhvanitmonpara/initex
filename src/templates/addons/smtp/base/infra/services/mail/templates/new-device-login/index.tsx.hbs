@@ -1,29 +1,332 @@
-import React from "react";
-import { Section, Text } from "@react-email/components";
+import { Button, Section, Text } from "@react-email/components";
+import { env } from "@/config/env";
 import BaseLayout from "../components/BaseLayout.js";
 
-void React;
+interface SessionInfo {
+	id: string;
+	device?: string;
+	ipAddress?: string;
+	createdAt: Date;
+}
 
 export default function NewDeviceLoginEmail({
-  deviceName,
-  location,
-  projectName,
+	username,
+	email,
+	device,
+	location,
+	ipAddress,
+	projectName,
+	existingSessionId,
+	allSessions,
 }: {
-  deviceName: string;
-  location: string;
-  projectName: string;
+	username: string;
+	email: string;
+	device: string;
+	location?: string;
+	ipAddress?: string;
+	projectName: string;
+	existingSessionId?: string;
+	allSessions: SessionInfo[];
 }) {
-  return (
-    <BaseLayout projectName={projectName}>
-      <Section>
-        <Text style={style.text}>⚠️ New Device Login Detected</Text>
-        <Text><b>Device:</b> {deviceName}</Text>
-        <Text><b>Location:</b> {location}</Text>
-      </Section>
-    </BaseLayout>
-  );
-};
+	const baseUrl = env.SERVER_BASE_URI;
+	const formattedDate = new Date().toLocaleString("en-US", {
+		dateStyle: "long",
+		timeStyle: "short",
+		timeZone: "IST",
+	});
 
-const style = {
-  text: { fontSize: "18px", fontWeight: "bold" }
+	const terminateThisSessionUrl = `${baseUrl}/api/auth/terminate-sessions?session=${existingSessionId}&email=${encodeURIComponent(email)}`;
+	const terminateAllSessionsUrl = `${baseUrl}/api/auth/terminate-all-sessions?email=${encodeURIComponent(email)}`;
+	const resetPasswordUrl = `${baseUrl}/forgot-password`;
+
+	return (
+		<BaseLayout projectName={projectName}>
+			{/* Alert Banner */}
+			<Section style={styles.alertSection}>
+				<Text style={styles.alertIcon}>🔔</Text>
+				<Text style={styles.alertTitle}>New Device Login Detected</Text>
+			</Section>
+
+			<Section style={styles.greetingSection}>
+				<Text style={styles.greetingText}>Hi {username},</Text>
+				<Text style={styles.mainText}>
+					We noticed a new sign-in to your account from an unrecognized device.
+					If this was you, you can safely ignore this email.
+				</Text>
+			</Section>
+
+			{/* Device Details */}
+			<Section style={styles.detailsCard}>
+				<Text style={styles.cardTitle}>Login Details</Text>
+				<Section style={styles.detailRow}>
+					<Text style={styles.detailIcon}>💻</Text>
+					<Section>
+						<Text style={styles.detailLabel}>Device</Text>
+						<Text style={styles.detailValue}>{device || "Unknown"}</Text>
+					</Section>
+				</Section>
+				{location && (
+					<Section style={styles.detailRow}>
+						<Text style={styles.detailIcon}>📍</Text>
+						<Section>
+							<Text style={styles.detailLabel}>Location</Text>
+							<Text style={styles.detailValue}>{location}</Text>
+						</Section>
+					</Section>
+				)}
+				{ipAddress && (
+					<Section style={styles.detailRow}>
+						<Text style={styles.detailIcon}>🌐</Text>
+						<Section>
+							<Text style={styles.detailLabel}>IP Address</Text>
+							<Text style={styles.detailValue}>{ipAddress}</Text>
+						</Section>
+					</Section>
+				)}
+				<Section style={styles.detailRow}>
+					<Text style={styles.detailIcon}>🕐</Text>
+					<Section>
+						<Text style={styles.detailLabel}>Time</Text>
+						<Text style={styles.detailValue}>{formattedDate}</Text>
+					</Section>
+				</Section>
+			</Section>
+
+			{/* Active Sessions */}
+			{allSessions.length > 0 && (
+				<Section style={styles.sessionsCard}>
+					<Text style={styles.cardTitle}>Your Active Sessions</Text>
+					{allSessions.map((session) => (
+						<Section key={session.id} style={styles.sessionRow}>
+							<Text style={styles.sessionBullet}>•</Text>
+							<Text style={styles.sessionText}>
+								{session.device || "Unknown Device"} -{" "}
+								{session.createdAt.toLocaleDateString()}
+								{session.id === existingSessionId && (
+									<Text style={styles.thisDeviceBadge}> (this device)</Text>
+								)}
+							</Text>
+						</Section>
+					))}
+				</Section>
+			)}
+
+			{/* Security Actions */}
+			<Section style={styles.actionSection}>
+				<Text style={styles.actionTitle}>Wasn't you?</Text>
+				<Text style={styles.actionSubtitle}>
+					If this login wasn't you, take immediate action to secure your
+					account:
+				</Text>
+
+				<Section style={styles.buttonGroup}>
+					<Button href={terminateThisSessionUrl} style={styles.terminateButton}>
+						Terminate This Session
+					</Button>
+					<Text style={styles.orDivider}>or</Text>
+					<Button
+						href={terminateAllSessionsUrl}
+						style={styles.terminateAllButton}
+					>
+						Terminate All Sessions
+					</Button>
+					<Text style={styles.orDivider}>or</Text>
+					<Button href={resetPasswordUrl} style={styles.resetButton}>
+						Reset Password
+					</Button>
+				</Section>
+			</Section>
+
+			{/* Help Footer */}
+			<Section style={styles.helpSection}>
+				<Text style={styles.helpText}>
+					If you have any concerns, please contact our support team immediately.
+				</Text>
+			</Section>
+		</BaseLayout>
+	);
+}
+
+const styles = {
+	// Alert Section
+	alertSection: {
+		backgroundColor: "#fee2e2",
+		borderRadius: "12px",
+		padding: "16px 20px",
+		textAlign: "center" as const,
+		marginBottom: "24px",
+	},
+	alertIcon: {
+		fontSize: "24px",
+		marginBottom: "8px",
+	},
+	alertTitle: {
+		fontSize: "20px",
+		fontWeight: "bold" as const,
+		color: "#dc2626",
+		margin: "0",
+	},
+
+	// Greeting Section
+	greetingSection: {
+		marginBottom: "24px",
+	},
+	greetingText: {
+		fontSize: "18px",
+		fontWeight: "600" as const,
+		color: "#111827",
+		marginBottom: "8px",
+	},
+	mainText: {
+		fontSize: "15px",
+		color: "#4b5563",
+		lineHeight: "1.6",
+		margin: "0",
+	},
+
+	// Details Card
+	detailsCard: {
+		backgroundColor: "#f9fafb",
+		borderRadius: "12px",
+		padding: "20px",
+		marginBottom: "20px",
+		border: "1px solid #e5e7eb",
+	},
+	cardTitle: {
+		fontSize: "16px",
+		fontWeight: "bold" as const,
+		color: "#111827",
+		marginBottom: "16px",
+		paddingBottom: "8px",
+		borderBottom: "1px solid #e5e7eb",
+	},
+	detailRow: {
+		display: "flex",
+		alignItems: "flex-start",
+		marginBottom: "12px",
+	},
+	detailIcon: {
+		fontSize: "16px",
+		marginRight: "12px",
+		marginTop: "2px",
+	},
+	detailLabel: {
+		fontSize: "12px",
+		fontWeight: "600" as const,
+		color: "#6b7280",
+		textTransform: "uppercase" as const,
+		letterSpacing: "0.5px",
+		marginBottom: "2px",
+	},
+	detailValue: {
+		fontSize: "14px",
+		color: "#111827",
+		margin: "0",
+	},
+
+	// Sessions Card
+	sessionsCard: {
+		backgroundColor: "#f0fdf4",
+		borderRadius: "12px",
+		padding: "20px",
+		marginBottom: "24px",
+		border: "1px solid #bbf7d0",
+	},
+	sessionRow: {
+		display: "flex",
+		alignItems: "center",
+		marginBottom: "8px",
+	},
+	sessionBullet: {
+		fontSize: "14px",
+		marginRight: "8px",
+		color: "#16a34a",
+	},
+	sessionText: {
+		fontSize: "14px",
+		color: "#1f2937",
+		margin: "0",
+	},
+	thisDeviceBadge: {
+		color: "#16a34a",
+		fontWeight: "600" as const,
+	},
+
+	// Action Section
+	actionSection: {
+		backgroundColor: "#fef3c7",
+		borderRadius: "12px",
+		padding: "24px",
+		textAlign: "center" as const,
+		border: "1px solid #f59e0b",
+	},
+	actionTitle: {
+		fontSize: "18px",
+		fontWeight: "bold" as const,
+		color: "#92400e",
+		marginBottom: "8px",
+	},
+	actionSubtitle: {
+		fontSize: "14px",
+		color: "#92400e",
+		marginBottom: "20px",
+		lineHeight: "1.5",
+	},
+	buttonGroup: {
+		display: "flex",
+		flexDirection: "column" as const,
+		alignItems: "center",
+	},
+	terminateButton: {
+		backgroundColor: "#dc2626",
+		color: "#ffffff",
+		padding: "14px 28px",
+		borderRadius: "8px",
+		fontSize: "15px",
+		fontWeight: "600" as const,
+		textDecoration: "none",
+		display: "inline-block",
+		width: "220px",
+	},
+	terminateAllButton: {
+		backgroundColor: "#6b7280",
+		color: "#ffffff",
+		padding: "14px 28px",
+		borderRadius: "8px",
+		fontSize: "15px",
+		fontWeight: "600" as const,
+		textDecoration: "none",
+		display: "inline-block",
+		width: "220px",
+	},
+	resetButton: {
+		backgroundColor: "#2563eb",
+		color: "#ffffff",
+		padding: "14px 28px",
+		borderRadius: "8px",
+		fontSize: "15px",
+		fontWeight: "600" as const,
+		textDecoration: "none",
+		display: "inline-block",
+		width: "220px",
+	},
+	orDivider: {
+		fontSize: "13px",
+		color: "#92400e",
+		margin: "12px 0",
+		fontWeight: "500" as const,
+	},
+
+	// Help Section
+	helpSection: {
+		marginTop: "28px",
+		paddingTop: "20px",
+		borderTop: "1px solid #e5e7eb",
+		textAlign: "center" as const,
+	},
+	helpText: {
+		fontSize: "13px",
+		color: "#6b7280",
+		margin: "0",
+	},
 };

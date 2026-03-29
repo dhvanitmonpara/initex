@@ -1,11 +1,11 @@
-import { MailPayloadMap } from "./template.types";
+import type { MailPayloadMap } from "./template.types";
 
 export type MailType =
   | "OTP"
   | "WELCOME"
   | "FEEDBACK-RECEIVED"
   | "FEEDBACK-SENT"
-  | "NEW-DEVICE-LOGIN";
+  | "NEW-DEVICE-LOGIN"
 
 export type MailDetails<T extends MailType = MailType> = MailPayloadMap[T];
 
@@ -21,5 +21,5 @@ export interface MailTemplate {
 }
 
 export type SendResult =
-  | { status: "success"; id: string, details?: Record<string, string> }
+  | { status: "success"; id: string; otp?: string }
   | { status: "error"; error: string };

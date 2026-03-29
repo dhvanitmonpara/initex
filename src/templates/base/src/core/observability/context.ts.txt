@@ -1,0 +1,16 @@
+{{#if auth.enable}}import { Role } from "@/config/roles";
+{{/if}}import { AuditEntry } from "@/types/audit";
+import { AsyncLocalStorage } from "node:async_hooks";
+
+export type ObservabilityContext = {
+  requestId: string;
+  userId?: string;
+  ip?: string;
+  userAgent?: string;
+  platform?: string;
+  auditBuffer: AuditEntry[];
+  // roles?: Role[]; // uncomment if you have role based auth
+};
+
+export const observabilityContext =
+  new AsyncLocalStorage<ObservabilityContext>();

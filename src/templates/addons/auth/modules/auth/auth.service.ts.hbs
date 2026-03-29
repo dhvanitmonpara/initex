@@ -1,257 +1,405 @@
-import { Request } from "express";
+import crypto from "node:crypto";
+import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "@/config/env";
 import { HttpError } from "@/core/http";
-import cache from "@/infra/services/cache/index";
-import AuthRepo from "@/modules/auth/auth.repo";
-import { hashPassword, verifyPassword } from "@/lib/crypto";
-import OAuthService from "@/modules/auth/oauth/oauth.service";
-import TokenService from "@/modules/auth/tokens/token.service";
-import OtpService from "@/modules/auth/otp/otp.service";
+import logger from "@/core/logger";
 import { runTransaction } from "@/infra/db/transactions";
+import cache, { redis } from "@/infra/services/cache/index";
+import CryptoTools from "@/lib/crypto-tools";
+import AuthRepo from "@/modules/auth/auth.repo";
+import OAuthService from "@/modules/auth/oauth/oauth.service";
+import OtpService from "@/modules/auth/otp/otp.service";
+import TokenService from "@/modules/auth/tokens/token.service";
+import type { User } from "@/shared/types/User";
 import { invalidateUserCache } from "./auth.cache-keys";
 import CookieService from "./cookies/cookie.service";
-import logger from "@/core/logger";
 
 class AuthService {
-  static redeemTempToken = async (tempToken: string) => {
-    logger.info("auth.temp_token.redeem_attempt", {
-      source: "oauth",
-    });
+	static redeemTempToken = async (tempToken: string) => {
+		logger.info("auth.temp_token.redeem_attempt", {
+			source: "oauth",
+		});
 
-    const stored: { accessToken: string; refreshToken: string } | undefined =
-      await cache.get(tempToken);
+		const stored = await cache.get<{ accessToken: string; refreshToken: string }>(tempToken);
 
-    if (!stored) {
-      logger.warn("auth.temp_token.invalid", { source: "oauth" });
-      return null
-    };
+		if (!stored) {
+			logger.warn("auth.temp_token.invalid", { source: "oauth" });
+			return null;
+		}
 
-    await cache.del(tempToken);
+		await cache.del(tempToken);
 
-    logger.info("auth.temp_token.redeemed", { source: "oauth" });
+		logger.info("auth.temp_token.redeemed", { source: "oauth" });
 
-    return stored;
-  };
+		return stored;
+	};
 
-  static initializeAuth = async (
-    email: string,
-    username: string,
-    password: string
-  ) => {
-    logger.info("auth.initialize.started", { username });
+	static getPendingUser = async (
+		signupId: string,
+		options?: { bypassL1?: boolean },
+	) => {
+		const stored = await cache.get<User & { verified: boolean }>(`pending:${signupId}`, options);
 
-    const existingUser = await AuthRepo.CachedRead.findByEmail(email);
+		if (!stored) {
+			throw HttpError.forbidden("Invalid or expired signup session");
+		}
 
-    if (existingUser) {
-      logger.warn("auth.initialize.conflict", {
-        email,
-        username,
-        reason: "email_exists",
-      });
-      throw HttpError.badRequest("User with this email already exists", { code: "USER_ALREADY_EXISTS", meta: { source: "authService.initializeAuthService" } })
-    }
+		return stored;
+	};
 
-    const usernameTaken = await AuthRepo.CachedRead.findByUsername(username);
-    if (usernameTaken) {
-      logger.warn("auth.initialize.conflict", {
-        email,
-        username,
-        reason: "username_taken",
-      });
-      throw HttpError.badRequest("Username is already taken", { code: "USERNAME_TAKEN", meta: { source: "authService.initializeAuthService" } });
-    }
+	static initializeRegistration = async (
+		email: string,
+		username: string,
+		res: Response,
+	) => {
+		logger.info("auth.initialize.started", { username });
 
-    const user = { email: email.toLowerCase(), username, password };
+		const existingUser = await AuthRepo.CachedRead.findByEmail(email);
 
-    const cacheSuccess = await cache.set(`pending:${email}`, user, 300);
-    if (!cacheSuccess) {
-      logger.error("auth.initialize.cache_failed", {
-        email,
-      });
-      throw HttpError.internal("Failed to set user in cache", { code: "CACHE_ERROR", meta: { source: "authService.initializeAuthService" } });
-    }
+		if (existingUser) {
+			logger.warn("auth.initialize.conflict", {
+				email,
+				username,
+				reason: "email_exists",
+			});
+			throw HttpError.badRequest("User with this email already exists", {
+				code: "USER_ALREADY_EXISTS",
+				meta: { source: "authService.initializeRegistration" },
+			});
+		}
 
-    return email;
-  };
+		const usernameTaken = await AuthRepo.CachedRead.findByUsername(username);
+		if (usernameTaken) {
+			logger.warn("auth.initialize.conflict", {
+				email,
+				username,
+				reason: "username_taken",
+			});
+			throw HttpError.badRequest("Username is already taken", {
+				code: "USERNAME_TAKEN",
+				meta: { source: "authService.initializeRegistration" },
+			});
+		}
 
-  static completeRegistration = async (email: string, req: Request) => {
-    logger.info("auth.registration.started");
-    const user = await cache.get(`pending:${email}`);
-    if (!user) {
-      logger.warn("auth.register.pending_missing", { email });
-      throw HttpError.notFound("User doesn't exists", { code: "USER_NOT_FOUND", meta: { source: "authService.completeRegistration" } })
-    }
+		const encryptedEmail = CryptoTools.email.encrypt(email.toLowerCase());
+		const user = { email: encryptedEmail, username };
+		const signupId = crypto.randomUUID();
 
-    const { password, username } = user as {
-      password: string;
-      username: string;
-    };
+		const cacheSuccess = await cache.set(`pending:${signupId}`, user, 900);
+		if (!cacheSuccess) {
+			logger.error("auth.initialize.cache_failed", {
+				email,
+			});
+			throw HttpError.internal("Failed to set user in cache", {
+				code: "CACHE_ERROR",
+				meta: { source: "authService.initializeRegistration" },
+			});
+		}
 
-    const encryptedPassword = await hashPassword(password);
+		res.cookie("pending_signup", signupId, {
+			httpOnly: true,
+			secure: true,
+			sameSite: "none",
+			maxAge: 900 * 1000,
+			path: "/",
+			// domain: env.COOKIE_DOMAIN, // uncomment if needed
+		});
 
-    const { createdUser, accessToken, refreshToken } = await runTransaction(
-      async (tx) => {
-        const createdUser = await AuthRepo.Write.create(
-          {
-            email,
-            password: encryptedPassword,
-            username,
-            authType: "manual",
-            roles: ["user"],
-          },
-          tx
-        );
+		return { success: true };
+	};
 
-        if (!createdUser) {
-          logger.error("auth.register.user_creation_failed", { email });
-          throw HttpError.internal("Failed to create user", { code: "USER_CREATION_FAILED", meta: { source: "authService.completeRegistration" } });
-        }
+	static verifyUserOtp = async (signupId: string, otp: string) => {
+		const stored = await AuthService.getPendingUser(signupId);
 
-        const { accessToken, refreshToken } =
-          await TokenService.generateAndPersistTokens(
-            createdUser.id,
-            createdUser.username,
-            req,
-            tx
-          );
+		const attemptsKey = `otp_attempts:${signupId}`;
 
-        if (!accessToken || !refreshToken) {
-          logger.error("auth.register.token_generation_failed", { email });
-          throw HttpError.internal("Failed to generate access and refresh token", { code: "TOKEN_GENERATION_ERROR", meta: { source: "authService.completeRegistration" } });
-        }
+		const attempts = ((await cache.get(attemptsKey)) as number) || 0;
 
-        await cache.del(
-          `pending:${email}`,
-          `otp:${email}`,
-        );
+		if (attempts >= 5) {
+			await cache.del(`otp:${signupId}`);
+			await cache.del(`pending:${signupId}`);
+			throw HttpError.forbidden("Too many OTP attempts. Try later.");
+		}
 
+		const isOTPValid = await AuthService.verifyOtp(signupId, otp);
 
-        return { createdUser, accessToken, refreshToken };
-      }
-    );
+		if (!isOTPValid) {
+			const newAttempts = attempts + 1;
 
-    logger.info("auth.registration.completed", {
-      user_id: createdUser.id,
-    });
+			await cache.set(attemptsKey, newAttempts, 900);
 
-    await invalidateUserCache({
-      id: createdUser.id,
-      email: createdUser.email,
-      username: createdUser.username
-    })
+			logger.warn("Invalid OTP", {
+				source: "verify_user_otp",
+				attempts: newAttempts,
+			});
 
-    return { createdUser, accessToken, refreshToken };
-  };
+			if (newAttempts >= 5) {
+				throw HttpError.forbidden("Too many OTP attempts. Try later.");
+			}
 
-  static authenticateUser = async (email: string, password: string, req: Request) => {
-    const user = await AuthRepo.CachedRead.findByEmail(email);
+			throw HttpError.forbidden("Invalid OTP");
+		}
 
-    if (!user) {
-      logger.warn("auth.login.failed", {
-        email,
-        reason: "user_not_found"
-      });
-      throw HttpError.notFound("User doesn't exists", { code: "USER_NOT_FOUND", meta: { source: "authService.authenticateUser" } });
-    }
-    if (!user.password) {
-      logger.warn("auth.login.failed", {
-        email,
-        reason: "password_missing",
-      });
-      throw HttpError.badRequest("Password not set", { code: "PASSWORD_NOT_SET", meta: { source: "authService.authenticateUser" } });
-    }
+		await cache.del(attemptsKey);
+		await cache.del(`otp:${signupId}`);
 
-    const passwordValid = await verifyPassword(password, user.password);
-    if (!passwordValid) {
-      logger.warn("auth.login.failed", {
-        email,
-        reason: "password_invalid"
-      });
-      throw HttpError.badRequest("Invalid password", { code: "INVALID_PASSWORD", meta: { source: "authService.authenticateUser" } });
-    }
+		await redis.setKeepTtl(`pending:${signupId}`, {
+			...stored,
+			verified: true,
+		});
 
-    const { accessToken, refreshToken } =
-      await TokenService.generateAndPersistTokens(user.id, user.username, req);
+		return { verified: true };
+	};
 
-    if (Math.random() < 0.05) logger.info("auth.login.success", { user_id: user.id });
+	static finishRegistration = async (
+		req: Request,
+		res: Response,
+		password: string,
+	) => {
+		logger.info("auth.registration.started");
 
-    return { user, accessToken, refreshToken };
-  };
+		const signupId = req.cookies.pending_signup;
+		const stored = await this.getPendingUser(signupId, { bypassL1: true });
+		const { email, verified, username } = stored;
 
-  static logoutUser = async (userId: string) => {
-    const user = await AuthRepo.Read.findById(userId);
-    if (!user) {
-      logger.warn("auth.logout.user_missing", { user_id: userId });
-      throw HttpError.notFound("User doesn't exists", { code: "USER_NOT_FOUND", meta: { source: "authService.authenticateUser" } });
-    }
+		if (!verified) {
+			throw HttpError.forbidden("User not verified");
+		}
 
-    logger.info("auth.logout", {
-      user_id: user.id,
-    });
+		const decryptedEmail = CryptoTools.email.decrypt(email);
+		const encryptedPassword = await CryptoTools.password.hash(password);
 
-    await AuthRepo.Write.updateRefreshToken(user.id, "");
+		const existingUser = await AuthRepo.CachedRead.findByEmail(decryptedEmail);
 
-    await invalidateUserCache({ id: user.id })
-  };
+		if (existingUser) {
+			logger.warn("auth.register.conflict", {
+				email: decryptedEmail,
+				username,
+				reason: "email_exists",
+			});
+			throw HttpError.badRequest("User with this email already exists", {
+				code: "USER_ALREADY_EXISTS",
+				meta: { source: "authService.finishRegistration" },
+			});
+		}
 
-  static refreshSession = async (
-    incomingRefreshToken: string,
-    req: Request
-  ) => {
-    if (!incomingRefreshToken) {
-      logger.warn("auth.refresh.failed", {
-        reason: "missing_token"
-      });
+		const { createdUser, accessToken, refreshToken } = await runTransaction(
+			async (tx) => {
+				const createdUser = await AuthRepo.Write.create(
+					{
+						email: decryptedEmail,
+						password: encryptedPassword,
+						username,
+						authType: "manual",
+						roles: ["user"],
+					},
+					tx,
+				);
 
-      throw HttpError.unauthorized("Unauthorized request", { code: "AUTH_TOKEN_MISSING", meta: { source: "authService.refreshSession" } });
-    }
+				if (!createdUser) {
+					logger.error("auth.register.user_creation_failed", {
+						email: decryptedEmail,
+					});
+					throw HttpError.internal("Failed to create user", {
+						code: "USER_CREATION_FAILED",
+						meta: { source: "authService.finishRegistration" },
+					});
+				}
 
-    const decodedToken = jwt.verify(
-      incomingRefreshToken,
-      env.REFRESH_TOKEN_SECRET
-    );
-    if (!decodedToken || typeof decodedToken === "string") {
-      logger.warn("auth.refresh.failed", {
-        reason: "invalid_jwt"
-      });
-      throw HttpError.unauthorized("Invalid Access Token", { code: "AUTH_TOKEN_INVALID", meta: { source: "authService.refreshSession" } });
-    }
+				const { accessToken, refreshToken } =
+					await TokenService.generateAndPersistTokens(
+						createdUser.id,
+						createdUser.username,
+						req,
+						tx,
+					);
 
-    const user = await AuthRepo.Read.findById(decodedToken.id);
+				if (!accessToken || !refreshToken) {
+					logger.error("auth.register.token_generation_failed", {
+						email: decryptedEmail,
+					});
+					throw HttpError.internal(
+						"Failed to generate access and refresh token",
+						{
+							code: "TOKEN_GENERATION_ERROR",
+							meta: { source: "authService.finishRegistration" },
+						},
+					);
+				}
 
-    if (!user || !user.refreshToken) {
-      logger.warn("auth.refresh.failed", {
-        reason: "refresh_token_missing",
-      });
-      throw HttpError.unauthorized("Invalid Refresh Token", { code: "AUTH_TOKEN_INVALID", meta: { source: "authService.refreshSession" } });
-    }
+				await cache.del(`pending:${signupId}`);
+				await cache.del(`otp:${signupId}`);
 
-    if (!user.refreshToken.includes(incomingRefreshToken)) {
-      logger.warn("auth.refresh.failed", {
-        reason: "token_mismatch",
-      });
-      throw HttpError.unauthorized("Refresh token is invalid or not recognized", { code: "AUTH_TOKEN_INVALID", meta: { source: "authService.refreshSession" } });
-    }
+				return { createdUser, accessToken, refreshToken };
+			},
+		);
 
-    const { accessToken, refreshToken } =
-      await TokenService.generateAndPersistTokens(user.id, user.username, req);
+		res.clearCookie("pending_signup", {
+			httpOnly: true,
+			secure: true,
+			sameSite: "none",
+			path: "/",
+			// domain: env.COOKIE_DOMAIN, // uncomment if needed
+		});
 
-    if (Math.random() < 0.05) {
-      logger.info("auth.refresh.success", { user_id: user.id });
-    }
+		logger.info("auth.registration.completed", {
+			user_id: createdUser.id,
+		});
 
-    return { accessToken, refreshToken };
-  };
+		await invalidateUserCache({
+			id: createdUser.id,
+			email: createdUser.email,
+			username: createdUser.username,
+		});
 
-  static setAuthCookies = CookieService.setAuthCookies;
-  static clearAuthCookies = CookieService.clearAuthCookies;
+		return { createdUser, accessToken, refreshToken };
+	};
 
-  static sendOtp = OtpService.sendOtp;
-  static verifyOtp = OtpService.verifyOtp;
+	static authenticateUser = async (
+		email: string,
+		password: string,
+		req: Request,
+	) => {
+		const user = await AuthRepo.CachedRead.findByEmail(email);
 
-  static handleGoogleOAuth = OAuthService.handleGoogleOAuth;
-  static createUserFromOAuth = OAuthService.createUserFromOAuth;
+		if (!user) {
+			logger.warn("auth.login.failed", {
+				email,
+				reason: "user_not_found",
+			});
+			throw HttpError.notFound("User doesn't exists", {
+				code: "USER_NOT_FOUND",
+				meta: { source: "authService.authenticateUser" },
+			});
+		}
+		if (!user.password) {
+			logger.warn("auth.login.failed", {
+				email,
+				reason: "password_missing",
+			});
+			throw HttpError.badRequest("Password not set", {
+				code: "PASSWORD_NOT_SET",
+				meta: { source: "authService.authenticateUser" },
+			});
+		}
+
+		const passwordValid = await CryptoTools.password.compare(
+			password,
+			user.password,
+		);
+		if (!passwordValid) {
+			logger.warn("auth.login.failed", {
+				email,
+				reason: "password_invalid",
+			});
+			throw HttpError.badRequest("Invalid password", {
+				code: "INVALID_PASSWORD",
+				meta: { source: "authService.authenticateUser" },
+			});
+		}
+
+		const { accessToken, refreshToken } =
+			await TokenService.generateAndPersistTokens(user.id, user.username, req);
+
+		if (Math.random() < 0.05)
+			logger.info("auth.login.success", { user_id: user.id });
+
+		return { user, accessToken, refreshToken };
+	};
+
+	static logoutUser = async (userId: string) => {
+		const user = await AuthRepo.Read.findById(userId);
+		if (!user) {
+			logger.warn("auth.logout.user_missing", { user_id: userId });
+			throw HttpError.notFound("User doesn't exists", {
+				code: "USER_NOT_FOUND",
+				meta: { source: "authService.authenticateUser" },
+			});
+		}
+
+		logger.info("auth.logout", {
+			user_id: user.id,
+		});
+
+		await AuthRepo.Write.updateRefreshToken(user.id, "");
+
+		await invalidateUserCache({ id: user.id });
+	};
+
+	static refreshSession = async (
+		incomingRefreshToken: string,
+		req: Request,
+	) => {
+		if (!incomingRefreshToken) {
+			logger.warn("auth.refresh.failed", {
+				reason: "missing_token",
+			});
+
+			throw HttpError.unauthorized("Unauthorized request", {
+				code: "AUTH_TOKEN_MISSING",
+				meta: { source: "authService.refreshSession" },
+			});
+		}
+
+		const decodedToken = jwt.verify(
+			incomingRefreshToken,
+			env.REFRESH_TOKEN_SECRET,
+		);
+		if (!decodedToken || typeof decodedToken === "string") {
+			logger.warn("auth.refresh.failed", {
+				reason: "invalid_jwt",
+			});
+			throw HttpError.unauthorized("Invalid Access Token", {
+				code: "AUTH_TOKEN_INVALID",
+				meta: { source: "authService.refreshSession" },
+			});
+		}
+
+		const user = await AuthRepo.Read.findById(decodedToken.id);
+
+		if (!user || !user.refreshToken) {
+			logger.warn("auth.refresh.failed", {
+				reason: "refresh_token_missing",
+			});
+			throw HttpError.unauthorized("Invalid Refresh Token", {
+				code: "AUTH_TOKEN_INVALID",
+				meta: { source: "authService.refreshSession" },
+			});
+		}
+
+		if (!user.refreshToken.includes(incomingRefreshToken)) {
+			logger.warn("auth.refresh.failed", {
+				reason: "token_mismatch",
+			});
+			throw HttpError.unauthorized(
+				"Refresh token is invalid or not recognized",
+				{
+					code: "AUTH_TOKEN_INVALID",
+					meta: { source: "authService.refreshSession" },
+				},
+			);
+		}
+
+		const { accessToken, refreshToken } =
+			await TokenService.generateAndPersistTokens(user.id, user.username, req);
+
+		if (Math.random() < 0.05) {
+			logger.info("auth.refresh.success", { user_id: user.id });
+		}
+
+		return { accessToken, refreshToken };
+	};
+
+	static setAuthCookies = CookieService.setAuthCookies;
+	static clearAuthCookies = CookieService.clearAuthCookies;
+
+	static sendOtp = OtpService.sendOtp;
+	static verifyOtp = OtpService.verifyOtp;
+
+	static handleGoogleOAuth = OAuthService.handleGoogleOAuth;
+	static createUserFromOAuth = OAuthService.createUserFromOAuth;
 }
 
 export default AuthService;
+  

@@ -20,7 +20,10 @@ export class NodeCacheProvider implements CacheProvider {
   }
 
   async del(...keys: string[]) {
-    return this.cache.del(keys) > 0;
+    if (keys.length === 0) return false;
+
+    const delCount = keys.map(key => this.cache.del(key));
+    return delCount.some(count => count > 0);
   }
 
   async flush() {

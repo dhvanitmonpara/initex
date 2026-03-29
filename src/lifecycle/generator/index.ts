@@ -53,7 +53,7 @@ const selectAddons = (config: ProjectContext) => {
 	}
 
 	if (config.socket) selectedAddons.push("socket");
-	if (config.cache.enable) selectedAddons.push(`cache/${config.cache.service}`);
+	if (config.cache.service) selectedAddons.push(`cache/${config.cache.service}`);
 
 	if (config.git) selectedAddons.push("git");
 

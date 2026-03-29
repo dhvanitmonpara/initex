@@ -11,7 +11,7 @@ export interface User {
   {{/if}}
   username: string;
   email: string;
-  password: string;
+  password: string | null;
   authType: "manual" | "oauth";
   refreshToken?: string;
   roles: Role[];

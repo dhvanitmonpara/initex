@@ -2,12 +2,77 @@ import { HttpError, HttpResponse } from "@/core/http";
 import type { Request, Response } from "express";
 import AuthService from "./auth.service";
 import * as authSchemas from "@/modules/auth/auth.schema";
-import * as otpSchemas from "@/modules/auth/otp/otp.schema";
-import { toInternalUser } from "../user/user.dto";
+import * as oauthSchemas from "@/modules/auth/oauth/oauth.schema";
+import { toInternalUser, toPublicUser } from "../user/user.dto";
 import { Controller } from "@/core/http/controller";
 
 @Controller()
 class AuthController {
+  static async initializeUser(req: Request, res: Response) {
+    const { email, username } = authSchemas.InitializeUserSchema.parse(req.body);
+
+    const savedEmail = await AuthService.initializeRegistration(
+      email,
+      username,
+      res
+    );
+
+    return HttpResponse.created(
+      "User initialized successfully and OTP sent",
+      { email: savedEmail },
+    );
+  }
+
+  static async verifyUserOtp(req: Request) {
+    const { otp } = authSchemas.VerifyOtpSchema.parse(req.body);
+
+    const signupId = req.cookies.pending_signup || req.body.pending_signup;
+
+    if (!signupId)
+      throw HttpError.badRequest("Signup ID is required", {
+        meta: { source: "verify_user_otp" },
+      });
+
+    const isVerified = await AuthService.verifyUserOtp(signupId, otp);
+
+    return HttpResponse.ok(
+      isVerified ? "OTP verified successfully" : "Invalid OTP",
+      { isVerified },
+    );
+  }
+
+  static async registerUser(req: Request, res: Response) {
+    const { password } = authSchemas.RegistrationSchema.parse(req.body);
+
+    const { createdUser, accessToken, refreshToken } =
+      await AuthService.finishRegistration(req, res, password);
+
+    AuthService.setAuthCookies(res, accessToken, refreshToken);
+    return HttpResponse.created(
+      "User registered and logged in successfully!",
+      toPublicUser(createdUser),
+    );
+  }
+
+  static async googleCallback(req: Request) {
+    const { code } = oauthSchemas.GoogleCallbackSchema.parse(req.query);
+    const { redirectUrl } = await AuthService.handleGoogleOAuth(code, req);
+    return HttpResponse.redirect(redirectUrl)
+  }
+
+  static async handleUserOAuth(req: Request, res: Response) {
+    const { email, username } = oauthSchemas.UserOAuthSchema.parse(req.body);
+
+    const { createdUser, accessToken, refreshToken } =
+      await AuthService.createUserFromOAuth(email, username, req);
+
+    AuthService.setAuthCookies(res, accessToken, refreshToken);
+    return HttpResponse.created(
+      "User created successfully!",
+      toPublicUser(createdUser)
+    );
+  }
+
   static async loginUser(req: Request, res: Response) {
     const { email, password } = authSchemas.LoginSchema.parse(req.body);
 
@@ -46,23 +111,37 @@ class AuthController {
   };
 
   static async sendOtp(req: Request) {
-    const { email, username } = otpSchemas.OtpSchema.parse(req.body);
+    const { email } = authSchemas.OtpSchema.parse(req.body);
 
-    const { messageId } = await AuthService.sendOtp(email, username);
+    const signupId = req.cookies.pending_signup || req.body.pending_signup;
+
+    if (!signupId)
+      throw HttpError.badRequest("Signup ID is required", {
+        meta: { source: "send_otp" },
+      });
+
+    const { messageId } = await AuthService.sendOtp(signupId, email);
 
     return HttpResponse.ok("OTP sent successfully", { messageId });
-  };
+  }
 
   static async verifyOtp(req: Request) {
-    const { email, otp } = otpSchemas.VerifyOtpSchema.parse(req.body);
+    const { otp } = authSchemas.VerifyOtpSchema.parse(req.body);
 
-    const isVerified = await AuthService.verifyOtp(email, otp);
+    const signupId = req.cookies.pending_signup || req.body.pending_signup;
+
+    if (!signupId)
+      throw HttpError.badRequest("Signup ID is required", {
+        meta: { source: "verify_otp" },
+      });
+
+    const isVerified = await AuthService.verifyOtp(signupId, otp);
 
     return HttpResponse.ok(
       isVerified ? "OTP verified successfully" : "Invalid OTP",
       { isVerified },
     );
-  };
+  }
 }
 
 export default AuthController;

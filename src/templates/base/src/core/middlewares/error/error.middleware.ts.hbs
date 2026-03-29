@@ -27,7 +27,7 @@ const errorHandlers = {
       });
       error = err;
     } else {
-      logger.error("request.unhandled_exception", { err });
+      logger.error("request.unhandled_exception", err);
 
       error = new HttpError({
         statusCode: 500,

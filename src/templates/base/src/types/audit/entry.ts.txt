@@ -1,0 +1,12 @@
+import { AuditAction } from "./actions";
+import { AuditEntity } from "./entity";
+
+export type AuditEntry = {
+  action: AuditAction;
+  entityType: AuditEntity;
+  entityId?: string;
+  before?: unknown;
+  after?: unknown;
+  reason?: string;
+  metadata?: Record<string, unknown>;
+};

@@ -7,7 +7,13 @@ interface OTPDetails extends BaseDetails {
   otp?: string;
 }
 
-interface WelcomeDetails extends BaseDetails { }
+interface WelcomeDetails extends BaseDetails {
+  email: string;
+  ipAddress?: string;
+  device?: string;
+  location?: string;
+  createdAt: Date;
+}
 
 interface FeedbackReceivedDetails {
   projectName: string;
@@ -21,9 +27,19 @@ interface FeedbackSentDetails {
 }
 
 interface NewDeviceLoginDetails {
+  username: string;
+  email: string;
   device: string;
   location?: string;
+  ipAddress?: string;
   projectName: string;
+  existingSessionId?: string;
+  allSessions: Array<{
+    id: string;
+    device?: string;
+    ipAddress?: string;
+    createdAt: Date;
+  }>;
 }
 
 export type MailPayloadMap = {

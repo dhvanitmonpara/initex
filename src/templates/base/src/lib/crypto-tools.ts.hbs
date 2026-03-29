@@ -1,0 +1,97 @@
+import crypto from "node:crypto";
+import bcrypt from "bcryptjs";
+import { env } from "@/config/env";
+
+const emailKey = Buffer.from(env.EMAIL_ENCRYPTION_KEY, "hex");
+
+if (emailKey.length !== 32) {
+  throw new Error("EMAIL_ENCRYPTION_KEY must be 32 bytes (64 hex chars)");
+}
+
+function normalizeEmail(email: string) {
+  return email.toLowerCase().trim();
+}
+
+const CryptoTools = {
+  hash: {
+    sha256(data: string): string {
+      return crypto.createHash("sha256").update(data).digest("hex");
+    },
+
+    hmacSha256(data: string, secret?: string): string {
+      return crypto
+        .createHmac("sha256", secret || env.HMAC_SECRET)
+        .update(data)
+        .digest("hex");
+    },
+  },
+
+  password: {
+    async hash(password: string): Promise<string> {
+      return bcrypt.hash(password, 12);
+    },
+
+    async compare(plain: string, hashed: string): Promise<boolean> {
+      return bcrypt.compare(plain, hashed);
+    },
+  },
+
+  otp: {
+    async hash(otp: string): Promise<string> {
+      return bcrypt.hash(otp, 10);
+    },
+
+    async compare(plainOtp: string, hashedOtp: string): Promise<boolean> {
+      return bcrypt.compare(plainOtp, hashedOtp);
+    },
+  },
+
+  email: {
+    hash(email: string): string {
+      return crypto
+        .createHmac("sha256", env.EMAIL_SECRET)
+        .update(normalizeEmail(email))
+        .digest("hex");
+    },
+
+    encrypt(email: string): string {
+      const normalized = normalizeEmail(email);
+
+      const iv = crypto.randomBytes(12);
+      const cipher = crypto.createCipheriv("aes-256-gcm", emailKey, iv);
+
+      const encrypted = Buffer.concat([
+        cipher.update(normalized, "utf8"),
+        cipher.final(),
+      ]);
+
+      const tag = cipher.getAuthTag();
+
+      return Buffer.concat([iv, tag, encrypted]).toString("base64");
+    },
+
+    decrypt(payload: string): string {
+      const data = Buffer.from(payload, "base64");
+
+      const iv = data.subarray(0, 12);
+      const tag = data.subarray(12, 28);
+      const encrypted = data.subarray(28);
+
+      const decipher = crypto.createDecipheriv("aes-256-gcm", emailKey, iv);
+      decipher.setAuthTag(tag);
+
+      return (
+        decipher.update(encrypted, undefined, "utf8") + decipher.final("utf8")
+      );
+    },
+
+    prepare(email: string) {
+      return {
+        hashed: this.hash(email),
+        encrypted: this.encrypt(email),
+      };
+    },
+  },
+};
+
+export default CryptoTools;

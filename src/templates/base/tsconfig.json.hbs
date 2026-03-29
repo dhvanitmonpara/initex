@@ -1,17 +1,21 @@
 {
 	"compilerOptions": {
-		"target": "ES2022",
-		"lib": ["ES2022"],
+		"target": "ES2024",
+		"lib": [
+			"ES2024"
+		],
 		"module": "ESNext",
 		"moduleResolution": "Node",
 		"outDir": "dist",
 		"rootDir": "./",
 		"baseUrl": "./src",
-    "paths": {
-      "@/*": ["*"]
-    },
+		"paths": {
+			"@/*": [
+				"*"
+			]
+		},
 		{{#if smtp.enable}}
-    "jsx": "react",
+    "jsx": "react-jsx",
 		{{/if}}
 		"esModuleInterop": true,
 		"resolveJsonModule": true,

@@ -16,19 +16,19 @@ export class NodeCacheProvider implements CacheProvider {
   }
 
   async set<T>(key: string, value: T, ttl?: number) {
+    if (ttl <= 0) throw new Error("TTL must be positive");
     return this.cache.set(key, value, ttl);
   }
 
   async del(...keys: string[]) {
-    return this.cache.del(keys) > 0;
+    if (keys.length === 0) return false;
+
+    const delCount = keys.map(key => this.cache.del(key));
+    return delCount.some(count => count > 0);
   }
 
   async flush() {
     this.cache.flushAll();
-  }
-
-  async keys() {
-    return this.cache.keys();
   }
 
   async has(key: string) {

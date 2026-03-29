@@ -133,26 +133,16 @@ export async function promptProjectConfig(): Promise<ProjectConfig> {
 	);
 
 	// CACHE
-	const cacheEnable = true;
-	let cacheService: "multi" | "nodecache" | undefined;
-
-	if (authEnable) {
-		cacheService = "multi"; // forced
-	} else {
-		const cacheChoice = await promptSelect<"none" | "nodecache" | "multi">(
-			"Select a cache:",
-			[
-				{ value: "none", label: "None" },
-				{ value: "nodecache", label: "Node Cache" },
-				{
-					value: "multi",
-					label: "Multi Level (NodeCache + Redis)",
-				},
-			],
-		);
-
-		cacheService = cacheChoice !== "none" ? cacheChoice : undefined;
-	}
+	const cacheService = await promptSelect<"nodecache" | "multi">(
+		"Select a cache:",
+		[
+			{ value: "nodecache", label: "Node Cache" },
+			{
+				value: "multi",
+				label: "Multi Level (NodeCache + Redis)",
+			},
+		],
+	);
 
 	// SOCKET & GIT
 	const socket = await promptConfirm("Use Socket.io?");
@@ -166,7 +156,6 @@ export async function promptProjectConfig(): Promise<ProjectConfig> {
 		db,
 		auth: { enable: authEnable },
 		cache: {
-			enable: cacheEnable,
 			service: cacheService,
 		},
 		socket,

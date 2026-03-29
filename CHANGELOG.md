@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented in this file.
 
+## 2.1.3
+
+### Added
+
+- Redis Session Store
+
+### Changed
+
+- Separated Redis client instance creation in a single file
+- Per request logs are now supported by default with base template
+- Updated registration workflow in auth module
+- Improved cache keys handling in cache module
+- Temporarily downgraded TypeScript to v5.9.3 due to breaking changes in module resolution and path aliasing in v6
+
+### Fixed
+
+- `err` object logging bug in `error.middleware.ts` template
+
+### Removed
+
+- Multiple context injecting functions in different files
+- Cache provider selection is not optional anymore
+
+
 ## 2.1.2
 
 ### Fixed

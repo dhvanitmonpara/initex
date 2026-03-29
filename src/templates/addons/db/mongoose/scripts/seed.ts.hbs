@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import UserModel from "../src/infra/db/models/user.model";
-import { hashPassword } from "../src/lib/crypto";
+import CryptoTools from "../src/lib/crypto-tools";
 import { env } from "../src/config/env";
 
 async function run() {
@@ -11,7 +11,7 @@ async function run() {
     email: userEmail,
   });
   if (!existingSuperAdmin) {
-    const passwordHash = await hashPassword(globalPassword);
+    const passwordHash = await CryptoTools.password.hash(globalPassword);
     await UserModel.create({
       email: userEmail,
       passwordHash,

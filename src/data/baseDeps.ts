@@ -11,6 +11,7 @@ const baseDevDeps = [
 	"@types/multer",
 	"esbuild-plugin-alias",
 	"@asteasolutions/zod-to-openapi",
+	"@types/morgan",
 ];
 const baseDeps = [
 	"cookie-parser",
@@ -20,7 +21,9 @@ const baseDeps = [
 	"zod",
 	"helmet",
 	"multer",
-	"typescript",
+	"typescript@5.9.3",
+	"morgan",
+	"winston",
 	"rate-limiter-flexible",
 ];
 

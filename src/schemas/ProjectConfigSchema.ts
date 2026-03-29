@@ -11,7 +11,6 @@ export const ProjectConfigSchema = z
 			name: z.string().min(1, "Database name cannot be empty.").optional(),
 		}),
 		cache: z.object({
-			enable: z.boolean().default(false),
 			service: z.enum(["nodecache", "multi"]).optional(),
 		}),
 		auth: z.object({

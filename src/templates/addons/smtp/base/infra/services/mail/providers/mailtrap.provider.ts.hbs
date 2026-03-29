@@ -1,6 +1,6 @@
 import { MailtrapClient } from "mailtrap";
-import { EmailProvider } from "../core/mail.interface";
 import { env } from "@/config/env";
+import type { EmailProvider } from "../core/mail.interface";
 
 export class MailtrapProvider implements EmailProvider {
   private client = new MailtrapClient({ token: env.MAILTRAP_TOKEN });
@@ -17,7 +17,10 @@ export class MailtrapProvider implements EmailProvider {
 
       return { id: response?.message_ids?.[0], status: "success" as const };
     } catch (error) {
-      return { status: "error" as const, error: error instanceof Error ? error.message : String(error) };
+      return {
+        status: "error" as const,
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 }

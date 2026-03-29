@@ -15,6 +15,10 @@
 			"args": ["init"]
 		},
 		{
+			"cmd": "git",
+			"args": ["branch", "-M", "main"]
+		},
+		{
 			"cmd": "npx",
 			"args": ["husky"]
 		},

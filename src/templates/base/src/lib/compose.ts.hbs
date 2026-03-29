@@ -1,5 +1,12 @@
 import type { RequestHandler, Request, Response, NextFunction } from "express";
 
+/**
+ * Composes multiple Express middleware functions into a single middleware function.
+ *
+ * @param middlewares - The middleware functions to compose.
+ * @returns A single composed middleware function.
+ */
+
 function compose(...middlewares: RequestHandler[]): RequestHandler {
   return (req: Request, res: Response, next: NextFunction) => {
     let idx = 0;

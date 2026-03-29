@@ -1,5 +1,5 @@
-import { MailTemplate, MailType, MailDetails } from "../types/mail.types";
 import { mailTemplates } from "../templates";
+import type { MailDetails, MailTemplate, MailType } from "../types/mail.types";
 
 export class TemplateEngine {
   private cache = new Map<string, MailTemplate>();
@@ -7,7 +7,7 @@ export class TemplateEngine {
   async render<T extends MailType>(type: T, details: MailDetails<T>) {
     const key = `${type}:${JSON.stringify(details)}`;
 
-    if (this.cache.has(key)) return this.cache.get(key)!;
+    if (this.cache.has(key)) return this.cache.get(key);
 
     try {
       const tpl = await mailTemplates[type](details);

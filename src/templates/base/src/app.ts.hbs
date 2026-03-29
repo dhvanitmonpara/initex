@@ -5,7 +5,8 @@ import http from "node:http";
 import socketService from "@/infra/services/socket";
 {{/if}}
 import cookieParser from "cookie-parser";
-import { errorHandlers } from "@/core/middlewares";
+{{!-- import { errorHandlers, observeRequest, registerRequestLogging } from "@/core/middlewares"; --}}
+import { errorHandlers, registerRequestLogging } from "@/core/middlewares";
 import { registerRoutes } from "@/routes/index";
 import applySecurity from "./config/security";
 
@@ -18,6 +19,9 @@ const createApp = () => {
   app.use(express.urlencoded({ extended: true, limit: "16kb" }));
   app.use(express.static("public"));
   app.use(cookieParser());
+
+  {{!-- app.use(observeRequest); --}}
+  app.use(registerRequestLogging);
 
   applySecurity(app);
   registerRoutes(app);
