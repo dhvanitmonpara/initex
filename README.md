@@ -201,7 +201,7 @@ If no options are provided, Initex runs in interactive mode.
 
 <!-- Add screenshots, CLI output snippets, or links to example repositories here. -->
 
-<video controls src="https://github.com/user-attachments/assets/606fe34b-b1ef-43f3-bad8-1fc52ddf06f5" width="600">
+<video controls src="https://github.com/user-attachments/assets/606fe34b-b1ef-43f3-bad8-1fc52ddf06f5" title="Initex Demo" width="600">
 </video>
 
 ---
