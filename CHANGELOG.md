@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## 2.1.4
+
+### Added
+
+- Morgan support for logging requests
+- Centralized `observabilityContextStore` with `observeRequest` middleware for storing request context
+
 ## 2.1.31
 
 ### Fixed

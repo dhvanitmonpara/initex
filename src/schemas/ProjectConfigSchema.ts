@@ -72,6 +72,9 @@ export type ProjectContext = ProjectConfig & {
 	dbHost?: string;
 	dbPort?: string;
 	dbName?: string;
+	emailEncryptionKey: string;
+	hmacSecret: string;
+	emailSecret: string;
 	sequelizeDialect?: string;
 	isBunRuntime: boolean;
 	isDenoRuntime: boolean;

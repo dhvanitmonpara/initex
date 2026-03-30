@@ -14,7 +14,7 @@ Setting up backend projects repeatedly involves answering the same questions:
 * Which database and ORM?
 * Rate limiting?
 * Linting and formatting?
-* Logging?
+* Logging and monitoring?
 * Security headers?
 * Auth or no auth?
 * Cache?
@@ -201,7 +201,7 @@ If no options are provided, Initex runs in interactive mode.
 
 <!-- Add screenshots, CLI output snippets, or links to example repositories here. -->
 
-<video controls src="https://github.com/user-attachments/assets/411f4475-3473-45bd-9f99-1799b7c2640f" width="600">
+<video controls src="https://github.com/user-attachments/assets/606fe34b-b1ef-43f3-bad8-1fc52ddf06f5" width="600">
 </video>
 
 ---
